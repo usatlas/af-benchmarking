@@ -13,6 +13,7 @@ jobs:
   evaluate:
     runs-on: arc-runner-set-uchicago-triton
     strategy:
+      max-parallel: 1
       matrix:
         mode: ["local", "triton", "local_single", "triton_single"]
 
