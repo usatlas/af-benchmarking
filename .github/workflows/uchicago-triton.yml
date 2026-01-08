@@ -21,7 +21,7 @@ jobs:
           worksheetTitle: af-benchmarking
           commands: |
             [
-              { "command": "appendData", "args": { "data": [["test", "1", "2", "giordon"]],
+              { "command": "appendData", "args": { "data": [["test", "1", "2", "giordon"]] }},
             ]
         env:
           GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
