@@ -23,9 +23,9 @@ jobs:
             [
               { "command": "appendData", "args": { "data": [["test", "1", "2", "giordon"]],
             ]
-          env:
-            GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
-            GSHEET_PRIVATE_KEY: ${{ secrets.GSHEET_PRIVATE_KEY }}
+        env:
+          GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
+          GSHEET_PRIVATE_KEY: ${{ secrets.GSHEET_PRIVATE_KEY }}
 
       #- name: execute
       #  run: ./triton/run.sh local
