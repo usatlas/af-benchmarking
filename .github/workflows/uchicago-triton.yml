@@ -15,21 +15,30 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: ./.github/actions/setup-globus
+      - uses: jroehl/gsheet.action@v2.0.0
         with:
-          voms-usercert: ${{ secrets.VOMS_USERCERT }}
-          voms-userkey: ${{ secrets.VOMS_USERKEY }}
+          spreadsheetId: 1rPMQvEGdFghzmbGUhpovt_8FMrDmIf6Au154EwhZd1Q
+          worksheetTitle: af-benchmarking
+          commands: |
+            [
+              { "command": "appendData", "args": { "data": [["test", "1", "2", "giordon"]],
+            ]
+          env:
+            GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
+            GSHEET_PRIVATE_KEY: ${{ secrets.GSHEET_PRIVATE_KEY }}
 
-      - name: execute
-        run: ./Rucio/rucio_script.sh uchicago
-        shell: bash
-        env:
-          VOMS_PASSWORD: ${{ secrets.VOMS_PASSWORD }}
+      #- name: execute
+      #  run: ./triton/run.sh local
+      #  shell: bash
 
-      - name: upload log
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: ${{ github.job }}-logs
-          path: |
-            rucio.log
+      #- name: upload log
+      #  if: always()
+      #  uses: actions/upload-artifact@v5
+      #  with:
+      #    name: local-logs
+      #    path: |
+      #      local/log.Derivation
+
+      #- name: parse log
+      #  run: |
+      #    python3 parse_athena_log.py local/log.Derivation >> local.json
