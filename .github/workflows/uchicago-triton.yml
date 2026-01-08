@@ -1,4 +1,4 @@
-name: uchicago
+name: uchicago-triton
 on:
   push:
   pull_request:
