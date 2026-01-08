@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  evaluate:
     runs-on: arc-runner-set-uchicago-triton
     strategy:
       matrix:
