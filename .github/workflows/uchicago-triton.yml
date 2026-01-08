@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  # Run every 6 hours
-  schedule:
-    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -17,10 +14,6 @@ jobs:
     runs-on: arc-runner-set-uchicago-triton
     steps:
       - uses: actions/checkout@v6
-
-      - name: env
-        run: printenv
-        shell: bash
 
       - uses: ./.github/actions/setup-globus
         with:
