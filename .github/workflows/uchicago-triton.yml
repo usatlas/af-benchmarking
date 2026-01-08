@@ -1,6 +1,5 @@
 name: uchicago-triton
 on:
-  push:
   pull_request:
     branches:
       - main
@@ -19,6 +18,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+
+      - run: df -h
 
       - name: execute
         run: ./triton/run.sh ${{ matrix.mode }}
