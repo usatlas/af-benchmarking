@@ -3,11 +3,13 @@
 MODE="${1:-local}"
 shift || true
 
+echo "::group::setupATLAS"
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir=$HOME/localConfig
 # shellcheck disable=SC1091
 source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh -q
 asetup Athena,25.0.47
+echo "::endgroup::"
 
 set -euxo pipefail
 
@@ -72,6 +74,8 @@ fi
 
 mkdir "${MODE}"
 pushd "${MODE}"
+
+echo "::group::Derivation_tf.py"
 # Run the transform
 Derivation_tf.py \
   --inputAODFile /data/kratsg/tritonTest/data24_13p6TeV.00485051.physics_Main.merge.AOD.f1518_m2248._lb0092._0002.1 \
@@ -84,4 +88,10 @@ Derivation_tf.py \
   --parallelCompression False \
   --perfmon fullmonmt \
   "${EXTRA_OPTS}"
+echo "::endgroup::"
+
+echo "::group::log.Derivation"
+cat log.Derivation
+echo "::endgroup::"
+
 popd

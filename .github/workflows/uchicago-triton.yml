@@ -12,20 +12,16 @@ permissions:
 jobs:
   test:
     runs-on: arc-runner-set-uchicago-triton
+    strategy:
+      matrix:
+        mode: ["local", "triton", "local_single", "triton_single"]
+
     steps:
       - uses: actions/checkout@v6
 
       - name: execute
-        run: ./triton/run.sh local
+        run: ./triton/run.sh ${{ matrix.mode }}
         shell: bash
-
-      - name: upload log
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: local-logs
-          path: |
-            local/log.Derivation
 
       - name: Set up Python 3.13
         uses: actions/setup-python@v6
@@ -35,8 +31,8 @@ jobs:
       - name: parse log
         id: parse
         run: |
-          python3 parse_athena_log.py local/log.Derivation >> local.json
-          data=$(jq -c '[.[]]' local.json)
+          python3 parse_athena_log.py ${{ matrix.mode }}/log.Derivation >> ${{ matrix.mode }}.json
+          data=$(jq -c '[.[],"${{ matrix.mode }}"]' ${{ matrix.mode }}.json)
           echo "data=${data}"
           echo "data=${data}" >> "$GITHUB_OUTPUT"
 
