@@ -91,8 +91,4 @@ Derivation_tf.py \
 set +euxo pipefail
 echo "::endgroup::"
 
-echo "::group::log.Derivation"
-cat log.Derivation
-echo "::endgroup::"
-
 popd
