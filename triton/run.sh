@@ -66,10 +66,11 @@ EXTRA_OPTS=""
 
 if [[ "${BACKEND}" == "triton" ]]; then
     echo "Running with Triton-enabled NNSharingSvc"
-    EXTRA_OPTS="--outputDAODFile 00485051._0002.triton.pool.root.1 --postExec ${TRITON_POSTEXEC}"
+    EXTRA_OPTS=(--outputDAODFile 00485051._0002.triton.pool.root.1)
+    EXTRA_OPTS+=(--postExec "${TRITON_POSTEXEC}")
 else
     echo "Running in normal (local) mode"
-    EXTRA_OPTS="--outputDAODFile 00485051._0002.pool.root.1"
+    EXTRA_OPTS=(--outputDAODFile 00485051._0002.pool.root.1)
 fi
 
 mkdir "${MODE}"
@@ -87,7 +88,7 @@ Derivation_tf.py \
   --CA "all:True" \
   --parallelCompression False \
   --perfmon fullmonmt \
-  "${EXTRA_OPTS}"
+  "${EXTRA_OPTS[@]}"
 echo "::endgroup::"
 
 echo "::group::log.Derivation"
