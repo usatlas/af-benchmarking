@@ -20,7 +20,7 @@ jobs:
           spreadsheetId: 1rPMQvEGdFghzmbGUhpovt_8FMrDmIf6Au154EwhZd1Q
           commands: |
             [
-              { "command": "appendData", "args": { "data": [["test", "1", "2", "giordon"]], "worksheetTitle": "af-benchmarking" }}
+              { "command": "appendData", "args": { "data": [["test", "1", "2", "giordon"]], "worksheetTitle": "af-benchmarking", "minCol": 1 }}
             ]
         env:
           GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
