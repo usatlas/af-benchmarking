@@ -15,29 +15,33 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: execute
+        run: ./triton/run.sh local
+        shell: bash
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: local-logs
+          path: |
+            local/log.Derivation
+
+      - name: parse log
+        id: parse
+        run: |
+          python3 parse_athena_log.py local/log.Derivation >> local.json
+          data=$(jq -c '[.[]]' local.json)
+          echo "data=${data}"
+          echo "data=${data}" >> "$GITHUB_OUTPUT"
+
       - uses: jroehl/gsheet.action@v2.0.0
         with:
           spreadsheetId: 1rPMQvEGdFghzmbGUhpovt_8FMrDmIf6Au154EwhZd1Q
           commands: |
             [
-              { "command": "appendData", "args": { "data": [["test", "1", 2, 3.14, "giordon"]], "worksheetTitle": "af-benchmarking", "minCol": 1 }}
+              { "command": "appendData", "args": { "data": [${{ steps.parse.outputs.data }}], "worksheetTitle": "af-benchmarking", "minCol": 1 }}
             ]
         env:
           GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
           GSHEET_PRIVATE_KEY: ${{ secrets.GSHEET_PRIVATE_KEY }}
-
-      #- name: execute
-      #  run: ./triton/run.sh local
-      #  shell: bash
-
-      #- name: upload log
-      #  if: always()
-      #  uses: actions/upload-artifact@v5
-      #  with:
-      #    name: local-logs
-      #    path: |
-      #      local/log.Derivation
-
-      #- name: parse log
-      #  run: |
-      #    python3 parse_athena_log.py local/log.Derivation >> local.json
