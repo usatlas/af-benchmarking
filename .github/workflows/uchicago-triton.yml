@@ -33,11 +33,6 @@ jobs:
           cat ${{ matrix.mode }}/log.Derivation
           echo "::endgroup::"
 
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v6
-        with:
-          python-version: 3.13
-
       - name: parse log
         id: parse
         run: |
