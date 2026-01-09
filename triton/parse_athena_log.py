@@ -57,9 +57,9 @@ def main() -> None:
                 "average_max_rss_gb": avg_max_rss,
                 "average_events_per_second": avg_events_per_second,
                 "cpu_utilization_efficiency_percent": cpu_util_eff,
-            }
+            },
+            indent=4,
         ),
-        indent=4,
     )
 
 
