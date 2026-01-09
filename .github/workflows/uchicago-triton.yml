@@ -36,7 +36,7 @@ jobs:
       - name: parse log
         id: parse
         run: |
-          python3 parse_athena_log.py ${{ matrix.mode }}/log.Derivation >> ${{ matrix.mode }}.json
+          python3 triton/parse_athena_log.py ${{ matrix.mode }}/log.Derivation >> ${{ matrix.mode }}.json
           data=$(jq -c '[.[],"${{ matrix.mode }}"]' ${{ matrix.mode }}.json)
           echo "data=${data}"
           echo "data=${data}" >> "$GITHUB_OUTPUT"
