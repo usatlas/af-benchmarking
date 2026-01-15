@@ -37,19 +37,6 @@ case "${MODE}" in
 esac
 
 # ------------------------------------------------------------------------------
-# Optional single-model setup
-# ------------------------------------------------------------------------------
-if [[ "${SINGLE}" == "true" ]]; then
-    echo "Compiling and sourcing the setup for single-model"
-    cmake -DATLAS_PACKAGE_FILTER_FILE=/home/kratsg/tritonTest/package_filters.txt -S /home/kratsg/tritonTest/athena/Projects/WorkDir -B build
-    cmake --build build -j 16
-    source build/x86_64-el9-gcc14-opt/setup.sh
-    # echo "Sourcing single-model setup"
-    # # shellcheck disable=SC1091
-    # source /data/kratsg/tritonTest/build_singlemodel/x86_64-el9-gcc14-opt/setup.sh
-fi
-
-# ------------------------------------------------------------------------------
 # AthenaMP parallel settings
 # ------------------------------------------------------------------------------
 export ATHENA_PROC_NUMBER=8
@@ -75,11 +62,24 @@ else
     EXTRA_OPTS=(--outputDAODFile 00485051._0002.pool.root.1)
 fi
 
+set -euxo pipefail
+# ------------------------------------------------------------------------------
+# Optional single-model setup
+# ------------------------------------------------------------------------------
+if [[ "${SINGLE}" == "true" ]]; then
+    echo "Compiling and sourcing the setup for single-model"
+    cmake -DATLAS_PACKAGE_FILTER_FILE=/data/kratsg/tritonTest/athena-singlemodel/package_filters.txt -S /data/kratsg/tritonTest/athena-singlemodel/Projects/WorkDir -B build
+    cmake --build build -j 16
+    source build/x86_64-el9-gcc14-opt/setup.sh
+    # echo "Sourcing single-model setup"
+    # # shellcheck disable=SC1091
+    # source /data/kratsg/tritonTest/build_singlemodel/x86_64-el9-gcc14-opt/setup.sh
+fi
+
 mkdir "${MODE}"
 pushd "${MODE}"
 
 echo "::group::Derivation_tf.py"
-set -euxo pipefail
 # Run the transform
 Derivation_tf.py \
   --inputAODFile /data/kratsg/tritonTest/data24_13p6TeV.00485051.physics_Main.merge.AOD.f1518_m2248._lb0092._0002.1 \
