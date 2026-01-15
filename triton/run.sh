@@ -40,15 +40,14 @@ esac
 # Optional single-model setup
 # ------------------------------------------------------------------------------
 if [[ "${SINGLE}" == "true" ]]; then
-    echo "Sourcing single-model setup"
-    # shellcheck disable=SC1091
-    source /data/kratsg/tritonTest/build_singlemodel/x86_64-el9-gcc14-opt/setup.sh
+    echo "Compiling and sourcing the setup for single-model"
+    cmake -DATLAS_PACKAGE_FILTER_FILE=/home/kratsg/tritonTest/package_filters.txt -S /home/kratsg/tritonTest/athena/Projects/WorkDir -B build
+    cmake --build build -j 16
+    source build/x86_64-el9-gcc14-opt/setup.sh
+    # echo "Sourcing single-model setup"
+    # # shellcheck disable=SC1091
+    # source /data/kratsg/tritonTest/build_singlemodel/x86_64-el9-gcc14-opt/setup.sh
 fi
-
-echo $PYTHONPATH
-ls /data/kratsg/tritonTest/build_singlemodel/x86_64-el9-gcc14-opt/python/FlavorTagInference/
-python -c "import FlavorTagInference"
-python -c "import FlavorTagInference; print(FlavorTagInference.__file__)"
 
 # ------------------------------------------------------------------------------
 # AthenaMP parallel settings
