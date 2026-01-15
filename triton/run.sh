@@ -47,6 +47,8 @@ fi
 
 echo $PYTHONPATH
 ls /data/kratsg/tritonTest/build_singlemodel/x86_64-el9-gcc14-opt/python/FlavorTagInference/
+python -c "import FlavorTagInference"
+python -c "import FlavorTagInference; print(FlavorTagInference.__file__)"
 
 # ------------------------------------------------------------------------------
 # AthenaMP parallel settings
