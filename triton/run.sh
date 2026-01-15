@@ -45,6 +45,9 @@ if [[ "${SINGLE}" == "true" ]]; then
     source /data/kratsg/tritonTest/build_singlemodel/x86_64-el9-gcc14-opt/setup.sh
 fi
 
+echo $PYTHONPATH
+ls /data/kratsg/tritonTest/build_singlemodel/x86_64-el9-gcc14-opt/python/FlavorTagInference/
+
 # ------------------------------------------------------------------------------
 # AthenaMP parallel settings
 # ------------------------------------------------------------------------------
