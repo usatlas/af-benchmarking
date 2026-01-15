@@ -69,10 +69,8 @@ if [[ "${SINGLE}" == "true" ]]; then
     echo "Compiling and sourcing the setup for single-model"
     cmake -DATLAS_PACKAGE_FILTER_FILE=/data/kratsg/tritonTest/athena-singlemodel/package_filters.txt -S /data/kratsg/tritonTest/athena-singlemodel/Projects/WorkDir -B build
     cmake --build build -j 16
+    # shellcheck disable=SC1091
     source build/x86_64-el9-gcc14-opt/setup.sh
-    # echo "Sourcing single-model setup"
-    # # shellcheck disable=SC1091
-    # source /data/kratsg/tritonTest/build_singlemodel/x86_64-el9-gcc14-opt/setup.sh
 fi
 
 mkdir "${MODE}"
