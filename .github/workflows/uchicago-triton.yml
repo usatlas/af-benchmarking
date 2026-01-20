@@ -37,14 +37,14 @@ jobs:
         id: parse
         run: |
           python3 triton/parse_athena_log.py ${{ matrix.mode }}/log.Derivation >> ${{ matrix.mode }}.json
-          data=$(jq -c '[.[],"${{ matrix.mode }}","${{ github.run_id }}","${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"]' ${{ matrix.mode }}.json)
+          data=$(jq -c '["${{ job.check_run_id }}",.[],"${{ matrix.mode }}","${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ job.check_run_id }}"]' ${{ matrix.mode }}.json)
           echo "data=${data}"
           echo "data=${data}" >> "$GITHUB_OUTPUT"
 
       - name: copy log.Derivation to persistent storage
         run: |
           mkdir -p /data/kratsg/tritonTest/GHA
-          cp ${{ matrix.mode }}/log.Derivation /data/kratsg/tritonTest/GHA/${{ github.run_id }}_${{ matrix.mode }}.log.Derivation
+          cp ${{ matrix.mode }}/log.Derivation /data/kratsg/tritonTest/GHA/${{ job.check_run_id }}.log.Derivation
 
       - uses: jroehl/gsheet.action@v2.0.0
         with:
