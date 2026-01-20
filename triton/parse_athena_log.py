@@ -57,6 +57,8 @@ def main() -> None:
     eps_pattern = re.compile(r"Events per second:\s+([\d.]+)")
     cpu_pattern = re.compile(r"CPU utilization efficiency \[%\]:\s+([\d.]+)")
 
+    nprocs_pattern = re.compile(r"nprocs = (\d)")
+
     cpu_model_pattern = re.compile(r"CPU Model:\s+(.+)")
     ncores_pattern = re.compile(r"Number of Available Cores:\s+(\d+)")
     total_memory_pattern = re.compile(r"Total Memory:\s+([\d.]+\s*[A-Z]+)")
@@ -64,6 +66,8 @@ def main() -> None:
     avg_max_rss = float(calc_avg(max_rss_pattern, text))
     avg_events_per_second = float(calc_avg(eps_pattern, text))
     cpu_util_eff = float(calc_avg(cpu_pattern, text))
+
+    nprocs = int(extract_one(nprocs_pattern, text))
 
     cpu_model = extract_one(cpu_model_pattern, text)
     ncores = int(extract_one(ncores_pattern, text))
@@ -78,6 +82,7 @@ def main() -> None:
                 "average_max_rss_gb": avg_max_rss,
                 "average_events_per_second": avg_events_per_second,
                 "cpu_utilization_efficiency_percent": cpu_util_eff,
+                "nprocs": nprocs,
                 # System information
                 "node_name": get_node_name(),
                 "cpu_model": cpu_model,
