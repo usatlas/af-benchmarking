@@ -31,7 +31,7 @@ def calc_avg(pattern: re.Pattern[str], text: str) -> str:
     sliced = [value for value in matches[1:9] if value > 0]
 
     if not sliced:
-        return "N/A"
+        return "NaN"
 
     average = sum(sliced) / len(sliced)
     return f"{average:.5f}"
