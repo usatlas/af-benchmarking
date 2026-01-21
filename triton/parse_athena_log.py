@@ -28,7 +28,10 @@ def get_node_name() -> str:
 
 def calc_avg(pattern: re.Pattern[str], text: str) -> str:
     matches = [float(value) for value in pattern.findall(text)]
-    sliced = [value for value in matches[1:9] if value > 0]
+    if len(matches) > 1:
+        sliced = [value for value in matches[1:9] if value > 0]
+    else:
+        sliced = [value for value in matches if value > 0]
 
     if not sliced:
         return "NaN"
