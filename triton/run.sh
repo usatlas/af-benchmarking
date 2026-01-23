@@ -39,8 +39,8 @@ esac
 # ------------------------------------------------------------------------------
 # AthenaMP parallel settings
 # ------------------------------------------------------------------------------
-export ATHENA_PROC_NUMBER=8
-export ATHENA_CORE_NUMBER=8
+export ATHENA_PROC_NUMBER=1
+export ATHENA_CORE_NUMBER=1
 
 # ------------------------------------------------------------------------------
 # Triton configuration
