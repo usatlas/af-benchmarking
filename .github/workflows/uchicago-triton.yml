@@ -1,0 +1,58 @@
+name: uchicago-triton
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: arc-runner-set-uchicago-triton
+    strategy:
+      max-parallel: 1
+      matrix:
+        mode: ["local", "triton", "local_single", "triton_single"]
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - run: df -h
+
+      - name: execute
+        run: ./triton/run.sh ${{ matrix.mode }}
+        shell: bash
+
+      - name: display log.Derivation
+        if: always()
+        shell: bash
+        run: |
+          echo "::group::log.Derivation"
+          cat ${{ matrix.mode }}/log.Derivation
+          echo "::endgroup::"
+
+      - name: parse log
+        id: parse
+        run: |
+          python3 triton/parse_athena_log.py ${{ matrix.mode }}/log.Derivation >> ${{ matrix.mode }}.json
+          data=$(jq -c '["${{ job.check_run_id }}",.[],"${{ matrix.mode }}","${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ job.check_run_id }}"]' ${{ matrix.mode }}.json)
+          echo "data=${data}"
+          echo "data=${data}" >> "$GITHUB_OUTPUT"
+
+      - name: copy log.Derivation to persistent storage
+        run: |
+          mkdir -p /data/kratsg/tritonTest/GHA
+          cp ${{ matrix.mode }}/log.Derivation /data/kratsg/tritonTest/GHA/${{ job.check_run_id }}.log.Derivation
+
+      - uses: jroehl/gsheet.action@v2.0.0
+        with:
+          spreadsheetId: 1rPMQvEGdFghzmbGUhpovt_8FMrDmIf6Au154EwhZd1Q
+          commands: |
+            [
+              { "command": "appendData", "args": { "data": [${{ steps.parse.outputs.data }}], "worksheetTitle": "af-benchmarking", "minCol": 1 }}
+            ]
+        env:
+          GSHEET_CLIENT_EMAIL: ${{ secrets.GSHEET_CLIENT_EMAIL }}
+          GSHEET_PRIVATE_KEY: ${{ secrets.GSHEET_PRIVATE_KEY }}
