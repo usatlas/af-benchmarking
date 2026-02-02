@@ -40,7 +40,7 @@ jobs:
           log-file: rucio.log
           log-type: rucio
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           os: alma9
@@ -80,7 +80,7 @@ jobs:
           log-file: log.generate
           log-type: evnt
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           os: alma9
@@ -120,7 +120,7 @@ jobs:
           log-file: log.generate
           log-type: evnt
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           os: alma9
@@ -160,7 +160,7 @@ jobs:
           log-file: log.generate
           log-type: evnt
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           os: centos7
@@ -200,7 +200,7 @@ jobs:
           log-file: log.Derivation
           log-type: truth3
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           os: alma9
@@ -240,7 +240,7 @@ jobs:
           log-file: log.Derivation
           log-type: truth3
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           os: alma9
@@ -280,7 +280,7 @@ jobs:
           log-file: log.EVNTtoDAOD
           log-type: truth3
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           os: centos7
@@ -320,7 +320,7 @@ jobs:
           log-file: coffea_hist.log
           log-type: coffea
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           payload-file: coffea.root
@@ -361,7 +361,7 @@ jobs:
           log-file: eventloop_arrays.log
           log-type: eventloop
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           os: alma9
@@ -401,7 +401,7 @@ jobs:
           log-file: eventloop_noarrays.log
           log-type: eventloop
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           os: alma9
@@ -447,7 +447,7 @@ jobs:
           log-file: fastframes.log
           log-type: fastframes
           cluster: UC-AF
-          kibana-token: ${{ secrets.KIBANA_TOKEN }}
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
           host: ${NODE_NAME}
           payload-file: ./NTuple_Hist/fastframes/UC/example_FS.root
