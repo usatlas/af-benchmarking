@@ -3,7 +3,7 @@
 # Gets the current time
 curr_time=$(date +"%Y.%m.%dT%H")
 
-download_ID="mc23_13p6TeV.701235.Sh_22_WWW_3l3v_EW6.deriv.DAOD_PHYSLITE.e8585_s4162_r15540_p7017"
+download_ID="archive:mc23_13p6TeV.700866.Sh_2214_WWW_3l3v_EW6.deriv.DAOD_PHYSLITE.e8532_e8528_s4162_s4114_r14622_r14663_p6491_tid41635253_00"
 
 container_el9 (){
   # Takes the following parameters:
@@ -20,10 +20,10 @@ container_el9 (){
     lsetup rucio &&\
     cat /srv/pass.txt | voms-proxy-init -voms atlas && \
     mkdir -p \"${3}\" &&\
-    [ -d \"${4}\" ] && rm -rf \"${4}\" || true &&\
+    [ -d \"${4#*:}\" ] && rm -rf \"${4#*:}\" || true &&\
     rucio download --rses AGLT2_LOCALGROUPDISK \"${4}\"  2>&1 | tee rucio.log &&\
     hostname >> rucio.log &&\
-    du \"${4}\"/ >> rucio.log &&\
+    du \"${4#*:}\"/ >> rucio.log &&\
     mv rucio.log \"${3}\""
 }
 
@@ -42,14 +42,15 @@ native_el9 () {
   printf "%s" "${VOMS_PASSWORD}" | voms-proxy-init -voms atlas
   mkdir -p "${1}"
   cd "${2}" || exit
+  tmp="${3:?}"
   # shellcheck disable=SC2115
-  rm -r "${3:?}"
+  rm -r "${tmp#*:}"
   echo "::group::Rucio Download"
   rucio download --rses AGLT2_LOCALGROUPDISK "${3}"  2>&1 | tee rucio.log
   echo "::endgroup::"
   echo "::group::Collect Metrics"
   hostname >> rucio.log
-  du "${3}" >> rucio.log
+  du "${3#*:}" >> rucio.log
   echo "::endgroup::"
   mv rucio.log "${1}"
 }
