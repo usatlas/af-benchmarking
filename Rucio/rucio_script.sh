@@ -20,10 +20,10 @@ container_el9 (){
     lsetup rucio &&\
     cat /srv/pass.txt | voms-proxy-init -voms atlas && \
     mkdir -p \"${3}\" &&\
-    [ -d \"${4}\" ] && rm -rf \"${4}\" || true &&\
+    [ -d \"${4#*:}\" ] && rm -rf \"${4#*:}\" || true &&\
     rucio download --rses AGLT2_LOCALGROUPDISK \"${4}\"  2>&1 | tee rucio.log &&\
     hostname >> rucio.log &&\
-    du \"${4}\"/ >> rucio.log &&\
+    du \"${4#*:}\"/ >> rucio.log &&\
     mv rucio.log \"${3}\""
 }
 
@@ -49,7 +49,7 @@ native_el9 () {
   echo "::endgroup::"
   echo "::group::Collect Metrics"
   hostname >> rucio.log
-  du "${3}" >> rucio.log
+  du "${3#*:}" >> rucio.log
   echo "::endgroup::"
   mv rucio.log "${1}"
 }
