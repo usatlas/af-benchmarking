@@ -3,7 +3,7 @@
 # Gets the current time
 curr_time=$(date +"%Y.%m.%dT%H")
 
-download_ID="mc23_13p6TeV.701235.Sh_22_WWW_3l3v_EW6.deriv.DAOD_PHYSLITE.e8585_s4162_r15540_p7017"
+download_ID="archive:mc23_13p6TeV.700866.Sh_2214_WWW_3l3v_EW6.deriv.DAOD_PHYSLITE.e8532_e8528_s4162_s4114_r14622_r14663_p6491_tid41635253_00"
 
 container_el9 (){
   # Takes the following parameters:
