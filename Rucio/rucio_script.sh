@@ -42,8 +42,9 @@ native_el9 () {
   printf "%s" "${VOMS_PASSWORD}" | voms-proxy-init -voms atlas
   mkdir -p "${1}"
   cd "${2}" || exit
+  tmp="${3:?}"
   # shellcheck disable=SC2115
-  rm -r "${3:?}"
+  rm -r "${tmp#*:}"
   echo "::group::Rucio Download"
   rucio download --rses AGLT2_LOCALGROUPDISK "${3}"  2>&1 | tee rucio.log
   echo "::endgroup::"
