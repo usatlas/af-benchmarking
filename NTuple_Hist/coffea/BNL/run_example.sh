@@ -21,7 +21,7 @@ export ALRB_localConfigDir="$HOME"/localConfig
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01/usatlas/data/ -r "date >> split.log &&\
   python3 -m venv venv &&\
   ./venv/bin/python -m pip install -U pip &&\
-  ./venv/bin/python -m pip install atlas_schema &&\
+  ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' &&\
   ./venv/bin/python example.py 2>&1 | tee coffea_hist.log"
 
 {

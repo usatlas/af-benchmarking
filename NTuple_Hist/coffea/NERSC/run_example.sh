@@ -14,7 +14,7 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /global:/global -r "lsetup 'python 3.9.22-x86_64-el9' &&\
   python3 -m venv venv &&\
   ./venv/bin/python -m pip install -U pip &&\
-  ./venv/bin/python -m pip install atlas_schema &&\
+  ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' &&\
   date >> split.log &&\
   ./venv/bin/python ~/AF-Benchmarking/NTuple_Hist/coffea/NERSC/example.py 2>&1 | tee coffea_hist.log"
 
