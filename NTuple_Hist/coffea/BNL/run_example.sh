@@ -19,8 +19,10 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir="$HOME"/localConfig
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01/usatlas/data/ -r "date >> split.log &&\
-  pip3 install atlas_schema &&\
-  python3 example.py 2>&1 | tee coffea_hist.log"
+  python3 -m venv venv &&\
+  ./venv/bin/python -m pip install -U pip &&\
+  ./venv/bin/python -m pip install atlas_schema &&\
+  ./venv/bin/python example.py 2>&1 | tee coffea_hist.log"
 
 {
   date

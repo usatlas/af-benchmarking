@@ -12,9 +12,11 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /global:/global -r "lsetup 'python 3.9.22-x86_64-el9' &&\
-  pip3 install atlas_schema &&\
+  python3 -m venv venv &&\
+  ./venv/bin/python -m pip install -U pip &&\
+  ./venv/bin/python -m pip install atlas_schema &&\
   date >> split.log &&\
-  python3 ~/AF-Benchmarking/NTuple_Hist/coffea/NERSC/example.py 2>&1 | tee coffea_hist.log"
+  ./venv/bin/python ~/AF-Benchmarking/NTuple_Hist/coffea/NERSC/example.py 2>&1 | tee coffea_hist.log"
 
 {
   date
