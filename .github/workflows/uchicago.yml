@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   rucio:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
@@ -63,6 +64,7 @@ jobs:
             rucio.log
 
   evnt-native:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
@@ -103,6 +105,7 @@ jobs:
             log.generate
 
   evnt-el9:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
@@ -143,6 +146,7 @@ jobs:
             log.generate
 
   evnt-centos7:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
@@ -183,6 +187,7 @@ jobs:
             log.generate
 
   truth3-native:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
@@ -223,6 +228,7 @@ jobs:
             log.Derivation
 
   truth3-el9:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
@@ -263,6 +269,7 @@ jobs:
             log.Derivation
 
   truth3-centos7:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
@@ -303,6 +310,7 @@ jobs:
             log.EVNTtoDAOD
 
   coffea:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
@@ -344,6 +352,7 @@ jobs:
             coffea_hist.log
 
   eventloop-columnar:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
@@ -384,6 +393,7 @@ jobs:
             eventloop_arrays.log
 
   eventloop-standard:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
@@ -424,6 +434,7 @@ jobs:
             eventloop_noarrays.log
 
   fastframes:
+    if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
