@@ -16,7 +16,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 echo "::endgroup::"
 
 # Appends time before Gen_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date +"%Y.%m.%d.%H.%M.%S" >> split.log
 
 # Sets up the Ath* version
 asetup AthGeneration,23.6.34,here

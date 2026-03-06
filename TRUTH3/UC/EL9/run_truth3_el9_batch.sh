@@ -9,7 +9,7 @@ config_dir="${GITHUB_WORKSPACE}/TRUTH3/EVNT.root"
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 # Appends time before Derivation_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date +'%H:%M:%S' >> split.log
 
 
 # Sets up the container:

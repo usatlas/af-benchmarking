@@ -1,6 +1,6 @@
 #!/bin/bash
 
-date >> split.log
+date +"%Y.%m.%d.%H.%M.%S" >> split.log
 
 #cp ${GITHUB_WORKSPACE}/NTuple_Hist/coffea/UC/example.py .
 #cp ${GITHUB_WORKSPACE}/NTuple_Hist/coffea/light_roast-0.1.dev10+ge21defc-py3-none-any.whl .

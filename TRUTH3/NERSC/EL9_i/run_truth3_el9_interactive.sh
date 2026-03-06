@@ -1,7 +1,7 @@
 #!/bin/bash
 # Current time used for file storage
 
-curr_time=$(date +"%Y.%m.%dT%H")
+curr_time=$(date +"%Y.%m.%d.%H.%M.%S") 
 
 
 # Defines the OS the container will have
@@ -14,7 +14,7 @@ cp ~/AF-Benchmarking/TRUTH3/EVNT.root .
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 # Appends time before Reco_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date +'%H:%M:%S' >> split.log
 
 # Sets up the container:
 ## -c : used to make a container followed by the OS we want to use
@@ -25,7 +25,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c "${OScontainer}" -m
   Derivation_tf.py --CA True --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log"
 
 # Appends time after Reco_tf.py to a log file
-date +'%H:%H:%S' >> split.log
+date +'%H:%M:%S' >> split.log
 
 rm EVNT.root
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Time that will be used to store the log file
-curr_time=$(date +"%Y.%m.%dT%H")
+curr_time=$(date +"%Y.%m.%d.%H.%M.%S") 
 
 
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase

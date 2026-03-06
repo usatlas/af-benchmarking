@@ -17,13 +17,13 @@ cp -r "$HOME"/AF-Benchmarking/EVNT/EVNTFiles .
 curr_time=$(date +"%Y.%m.%dT%H")
 
 # Appends time before Gen_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date +"%Y.%m.%d.%H.%M.%S" >> split.log
 
 asetup AthGeneration,23.6.34,here
 Gen_tf.py --ecmEnergy=13000.0 --jobConfig=${config_dir} --outputEVNTFile=EVNT.root --maxEvents=1000 --randomSeed=${seed} 2>&1 | tee pipe_file.log
 
 # Appends time after Gen_tf.py to a log file
-date +'%H:%H:%S' >> split.log
+date +"%Y.%m.%d.%H.%M.%S" >> split.log
 
 # Defines the output directory
 output_dir="/sdf/data/atlas/u/$USER/benchmarks/${curr_time}/EVNT_container_el/"

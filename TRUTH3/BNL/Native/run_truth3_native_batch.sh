@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curr_time=$(date +"%Y.%m.%dT%H")
+curr_time=$(date +"%Y.%m.%d.%H.%M.%S") 
 
 # Copying input files to working directory
 cp -r ~/AF-Benchmarking/TRUTH3/EVNT.root .
@@ -14,19 +14,20 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 asetup Athena,24.0.53,here
 
 # Appends time before Derivation_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date +'%H:%M:%S' >> split.log
 
 
 Derivation_tf.py --CA True --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log
 
 # Appends time after Derivation_tf.py to a log file
-date +'%H:%H:%S' >> split.log
+date +'%Y:%m:%d:%H:%M:%S' >> split.log
 
 # current time used for log file storage
 
 
 # Defines the output directory
-output_dir="/atlasgpfs01/usatlas/data/jroblesgo/benchmarks/${curr_time}/TRUTH3_native_batch"
+output_dir="/usatlas/u/qlei/logs/${curr_time}/TRUTH3_native_batch" 
+
 
 # Creates the output directory
 mkdir -p "${output_dir}"
@@ -41,6 +42,6 @@ mv split.log "${output_dir}"
 mv pipe_file.log "${output_dir}"
 
 # Checks the directory, if it matches it cleans it for the next job
-if [ "$(pwd)" = "/atlasgpfs01/usatlas/scratch/jroblesgo/TRUTH3/native" ]; then
+if [ "$(pwd)" = "/usatlas/u/qlei/TRUTH3/el" ]; then
   rm -r ./*
 fi

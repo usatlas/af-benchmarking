@@ -13,7 +13,7 @@ config_dir="${GITHUB_WORKSPACE}/EVNT/EVNTFiles/100xxx/100001"
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 # Appends time before Gen_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date +"%Y.%m.%d.%H.%M.%S" >> split.log
 
 # Sets up the container:
 ## -c : used to make a container followed by the OS we want to use

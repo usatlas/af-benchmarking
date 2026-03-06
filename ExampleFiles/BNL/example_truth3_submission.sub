@@ -1,11 +1,11 @@
 Universe = vanilla
 
 
-Output = /atlasgpfs01/usatlas/data/<username>/myjob.$(Cluster).$(Process).out
-Error = /atlasgpfs01/usatlas/data/<username>/myjob.$(Cluster).$(Process).err
-Log = /atlasgpfs01/usatlas/data/<username>/myjob.$(Cluster).$(Process).log
+Output = /atlasgpfs01/usatlas/data/qlei/myjob.$(Cluster).$(Process).out
+Error = /atlasgpfs01/usatlas/data/qlei/myjob.$(Cluster).$(Process).err
+Log = /atlasgpfs01/usatlas/data/qlei/myjob.$(Cluster).$(Process).log
 
-Executable = /usatlas/u/<username>/AF-Benchmarking/TRUTH3/BNL/run_truth3_el9_batch.sh
+Executable = /usatlas/u/qlei/AF-Benchmarking/ExampleFiles/BNL/example_truth3_executable.sh 
 
 request_memory = 3GB
 request_cpus = 1

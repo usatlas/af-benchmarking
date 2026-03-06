@@ -13,7 +13,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 echo "::endgroup::"
 
 # Appends time before Derivation_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date +'%H:%M:%S' >> split.log
 
 # Sets the Athena version we want
 asetup Athena,24.0.53,here
@@ -23,7 +23,7 @@ Derivation_tf.py --CA True --inputEVNTFile "${config_dir}" --outputDAODFile=TRUT
 echo "::endgroup::"
 
 # Appends time after Derivation_tf.py to a log file
-date +'%H:%H:%S' >> split.log
+date +'%H:%M:%S' >> split.log
 
 
 # Obtains and appends the host machine and payload size to the log file

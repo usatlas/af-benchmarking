@@ -10,7 +10,7 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 
 # Appends time before Derivation_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date +'%H:%M:%S' >> split.log
 
 # Sets the Athena version we want
 asetup Athena,24.0.53,here

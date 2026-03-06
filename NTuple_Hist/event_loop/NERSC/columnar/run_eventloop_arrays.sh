@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curr_time=$(date +"%Y.%m.%dT%H")
+curr_time=$(date +"%Y.%m.%d.%H.%M.%S") 
 
 # Run this in a container
 
@@ -13,7 +13,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /global:/glo
   python3 ~/AF-Benchmarking/event_loop/NERSC/columnar/event_loop_arrays.py 2>1| tee eventloop_arrays.log"
 
 {
-  date
+  date +"%Y.%m.%d.%H.%M.%S"
   hostname
   du event_loop_arrays_output_hist.root
 } >> split.log

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Time that will be used to store the log file
-curr_time=$(date +"%Y.%m.%dT%H")
+curr_time=$(date +"%Y.%m.%d.%H.%M.%S") 
 
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir="$HOME"/localConfig
@@ -9,11 +9,11 @@ export ALRB_localConfigDir="$HOME"/localConfig
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 
 asetup StatAnalysis,0.6.3
-date >> split.log &&\
+date +"%Y.%m.%d.%H.%M.%S" >> split.log &&\
 python3 ~/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/eventloop_noarrays.py 2>&1 | tee eventloop_noarrays.log
 
 {
-  date
+  date +"%Y.%m.%d.%H.%M.%S"
   hostname
   du event_loop_noarrays_output_hist.root
 } >> split.log

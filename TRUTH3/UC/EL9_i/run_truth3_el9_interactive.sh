@@ -12,7 +12,7 @@ OScontainer="el9"
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 # Appends time before Derivation_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date +'%H:%M:%S' >> split.log
 
 # Sets up the container:
 ## -c : used to make a container followed by the OS we want to use

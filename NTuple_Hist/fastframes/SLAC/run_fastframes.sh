@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curr_date=$(date +"%Y.%m.%dT%H")
+curr_date=$(date +"%Y.%m.%d.%H.%M.%S") 
 
 asetup StatAnalysis,0.6.2
 

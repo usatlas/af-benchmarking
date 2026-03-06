@@ -5,13 +5,13 @@ curr_time=$(date +"%Y.%m.%dT%H")
 
 
 # Appends time before Derivation_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date +'%H:%M:%S' >> split.log
 
 asetup Athena,24.0.53,here
 Derivation_tf.py --CA True --inputEVNTFile /sdf/data/atlas/u/selbor/TRUTH3Files/el/EVNT.root --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log
 
 # Appends time after Derivation_tf.py to a log file
-date +'%H:%H:%S' >> split.log
+date +'%H:%M:%S' >> split.log
 
 # Defines the output directory where the log file will be stored
 output_dir="/sdf/data/atlas/u/$USER/benchmarks/${curr_time}/TRUTH3_el9_container"

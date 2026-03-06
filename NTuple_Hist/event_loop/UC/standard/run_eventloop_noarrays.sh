@@ -9,7 +9,7 @@ lsetup "views LCG_107a_ATLAS_2 x86_64-el9-gcc13-opt"
 
 
 # Getting start date
-date >> split.log
+date +"%Y.%m.%d.%H.%M.%S" >> split.log
 
 # Running the script
 echo "::group::EventLoop Execution"
@@ -18,6 +18,6 @@ echo "::endgroup::"
 
 # Collect metrics
 echo "::group::Collect Metrics"
-date >> split.log
+date +"%Y.%m.%d.%H.%M.%S" >> split.log
 hostname >> split.log
 echo "::endgroup::"
