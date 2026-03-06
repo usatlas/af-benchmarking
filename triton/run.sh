@@ -47,7 +47,7 @@ export ATHENA_CORE_NUMBER=8
 # ------------------------------------------------------------------------------
 TRITON_POSTEXEC='NNSharingSvc=cfg.getService("FTagNNSharingSvc");\
 NNSharingSvc.UseTriton=True;\
-NNSharingSvc.TritonUrl="triton-traefik.triton.svc.cluster.local";\
+NNSharingSvc.TritonUrl="172.16.11.5";\
 NNSharingSvc.TritonPort=8001;\
 NNSharingSvc.TritonUseSSL=False'
 
