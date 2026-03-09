@@ -1,6 +1,6 @@
 #! /bin/bash
 
-curr_time=$(date +"%Y.%m.%dT%H")
+curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 container_el9 (){
   # Takes the following parameters:

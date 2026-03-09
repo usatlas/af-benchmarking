@@ -2,16 +2,16 @@
 
 # # Gets the current time
 
-curr_time=$(date +"%Y.%m.%d.%H.%M.%S") 
+curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ") 
 
 cp /sdf/home/s/"$USER"/AF-Benchmarking/NTuple_Hist/coffea/SLAC/example.py .
 
-date +"%Y.%m.%d.%H.%M.%S" >> split.log
+date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 python3 example.py 2>&1 | tee coffea_hist.log
 
 {
-  date +"%Y.%m.%d.%H.%M.%S"
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
   hostname
   du coffea.root
 } >> split.log

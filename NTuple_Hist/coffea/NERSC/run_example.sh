@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curr_time=$(date +"%Y.%m.%d.%H.%M.%S") 
+curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ") 
 
 # Run this in a container
 
@@ -18,7 +18,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /global:/glo
   python3 ~/AF-Benchmarking/NTuple_Hist/coffea/NERSC/example.py 2>&1 | tee coffea_hist.log"
 
 {
-  date +"%Y.%m.%d.%H.%M.%S"
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
   hostname
   du coffea.root
 } >> split.log

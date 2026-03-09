@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curr_date=$(date +"%Y.%m.%d.%H.%M.%S") 
+curr_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ") 
 
 cd /atlasgpfs01/usatlas/data/jroblesgo/ || exit
 

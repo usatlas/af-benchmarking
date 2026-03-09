@@ -1,6 +1,6 @@
 #!/bin/bash
 
-date +"%Y.%m.%d.%H.%M.%S" >> split.log
+date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 #cp ${GITHUB_WORKSPACE}/NTuple_Hist/coffea/UC/example.py .
 #cp ${GITHUB_WORKSPACE}/NTuple_Hist/coffea/light_roast-0.1.dev10+ge21defc-py3-none-any.whl .
@@ -16,7 +16,7 @@ python3.9 ${GITHUB_WORKSPACE}/NTuple_Hist/coffea/UC/example.py  2>&1 | tee coffe
 
 echo "::group::Collect Metrics"
 {
-  date +'%H:%M:%S'
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
   hostname
 } >> split.log
 echo "::endgroup::"

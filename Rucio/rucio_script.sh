@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 # Gets the current time
-curr_time=$(date +"%Y.%m.%dT%H")
+curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 download_ID="archive:mc23_13p6TeV.700866.Sh_2214_WWW_3l3v_EW6.deriv.DAOD_PHYSLITE.e8532_e8528_s4162_s4114_r14622_r14663_p6491_tid41635253_00"
 
