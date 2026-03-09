@@ -26,7 +26,7 @@ date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 
 # Defines the output directory
-output_dir="/usatlas/u/qlei/logs/${curr_time}/TRUTH3_native_batch" 
+output_dir="/usatlas/u/qlei/logs/${curr_time}/TRUTH3_native_batch"
 
 
 # Creates the output directory

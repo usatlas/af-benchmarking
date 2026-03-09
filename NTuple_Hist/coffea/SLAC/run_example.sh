@@ -2,7 +2,7 @@
 
 # # Gets the current time
 
-curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ") 
+curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 cp /sdf/home/s/"$USER"/AF-Benchmarking/NTuple_Hist/coffea/SLAC/example.py .
 

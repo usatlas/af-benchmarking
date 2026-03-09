@@ -3,7 +3,7 @@
 asetup StatAnalysis,0.6.2
 
 # Time that will be used to store the log file
-curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ") 
+curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log
 

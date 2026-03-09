@@ -21,7 +21,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c centos7 -m /data:/d
 
 # Obtains and appends the host machine and payload size to the log file
 {
-  date -u +"%Y-%m-%dT%H:%M:%SZ" 
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
   echo "Starting job"
   hostname
   du DAOD_TRUTH3.TRUTH3.root
