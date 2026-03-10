@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Defines the current time
-curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 
 cd "$HOME"/TRUTH3_int/el || exit
@@ -18,9 +18,9 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 ## -r : precedes the commands we want to run within the container
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -r "asetup Athena,24.0.53,here && \
-  date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log && \
+  date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log && \
   Derivation_tf.py --CA True --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log && \
-  date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log"
+  date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log"
 
 
 # Defines the output directory where the log file will be stored

@@ -3,17 +3,17 @@
 asetup StatAnalysis,0.6.2
 
 # Time that will be used to store the log file
-curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 
-date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log
+date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 cp /sdf/home/s/"$USER"/AF-Benchmarking/NTuple_Hist/event_loop/SLAC/columnar/event_loop_arrays.py .
 
 python3 event_loop_arrays.py 2>&1 | tee event_loop_arrays.log
 
 # Getting end date
-date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log
+date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 # Getting host name
 {

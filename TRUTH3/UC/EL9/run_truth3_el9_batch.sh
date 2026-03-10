@@ -9,7 +9,7 @@ config_dir="${GITHUB_WORKSPACE}/TRUTH3/EVNT.root"
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 # Appends time before Derivation_tf.py to log file
-date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log
+date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 
 # Sets up the container:
@@ -22,7 +22,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -r "asetup Athe
 
 # Obtains and appends the host machine and payload size to the log file
 {
-  date -u +"%Y-%m-%dT%H:%M:%SZ"
+  date -u "+%Y-%m-%dT%H:%M:%SZ"
   echo "Starting job"
   hostname
   du DAOD_TRUTH3.TRUTH3.root

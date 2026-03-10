@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curr_time=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Copying input files to working directory
 cp -r ~/AF-Benchmarking/TRUTH3/EVNT.root .
@@ -14,13 +14,13 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 asetup Athena,24.0.53,here
 
 # Appends time before Derivation_tf.py to log file
-date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log
+date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 
 Derivation_tf.py --CA True --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log
 
 # Appends time after Derivation_tf.py to a log file
-date -u +"%Y-%m-%dT%H:%M:%SZ" >> split.log
+date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 # current time used for log file storage
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curr_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+curr_date=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 cd /global/cfs/cdirs/m2616/selbor/ || exit
 
