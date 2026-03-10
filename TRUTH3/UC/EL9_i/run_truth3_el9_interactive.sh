@@ -12,7 +12,7 @@ OScontainer="el9"
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 # Appends time before Derivation_tf.py to log file
-date +'%H:%H:%S' >> split.log
+date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 # Sets up the container:
 ## -c : used to make a container followed by the OS we want to use
@@ -24,7 +24,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c "${OScontainer}" -m
 
 # Obtains and appends the host machine and payload size to the log file
 {
-  date +'%H:%M:%S'
+  date -u "+%Y-%m-%dT%H:%M:%SZ"
   echo "Starting job"
   hostname
   du DAOD_TRUTH3.TRUTH3.root

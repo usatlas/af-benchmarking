@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Gets the current time
-curr_time=$(date +"%Y.%m.%dT%H")
+curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 working_dir="/atlasgpfs01/usatlas/scratch/jroblesgo/ntuple/coffea"
 
@@ -25,7 +25,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01
   ./venv/bin/python example.py 2>&1 | tee coffea_hist.log"
 
 {
-  date
+  date -u "+%Y-%m-%dT%H:%M:%SZ"
   hostname
   du coffea.root
 } >> split.log

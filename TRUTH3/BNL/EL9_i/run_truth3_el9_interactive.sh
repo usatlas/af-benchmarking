@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curr_time=$(date +"%Y.%m.%dT%H")
+curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Copying input files to working directory
 cp -r ~/AF-Benchmarking/TRUTH3/EVNT.root .
@@ -14,9 +14,9 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 ## -r : precedes the commands we want to run within the container
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -r "asetup Athena,24.0.53,here &&\
-  date +'%Y.%m.%d.%H.%S' >> split.log &&\
+  date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log &&\
   Derivation_tf.py --CA True --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log &&\
-  date +'%Y.%m.%d.%H.%S' >> split.log"
+  date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log"
 
 # Current time used for file storage
 

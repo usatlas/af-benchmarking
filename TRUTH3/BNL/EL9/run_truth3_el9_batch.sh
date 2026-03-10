@@ -1,7 +1,7 @@
 #!/bin/bash
 # Current time used for file storage
 
-curr_time=$(date +"%Y.%m.%dT%H")
+curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Copying input files to working directory
 cp -r ~/AF-Benchmarking/TRUTH3/EVNT.root .
@@ -15,12 +15,13 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 ## -r : precedes the commands we want to run within the container
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -r "asetup Athena,24.0.53,here &&\
-  date +'%Y.%m.%d.%H.%S' >> split.log &&\
+  date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log &&\
   Derivation_tf.py --CA True --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log &&\
-  date +'%Y.%m.%d.%H.%S' >> split.log"
+  date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log"
 
 # Defines the output directory
-output_dir="/atlasgpfs01/usatlas/data/jroblesgo/benchmarks/${curr_time}/TRUTH3_el9_batch"
+# output_dir="/atlasgpfs01/usatlas/data/jroblesgo/benchmarks/${curr_time}/TRUTH3_el9_batch"
+output_dir="/usatlas/u/qlei/logs/${curr_time}/TRUTH3_el9_batch"
 
 # Creates the output directory
 mkdir -p "${output_dir}"
@@ -35,6 +36,6 @@ mv split.log "${output_dir}"
 mv pipe_file.log "${output_dir}"
 
 # Checks the directory, if it matches it cleans it for the next job
-if [ "$(pwd)" = "/atlasgpfs01/usatlas/scratch/jroblesgo/TRUTH3/el" ]; then
+if [ "$(pwd)" = "/usatlas/u/qlei/TRUTH3/el" ]; then
   rm -r ./*
 fi

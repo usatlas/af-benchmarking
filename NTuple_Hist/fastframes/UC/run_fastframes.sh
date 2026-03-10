@@ -16,7 +16,7 @@ printf "%s" "${VOMS_PASSWORD}" | voms-proxy-init -voms atlas
 # shellcheck disable=SC1091
 source /data/selbor/FastFramesTutorial/TutorialClass/build/setup.sh
 
-date >> split.log
+date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 echo "::group::FastFrames"
 python3 /data/selbor/FastFramesTutorial/FastFrames/python/FastFrames.py -c "${yml_dir}"mc20e_example_config.yml 2>&1 | tee fastframes.log
@@ -25,7 +25,7 @@ echo "::endgroup::"
 
 # Getting the date and time after running script
 echo "::group::Collect Metrics"
-date >> split.log
+date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 # Getting the host-machine's name
 hostname >> split.log

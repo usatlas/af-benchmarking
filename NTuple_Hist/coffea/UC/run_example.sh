@@ -1,6 +1,6 @@
 #!/bin/bash
 
-date >> split.log
+date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 #cp ${GITHUB_WORKSPACE}/NTuple_Hist/coffea/UC/example.py .
 
@@ -16,7 +16,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /data -r "ls
 
 echo "::group::Collect Metrics"
 {
-  date +'%H:%M:%S'
+  date -u "+%Y-%m-%dT%H:%M:%SZ"
   hostname
 } >> split.log
 echo "::endgroup::"
