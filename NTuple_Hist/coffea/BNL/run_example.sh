@@ -23,7 +23,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01
   ./venv/bin/python -m pip install -U pip &&\
   ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' &&\
   ./venv/bin/python example.py 2>&1 | tee coffea_hist.log"
- 
+
 {
   date -u "+%Y-%m-%dT%H:%M:%SZ"
   hostname

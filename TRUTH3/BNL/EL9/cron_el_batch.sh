@@ -38,12 +38,12 @@ if [ -z "${cluster_id}" ]; then
   exit 1
 fi
 echo "Cluster ID: ${cluster_id}"
- 
+
 # Extract the log path template from the .sub file and expand macros
 log_template=$(grep -i '^log' "${sub_file}" | awk '{print $NF}')
 condor_log="${log_template//\$(Cluster)/${cluster_id}}"
 condor_log="${condor_log//\$(Process)/0}"
- 
+
 echo "Waiting for job to complete (log: ${condor_log})..."
 condor_wait "${condor_log}" || { echo "ERROR: condor_wait failed"; exit 1; }
 echo "Job completed."
