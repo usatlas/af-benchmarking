@@ -14,10 +14,10 @@ python3 ~/AF-Benchmarking/NTuple_Hist/event_loop/BNL/columnar/eventloop_arrays.p
 {
   date -u "+%Y-%m-%dT%H:%M:%SZ"
   hostname
-  du event_loop_arrays_output_hist.root
+  du event_loop_output_hist.root
 } >> split.log
 
-output_dir="/atlasgpfs01/usatlas/data/jroblesgo/benchmarks/${curr_time}/eventloop_arrays/"
+output_dir="/atlasgpfs01/usatlas/data/qlei/logs/eventloop_arrays/${curr_time}"
 
 mkdir -p "${output_dir}"
 
