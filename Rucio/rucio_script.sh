@@ -16,7 +16,7 @@ container_el9 (){
   export ALRB_localConfigDir="$HOME"/localConfig
 # shellcheck disable=SC1091
 # shellcheck disable=SC2115
-  source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m "${2}" -r "export RUCIO_ACCOUNT=jroblesg && \
+  source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m "${2}" -r "export RUCIO_ACCOUNT=qlei && \
     lsetup rucio &&\
     cat /srv/pass.txt | voms-proxy-init -voms atlas && \
     mkdir -p \"${3}\" &&\
@@ -79,9 +79,9 @@ echo "Running for site: $site"
 # --- Configure directories based on site ---
 case "$site" in
     bnl)
-        job_dir="$HOME/af_benchmarking/rucio/"
+        job_dir="/usatlas/u/qlei/test/Rucio/"
         dir_mount="/atlasgpfs01/usatlas/data/"
-        output_dir="${job_dir}/logs/${curr_time}/"
+        output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Rucio/${curr_time}/"
         container_el9 "$job_dir" "$dir_mount" "$output_dir" "$download_ID"
         ;;
     slac)

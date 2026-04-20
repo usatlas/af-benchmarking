@@ -21,7 +21,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -r "asetup Athe
 
 # Defines the output directory
 # output_dir="/atlasgpfs01/usatlas/data/jroblesgo/benchmarks/${curr_time}/TRUTH3_el9_batch"
-output_dir="/usatlas/u/qlei/logs/${curr_time}/TRUTH3_el9_batch"
+output_dir="/atlasgpfs01/usatlas/data/qlei/logs/TRUTH3_el9_batch/${curr_time}"
 
 # Creates the output directory
 mkdir -p "${output_dir}"

@@ -91,12 +91,12 @@ def main():
         nevents = 0
         for f in dataset_runnable["Wmunugamma"]["files"]:
             nevents += int(dataset_runnable["Wmunugamma"]["files"][f]["num_entries"])
-            print("Applying to fileset")
-            out = apply_to_fileset(
-                p,
-                dataset_runnable,
-                schemaclass=NtupleSchema,
-            )
+        print("Applying to fileset")
+        out = apply_to_fileset(
+            p,
+            dataset_runnable,
+            schemaclass=NtupleSchema,
+        )
 
         start_time_utc = iso_utc_now()
         start_time = time.time()
