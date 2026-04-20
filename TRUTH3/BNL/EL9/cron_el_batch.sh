@@ -16,6 +16,7 @@ readonly pixi_containerized="true"
 # Environment Setup
 export PATH="/usatlas/u/qlei/.pixi/bin:$PATH"
 
+# shellcheck disable=SC1091
 [ -r /usatlas/u/qlei/.secrets ] && . /usatlas/u/qlei/.secrets
 
 # Ensure job_dir exists and cd into it before submitting
@@ -57,7 +58,7 @@ fi
 
 echo "Latest output directory: ${latest_dir}"
 
-cd "${AF_BENCH_DIR}" 
+cd "${AF_BENCH_DIR}" || exit
 
 # Parse the logs and produce the JSON file
 pixi run --manifest-path "${AF_BENCH_DIR}/pixi.toml" -e kibana python -m parsing.scripts.ci_parse \
@@ -67,7 +68,7 @@ pixi run --manifest-path "${AF_BENCH_DIR}/pixi.toml" -e kibana python -m parsing
   --cluster "BNL-AF" \
   --token="${KIBANA_TOKEN}" \
   --kind="benchmark" \
-  --host=$(hostname) \
+  --host="$(hostname)" \
   --os="${pixi_os}" \
   --mode="${pixi_mode}" \
   --containerized="${pixi_containerized}" \
