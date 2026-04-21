@@ -1,10 +1,10 @@
 Universe = vanilla
 
-Output = /usatlas/u/jroblesgo/batch_output_files/eventloop/myjob.$(Cluster).$(Process).out
-Error = /usatlas/u/jroblesgo/batch_output_files/eventloop/myjob.$(Cluster).$(Process).err
-Log = /usatlas/u/jroblesgo/batch_output_files/eventloop/myjob.$(Cluster).$(Process).log
+Output = /usatlas/u/qlei/batch_output_files/eventloop/myjob.$(Cluster).$(Process).out
+Error = /usatlas/u/qlei/batch_output_files/eventloop/myjob.$(Cluster).$(Process).err
+Log = /usatlas/u/qlei/batch_output_files/eventloop/myjob.$(Cluster).$(Process).log
 
-Executable = /usatlas/u/jroblesgo/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/run_eventloop_noarrays.sh
+Executable = /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/run_eventloop_noarrays.sh
 
 request_memory = 3GB
 request_cpus = 1

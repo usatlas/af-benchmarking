@@ -3,7 +3,7 @@
 # Gets the current time
 curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
-working_dir="/atlasgpfs01/usatlas/scratch/jroblesgo/ntuple/coffea"
+working_dir="/atlasgpfs01/usatlas/data/qlei/ntuple/coffea"
 
 # Goes into the job directory if it exits, creates it otherwise
 if [ -d "${working_dir}" ]; then
@@ -30,7 +30,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01
   du coffea.root
 } >> split.log
 
-output_dir="/atlasgpfs01/usatlas/data/jroblesgo/benchmarks/${curr_time}/Coffea_Hist/"
+output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Coffea_Hist/${curr_time}"
 
 mkdir -p "${output_dir}"
 

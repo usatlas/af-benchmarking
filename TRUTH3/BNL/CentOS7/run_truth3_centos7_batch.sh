@@ -19,7 +19,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c centos7 -r "asetup 
   Reco_tf.py --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --reductionConf TRUTH3 2>&1 | tee pipe_file.log &&\
   date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log"
 
-output_dir="/atlasgpfs01/usatlas/data/jroblesgo/benchmarks/${curr_time}/TRUTH3_centos7_batch"
+output_dir="/atlasgpfs01/usatlas/data/qlei/logs/TRUTH3_centos7_batch/${curr_time}"
 
 mkdir -p "${output_dir}"
 
@@ -31,6 +31,6 @@ mv split.log "${output_dir}"
 mv pipe_file.log "${output_dir}"
 
 # Checks the directory, if it matches it cleans it for the next job
-if [ "$(pwd)" = "/atlasgpfs01/usatlas/scratch/jroblesgo/TRUTH3/centos" ]; then
+if [ "$(pwd)" = "/usatlas/u/qlei/TRUTH3/el" ]; then
   rm -r ./*
 fi

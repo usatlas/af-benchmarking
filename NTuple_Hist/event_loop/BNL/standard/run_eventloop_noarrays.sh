@@ -18,8 +18,7 @@ python3 ~/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/eventloop_noarrays
   du event_loop_noarrays_output_hist.root
 } >> split.log
 
-
-output_dir="/atlasgpfs01/usatlas/data/jroblesgo/benchmarks/${curr_time}/eventloop_noarrays/"
+output_dir="/atlasgpfs01/usatlas/data/qlei/logs/eventloop_noarrays/${curr_time}"
 
 mkdir -p "${output_dir}"
 

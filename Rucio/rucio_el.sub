@@ -1,0 +1,13 @@
+Universe = vanilla
+
+Output = /usatlas/u/qlei/batch_output_files/rucio/myjob.$(Cluster).$(Process).out
+Error = /usatlas/u/qlei/batch_output_files/rucio/myjob.$(Cluster).$(Process).err
+Log = /usatlas/u/qlei/batch_output_files/rucio/myjob.$(Cluster).$(Process).log
+
+Executable = /usatlas/u/qlei/AF-Benchmarking/Rucio/rucio_script.sh
+Arguments = bnl
+
+request_memory = 16GB
+request_cpus = 1
+
+Queue 1
