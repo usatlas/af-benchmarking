@@ -17,7 +17,9 @@ permissions:
 
 jobs:
   rucio:
-    if: github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@v6
