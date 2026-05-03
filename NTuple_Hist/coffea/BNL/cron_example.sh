@@ -4,7 +4,7 @@
 readonly log_base="/atlasgpfs01/usatlas/data/qlei/logs/Coffea_Hist"
 readonly log_output="coffea_hist.log"
 readonly job_dir="/usatlas/u/qlei/test/coffea"
-readonly AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
+readonly AF_BENCH_DIR="/usatlas/u/qlei/dev/af-benchmarking"
 readonly sub_file="${AF_BENCH_DIR}/NTuple_Hist/coffea/BNL/coffea_el9.sub"
 
 readonly pixi_job="coffea"

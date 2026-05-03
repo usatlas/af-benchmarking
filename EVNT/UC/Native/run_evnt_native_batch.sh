@@ -1,7 +1,12 @@
 #!/bin/bash
 
+source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
+
 # The seed used in the job
 seed=1001
+
+start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+start_epoch=$(date -u +%s)
 
 # Directory storing the input files
 config_dir="${GITHUB_WORKSPACE}/EVNT/EVNTFiles/100xxx/100001"
@@ -22,8 +27,13 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 asetup AthGeneration,23.6.34,here
 
 echo "::group::EVNT Generation"
-Gen_tf.py --ecmEnergy=13000.0 --jobConfig="${config_dir}"  --outputEVNTFile=EVNT.root --maxEvents="${max_events}" --randomSeed="${seed}" 2>&1 | tee pipe_file.log
+/usr/bin/time -v Gen_tf.py --ecmEnergy=13000.0 --jobConfig="${config_dir}"  --outputEVNTFile=EVNT.root --maxEvents="${max_events}" --randomSeed="${seed}" 2>&1 | tee pipe_file.log
+cat pipe_file.log >> log.generate
 echo "::endgroup::"
+
+end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+end_epoch=$(date -u +%s)
+wall_time=$((end_epoch - start_epoch))
 
 # Appends time after Gen_tf.py to a log file
 echo "::group::Collect Metrics"
@@ -33,3 +43,5 @@ echo "::group::Collect Metrics"
   du EVNT.root
 } >> split.log
 echo "::endgroup::"
+
+append_benchmark "log.generate" "${start_time}" "${wall_time}" "${end_time}" "time_v"

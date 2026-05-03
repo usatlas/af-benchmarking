@@ -1,5 +1,9 @@
 #!/bin/bash
 
+source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
+
+start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+start_epoch=$(date -u +%s)
 
 echo "::group::setupATLAS"
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
@@ -13,11 +17,17 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 # Running the script
 echo "::group::EventLoop Execution"
-python3 "${GITHUB_WORKSPACE}"/NTuple_Hist/event_loop/UC/columnar/event_loop_arrays.py 2>&1 | tee eventloop_arrays.log
+/usr/bin/time -v python3 "${GITHUB_WORKSPACE}"/NTuple_Hist/event_loop/UC/columnar/event_loop_arrays.py 2>&1 | tee eventloop_arrays.log
 echo "::endgroup::"
+
+end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+end_epoch=$(date -u +%s)
+wall_time=$((end_epoch - start_epoch))
 
 # Collect metrics
 echo "::group::Collect Metrics"
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 hostname >> split.log
 echo "::endgroup::"
+
+append_benchmark "eventloop_arrays.log" "${start_time}" "${wall_time}" "${end_time}" "time_v"

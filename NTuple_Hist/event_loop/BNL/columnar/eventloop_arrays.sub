@@ -4,7 +4,7 @@ Output = /usatlas/u/qlei/batch_output_files/eventloop_arrays/eventloop_arrays.$(
 Error = /usatlas/u/qlei/batch_output_files/eventloop_arrays/eventloop_arrays.$(Cluster).$(Process).err
 Log = /usatlas/u/qlei/batch_output_files/eventloop_arrays/eventloop_arrays.$(Cluster).$(Process).log
 
-Executable = /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/columnar/run_eventloop_arrays.sh
+Executable = /usatlas/u/qlei/dev/af-benchmarking/NTuple_Hist/event_loop/BNL/columnar/run_eventloop_arrays.sh
 
 request_memory = 3GB
 request_cpus = 1

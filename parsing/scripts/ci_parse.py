@@ -13,14 +13,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
 
-from parsing.handlers import (
-    rucio_parser,
-    coffea_parser,
-    fastframes_parser,
-    truth3_parser,
-    evnt_parser,
-    eventloop_parser,
-)
+from parsing.handlers import base_parser
 
 # Initialize rich console
 console = Console()
@@ -92,22 +85,8 @@ def parse_log(
             f"[bold cyan]Payload file:[/bold cyan] {payload_file} ({payload_size} bytes)"
         )
 
-    # Parse based on log type
-    if log_type == "rucio":
-        data = rucio_parser.parse_rucio_log(log_path)
-    elif log_type == "evnt":
-        data = evnt_parser.parse_evnt_log(log_path)
-    elif log_type == "truth3":
-        data = truth3_parser.parse_truth3_log(log_path)
-    elif log_type == "coffea":
-        data = coffea_parser.parse_coffea_log(log_path)
-    elif log_type == "eventloop":
-        data = eventloop_parser.parse_eventloop_log(log_path)
-    elif log_type == "fastframes":
-        data = fastframes_parser.parse_fastframes_log(log_path)
-    else:
-        raise ValueError(f"Unknown log type: {log_type}")
-
+    data = base_parser.parse_atlas_log(log_path)
+ 
     # Add common fields to all parsed data
     data["job"] = job
     data["cluster"] = cluster

@@ -1,9 +1,13 @@
 #!/bin/bash
 # shellcheck disable=SC1091
 
+source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
 
 # Defines the directory where the input files are stored
 config_dir="${GITHUB_WORKSPACE}/TRUTH3/EVNT.root"
+
+start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+start_epoch=$(date -u +%s)
 
 # Sets up the environment
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
@@ -11,14 +15,18 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 # Appends time before Derivation_tf.py to log file
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
-
 # Sets up the container:
 ## -c : used to make a container followed by the OS we want to use
 ## -m : mounts a specific directory
 ## -r : precedes the commands we want to run within the container
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -r "asetup Athena,24.0.53,here && \
-  Derivation_tf.py --CA True --inputEVNTFile ${config_dir} --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log"
+  /usr/bin/time -v Derivation_tf.py --CA True --inputEVNTFile ${config_dir} --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log && \
+  cat pipe_file.log >> log.Derivation"
+
+end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+end_epoch=$(date -u +%s)
+wall_time=$((end_epoch - start_epoch))
 
 # Obtains and appends the host machine and payload size to the log file
 {
@@ -27,3 +35,5 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -r "asetup Athe
   hostname
   du DAOD_TRUTH3.TRUTH3.root
 } >> split.log
+
+append_benchmark "log.Derivation" "${start_time}" "${wall_time}" "${end_time}" "time_v"

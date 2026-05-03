@@ -4,7 +4,7 @@
 readonly log_base="/atlasgpfs01/usatlas/data/qlei/logs/eventloop_noarrays"
 readonly log_output="eventloop_noarrays.log"
 readonly job_dir="/usatlas/u/qlei/test/eventloop_noarrays"
-readonly AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
+readonly AF_BENCH_DIR="/usatlas/u/qlei/dev/af-benchmarking"
 readonly sub_file="${AF_BENCH_DIR}/NTuple_Hist/event_loop/BNL/standard/eventloop_noarrays.sub"
 
 readonly pixi_job="eventloop-standard"

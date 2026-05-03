@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# Time that will be used to store the log file
-curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+source /usatlas/u/qlei/dev/af-benchmarking/parsing/utils/benchmark_utils.sh
+
+# current time used for log file storage
+start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+start_epoch=$(date -u +%s)
 
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir="$HOME"/localConfig
@@ -10,7 +13,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 
 asetup StatAnalysis,0.6.3
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log &&\
-python3 ~/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/eventloop_noarrays.py 2>&1 | tee eventloop_noarrays.log
+/usr/bin/time -v python3 ~/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/eventloop_noarrays.py 2>&1 | tee eventloop_noarrays.log
 
 {
   date -u "+%Y-%m-%dT%H:%M:%SZ"
@@ -18,9 +21,15 @@ python3 ~/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/eventloop_noarrays
   du event_loop_noarrays_output_hist.root
 } >> split.log
 
-output_dir="/atlasgpfs01/usatlas/data/qlei/logs/eventloop_noarrays/${curr_time}"
+end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+end_epoch=$(date -u +%s)
+wall_time=$((end_epoch - start_epoch))
+
+output_dir="/atlasgpfs01/usatlas/data/qlei/logs/eventloop_noarrays/${start_time}"
 
 mkdir -p "${output_dir}"
+
+append_benchmark eventloop_noarrays.log "${start_time}" "${wall_time}" "${end_time}" "time_v"
 
 mv eventloop_noarrays.log "${output_dir}"
 mv split.log "${output_dir}"

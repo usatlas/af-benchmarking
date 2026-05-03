@@ -3,26 +3,37 @@
 This module provides common parsing logic shared across different
 benchmark types (TRUTH3, EVNT, etc.).
 """
+import arrow
 
-import datetime as dt
+def parse_benchmark_block(file_lines):
+    """Extract key=value pairs from the LAST === BENCHMARK === block in a log.
 
+    Args:
+        file_lines: List of lines from the log file
 
-# Month abbreviation to number mapping
-MONTH_DICT = {
-    "Jan": "01",
-    "Feb": "02",
-    "Mar": "03",
-    "Apr": "04",
-    "May": "05",
-    "Jun": "06",
-    "Jul": "07",
-    "Aug": "08",
-    "Sep": "09",
-    "Oct": "10",
-    "Nov": "11",
-    "Dec": "12",
-}
+    Returns:
+        dict: All key=value pairs from the last benchmark block,
+              or empty dict if no block found
+    """
+    last_block = {}
+    current_block = {}
+    in_block = False
 
+    for line in file_lines:
+        line = line.strip()
+        if line == "=== BENCHMARK ===":
+            in_block = True
+            current_block = {}
+            continue
+        if line == "=================" and in_block:
+            in_block = False
+            last_block = current_block  # keep overwriting — last one wins
+            continue
+        if in_block and "=" in line:
+            key, _, value = line.partition("=")
+            current_block[key.strip()] = value.strip()
+
+    return last_block
 
 def parse_atlas_log(path, log_name="ATLAS"):
     """Parse ATLAS benchmark log file for timing information.
@@ -37,56 +48,25 @@ def parse_atlas_log(path, log_name="ATLAS"):
             - queueTime: Queue time in seconds
             - runTime: Execution time in seconds
             - status: Exit status (0 = success)
+            - benchmark: Full dict of all fields from the benchmark block
     """
     print(f"[{log_name}] Parsing {path.name}")
 
-    # Read log file
     with open(path) as f:
         file_lines = f.readlines()
-        N = len(file_lines)
 
-    # Parse start datetime from first line
-    start_datetime_list = file_lines[0].split(" ")
-    end_time_list = file_lines[N - 1].split(" ")
+    benchmark = parse_benchmark_block(file_lines)
 
-    start_time = start_datetime_list[0]
-    month = int(MONTH_DICT[start_datetime_list[2]])
-    year = int(start_datetime_list[-1])
+    if not benchmark:
+        raise ValueError(f"[{log_name}] No BENCHMARK block found in {path.name}")
 
-    # Handle different date formats (with/without day of week)
-    if len(start_datetime_list) == 8:
-        day = int(start_datetime_list[4])
-        submit_time = dt.datetime.strptime(start_datetime_list[5], "%H:%M:%S").time()
-    else:
-        day = int(start_datetime_list[3])
-        submit_time = dt.datetime.strptime(start_datetime_list[4], "%H:%M:%S").time()
-
-    # Build datetime objects (explicitly UTC to avoid local timezone interpretation)
-    start_date_object = dt.date(year, month, day)
-    start_time = dt.datetime.strptime(start_datetime_list[0], "%H:%M:%S").time()
-    start_datetime_object = dt.datetime.combine(
-        start_date_object, start_time, tzinfo=dt.timezone.utc
-    )
-    utc_timestamp = int(start_datetime_object.timestamp()) * 1000
-
-    # Calculate queue time
-    submit_datetime_object = dt.datetime.combine(
-        start_date_object, submit_time, tzinfo=dt.timezone.utc
-    )
-    queue_time = int((start_datetime_object - submit_datetime_object).total_seconds())
-
-    # Calculate run time
-    end_time = dt.datetime.strptime(end_time_list[0], "%H:%M:%S").time()
-    end_datetime_object = dt.datetime.combine(
-        start_date_object, end_time, tzinfo=dt.timezone.utc
-    )
-    run_time = int((end_datetime_object - start_datetime_object).total_seconds())
-
-    status = 0
+    start_dt = arrow.get(benchmark["start_time_utc"])
+    wall_time = float(benchmark["wall_time_sec"])
 
     return {
-        "submitTime": utc_timestamp,
-        "queueTime": queue_time,
-        "runTime": run_time,
-        "status": status,
+        "submitTime": start_dt.int_timestamp * 1000,  # milliseconds
+        "queueTime":  0,
+        "runTime":    wall_time,
+        "status":     int(benchmark.get("exit_status", 0)),
+        # "benchmark":  benchmark,  # full block — subparsers can pull extra fields from here
     }

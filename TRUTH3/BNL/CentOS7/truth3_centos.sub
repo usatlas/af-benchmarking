@@ -4,7 +4,7 @@ Output = /usatlas/u/qlei/batch_output_files/truth3/centos/myjob.$(Cluster).$(Pro
 Error = /usatlas/u/qlei/batch_output_files/truth3/centos/myjob.$(Cluster).$(Process).err
 Log = /usatlas/u/qlei/batch_output_files/truth3/centos/myjob.$(Cluster).$(Process).log
 
-Executable = /usatlas/u/qlei/AF-Benchmarking/TRUTH3/BNL/CentOS7/run_truth3_centos7_batch.sh
+Executable = /usatlas/u/qlei/dev/af-benchmarking/TRUTH3/BNL/CentOS7/run_truth3_centos7_batch.sh
 
 request_memory = 3G
 

@@ -4,7 +4,7 @@
 readonly log_base="/atlasgpfs01/usatlas/data/qlei/logs/EVNT_el9_batch"
 readonly log_output="log.generate"
 readonly job_dir="/usatlas/u/qlei/test/EVNT/el"
-readonly AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
+readonly AF_BENCH_DIR="/usatlas/u/qlei/dev/af-benchmarking"
 readonly sub_file="${AF_BENCH_DIR}/EVNT/BNL/EL9/evnt_el.sub"
 
 readonly pixi_job="evnt"

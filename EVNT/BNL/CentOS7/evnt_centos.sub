@@ -1,11 +1,10 @@
 Universe = vanilla
 
-
 Output = /usatlas/u/qlei/batch_output_files/evnt/centos/myjob.$(Cluster).$(Process).out
 Error = /usatlas/u/qlei/batch_output_files/evnt/centos/myjob.$(Cluster).$(Process).err
 Log = /usatlas/u/qlei/batch_output_files/evnt/centos/myjob.$(Cluster).$(Process).log
 
-Executable = /usatlas/u/qlei/AF-Benchmarking/EVNT/BNL/CentOS7/run_evnt_centos7_batch.sh
+Executable = /usatlas/u/qlei/dev/af-benchmarking/EVNT/BNL/CentOS7/run_evnt_centos7_batch.sh
 
 request_memory = 3GB
 request_cpus = 1

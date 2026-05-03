@@ -4,7 +4,7 @@ Output = /usatlas/u/qlei/batch_output_files/rucio/myjob.$(Cluster).$(Process).ou
 Error = /usatlas/u/qlei/batch_output_files/rucio/myjob.$(Cluster).$(Process).err
 Log = /usatlas/u/qlei/batch_output_files/rucio/myjob.$(Cluster).$(Process).log
 
-Executable = /usatlas/u/qlei/AF-Benchmarking/Rucio/rucio_script.sh
+Executable = /usatlas/u/qlei/dev/af-benchmarking/Rucio/rucio_script.sh
 Arguments = bnl
 
 request_memory = 16GB

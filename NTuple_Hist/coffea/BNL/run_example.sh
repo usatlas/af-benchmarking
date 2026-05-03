@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# Gets the current time
-curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+source /usatlas/u/qlei/dev/af-benchmarking/parsing/utils/benchmark_utils.sh
+
+# current time used for log file storage
+
+start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+start_epoch=$(date -u +%s)
 
 working_dir="/atlasgpfs01/usatlas/data/qlei/ntuple/coffea"
 
@@ -22,7 +26,11 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01
   python3 -m venv venv &&\
   ./venv/bin/python -m pip install -U pip &&\
   ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' &&\
-  ./venv/bin/python example.py 2>&1 | tee coffea_hist.log"
+  /usr/bin/time -v ./venv/bin/python example.py 2>&1 | tee coffea_hist.log"
+
+end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+end_epoch=$(date -u +%s)
+wall_time=$((end_epoch - start_epoch))
 
 {
   date -u "+%Y-%m-%dT%H:%M:%SZ"
@@ -30,9 +38,11 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01
   du coffea.root
 } >> split.log
 
-output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Coffea_Hist/${curr_time}"
+output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Coffea_Hist/${start_time}"
 
 mkdir -p "${output_dir}"
+
+append_benchmark coffea_hist.log "${start_time}" "${wall_time}" "${end_time}" "time_v"
 
 mv coffea_hist.log "${output_dir}"
 mv split.log "${output_dir}"

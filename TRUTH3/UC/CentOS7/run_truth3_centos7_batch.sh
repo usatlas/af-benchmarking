@@ -1,9 +1,13 @@
 #!/bin/bash
 # shellcheck disable=SC1091
 
+source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
 
 # Defines the directory where the input files are stored
 config_dir="${GITHUB_WORKSPACE}/TRUTH3/EVNT.root"
+
+start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+start_epoch=$(date -u +%s)
 
 # Sets up the ATLAS Environment
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
@@ -17,7 +21,12 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 ## -r : precedes the commands we want to run within the container
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c centos7 -r "asetup AthDerivation,21.2.178.0,here && \
-  Reco_tf.py --inputEVNTFile ${config_dir} --outputDAODFile=TRUTH3.root --reductionConf TRUTH3 2>&1 | tee pipe_file.log"
+  /usr/bin/time -v Reco_tf.py --inputEVNTFile ${config_dir} --outputDAODFile=TRUTH3.root --reductionConf TRUTH3 2>&1 | tee pipe_file.log && \
+  cat pipe_file.log >> log.EVNTtoDAOD"
+
+end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+end_epoch=$(date -u +%s)
+wall_time=$((end_epoch - start_epoch))
 
 # Obtains and appends the host machine and payload size to the log file
 {
@@ -26,3 +35,5 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c centos7 -r "asetup 
   hostname
   du DAOD_TRUTH3.TRUTH3.root
 } >> split.log
+
+append_benchmark "log.EVNTtoDAOD" "${start_time}" "${wall_time}" "${end_time}" "time_v"

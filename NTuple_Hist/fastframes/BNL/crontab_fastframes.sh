@@ -4,7 +4,7 @@
 readonly log_base="/atlasgpfs01/usatlas/data/qlei/logs/FastFrames_NTuple"
 readonly log_output="fastframes.log"
 readonly job_dir="/usatlas/u/qlei/test/fastframes"
-readonly AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
+readonly AF_BENCH_DIR="/usatlas/u/qlei/dev/af-benchmarking"
 readonly sub_file="${AF_BENCH_DIR}/NTuple_Hist/fastframes/BNL/fastframes_el9.sub"
 
 readonly pixi_job="fastframes"
