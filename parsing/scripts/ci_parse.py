@@ -86,7 +86,7 @@ def parse_log(
         )
 
     data = base_parser.parse_atlas_log(log_path)
- 
+
     # Add common fields to all parsed data
     data["job"] = job
     data["cluster"] = cluster

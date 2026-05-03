@@ -3,7 +3,9 @@
 This module provides common parsing logic shared across different
 benchmark types (TRUTH3, EVNT, etc.).
 """
+
 import arrow
+
 
 def parse_benchmark_block(file_lines):
     """Extract key=value pairs from the LAST === BENCHMARK === block in a log.
@@ -35,6 +37,7 @@ def parse_benchmark_block(file_lines):
 
     return last_block
 
+
 def parse_atlas_log(path, log_name="ATLAS"):
     """Parse ATLAS benchmark log file for timing information.
 
@@ -65,8 +68,8 @@ def parse_atlas_log(path, log_name="ATLAS"):
 
     return {
         "submitTime": start_dt.int_timestamp * 1000,  # milliseconds
-        "queueTime":  0,
-        "runTime":    wall_time,
-        "status":     int(benchmark.get("exit_status", 0)),
+        "queueTime": 0,
+        "runTime": wall_time,
+        "status": int(benchmark.get("exit_status", 0)),
         # "benchmark":  benchmark,  # full block — subparsers can pull extra fields from here
     }
