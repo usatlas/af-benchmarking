@@ -51,7 +51,6 @@ def parse_atlas_log(path, log_name="ATLAS"):
             - queueTime: Queue time in seconds
             - runTime: Execution time in seconds
             - status: Exit status (0 = success)
-            - benchmark: Full dict of all fields from the benchmark block
     """
     print(f"[{log_name}] Parsing {path.name}")
 
@@ -64,12 +63,14 @@ def parse_atlas_log(path, log_name="ATLAS"):
         raise ValueError(f"[{log_name}] No BENCHMARK block found in {path.name}")
 
     start_dt = arrow.get(benchmark["start_time_utc"])
-    wall_time = float(benchmark["wall_time_sec"])
+    end_dt = arrow.get(benchmark["end_time_utc"])
+    queue_time = 0
+    run_time = int((end_dt - start_dt).total_seconds())
 
     return {
         "submitTime": start_dt.int_timestamp * 1000,  # milliseconds
-        "queueTime": 0,
-        "runTime": wall_time,
+        "queueTime": queue_time,
+        "runTime": run_time,
         "status": int(benchmark.get("exit_status", 0)),
         # "benchmark":  benchmark,  # full block — subparsers can pull extra fields from here
     }
