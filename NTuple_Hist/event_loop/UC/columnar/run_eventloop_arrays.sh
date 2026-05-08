@@ -3,7 +3,6 @@
 source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-start_epoch=$(date -u +%s)
 
 echo "::group::setupATLAS"
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
@@ -21,8 +20,6 @@ echo "::group::EventLoop Execution"
 echo "::endgroup::"
 
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-end_epoch=$(date -u +%s)
-wall_time=$((end_epoch - start_epoch))
 
 # Collect metrics
 echo "::group::Collect Metrics"
@@ -30,4 +27,4 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 hostname >> split.log
 echo "::endgroup::"
 
-append_benchmark "eventloop_arrays.log" "${start_time}" "${wall_time}" "${end_time}" "time_v"
+append_benchmark "eventloop_arrays.log" "${start_time}" "${end_time}" "time_v"

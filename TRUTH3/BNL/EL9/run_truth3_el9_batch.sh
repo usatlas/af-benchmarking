@@ -4,7 +4,6 @@ source /usatlas/u/qlei/dev/af-benchmarking/parsing/utils/benchmark_utils.sh
 
 # Current time used for file storage
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-start_epoch=$(date -u +%s)
 
 # Copying input files to working directory
 cp -r ~/AF-Benchmarking/TRUTH3/EVNT.root .
@@ -24,8 +23,6 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -r "asetup Athe
   date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log"
 
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-end_epoch=$(date -u +%s)
-wall_time=$((end_epoch - start_epoch))
 
 # Defines the output directory
 output_dir="/atlasgpfs01/usatlas/data/qlei/logs/TRUTH3_el9_batch/${start_time}"
@@ -37,7 +34,7 @@ mkdir -p "${output_dir}"
 hostname >> split.log
 du DAOD_TRUTH3.TRUTH3.root >> split.log
 
-append_benchmark log.Derivation "${start_time}" "${wall_time}" "${end_time}" "time_v"
+append_benchmark log.Derivation "${start_time}" "${end_time}" "time_v"
 
 # Moves the log file to the output directory
 mv log.Derivation "${output_dir}"

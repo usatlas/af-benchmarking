@@ -4,7 +4,6 @@ source /usatlas/u/qlei/dev/af-benchmarking/parsing/utils/benchmark_utils.sh
 
 # Current time used for log file storage
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-start_epoch=$(date -u +%s)
 
 # Sets up the container:
 ## -c : used to make a container followed by the OS we want to use
@@ -19,8 +18,6 @@ source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh -c centos7 -m /atlasgpfs
   echo $(date -u "+%Y-%m-%dT%H:%M:%SZ") >> split.log"
 
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-end_epoch=$(date -u +%s)
-wall_time=$((end_epoch - start_epoch))
 
 # Output directory
 output_dir="/atlasgpfs01/usatlas/data/qlei/logs/EVNT_centos7_batch/${start_time}"
@@ -31,7 +28,7 @@ mkdir -p "${output_dir}"
 hostname >> split.log
 du EVNT.root >> split.log
 
-append_benchmark log.generate "${start_time}" "${wall_time}" "${end_time}" "time_v"
+append_benchmark log.generate "${start_time}" "${end_time}" "time_v"
 
 # Moves the log file to the output directory
 mv log.generate "${output_dir}"

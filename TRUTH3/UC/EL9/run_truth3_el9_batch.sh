@@ -7,7 +7,6 @@ source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
 config_dir="${GITHUB_WORKSPACE}/TRUTH3/EVNT.root"
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-start_epoch=$(date -u +%s)
 
 # Sets up the environment
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
@@ -25,8 +24,6 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -r "asetup Athe
   cat pipe_file.log >> log.Derivation"
 
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-end_epoch=$(date -u +%s)
-wall_time=$((end_epoch - start_epoch))
 
 # Obtains and appends the host machine and payload size to the log file
 {
@@ -36,4 +33,4 @@ wall_time=$((end_epoch - start_epoch))
   du DAOD_TRUTH3.TRUTH3.root
 } >> split.log
 
-append_benchmark "log.Derivation" "${start_time}" "${wall_time}" "${end_time}" "time_v"
+append_benchmark "log.Derivation" "${start_time}" "${end_time}" "time_v"

@@ -4,7 +4,6 @@ source /usatlas/u/qlei/dev/af-benchmarking/parsing/utils/benchmark_utils.sh
 
 # current time used for log file storage
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-start_epoch=$(date -u +%s)
 
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir="$HOME"/localConfig
@@ -22,14 +21,12 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log &&\
 } >> split.log
 
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-end_epoch=$(date -u +%s)
-wall_time=$((end_epoch - start_epoch))
 
 output_dir="/atlasgpfs01/usatlas/data/qlei/logs/eventloop_noarrays/${start_time}"
 
 mkdir -p "${output_dir}"
 
-append_benchmark eventloop_noarrays.log "${start_time}" "${wall_time}" "${end_time}" "time_v"
+append_benchmark eventloop_noarrays.log "${start_time}" "${end_time}" "time_v"
 
 mv eventloop_noarrays.log "${output_dir}"
 mv split.log "${output_dir}"

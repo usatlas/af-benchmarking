@@ -12,7 +12,6 @@ container_el9 (){
   # - output_dir (3)
   # - download_ID (4)
   start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-  start_epoch=$(date -u +%s)
   cd "${1}" || exit
   export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
   export ALRB_localConfigDir="$HOME"/localConfig
@@ -28,9 +27,7 @@ container_el9 (){
     du \"${4#*:}\"/ >> rucio.log &&\
     mv rucio.log \"${3}\""
   end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-  end_epoch=$(date -u +%s)
-  wall_time=$((end_epoch - start_epoch))
-  append_benchmark "${3}/rucio.log" "${start_time}" "${wall_time}" "${end_time}" "rucio"
+  append_benchmark "${3}/rucio.log" "${start_time}" "${end_time}" "rucio"
 }
 
 native_el9 () {
@@ -39,7 +36,6 @@ native_el9 () {
   # - job_dir
   # - download_ID
   start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-  start_epoch=$(date -u +%s)
   echo "::group::setupATLAS"
   export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
   export ALRB_localConfigDir="$HOME"/localConfig
@@ -57,13 +53,11 @@ native_el9 () {
   rucio download --rses AGLT2_LOCALGROUPDISK "${3}"  2>&1 | tee rucio.log
   echo "::endgroup::"
   end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-  end_epoch=$(date -u +%s)
-  wall_time=$((end_epoch - start_epoch))
   echo "::group::Collect Metrics"
   hostname >> rucio.log
   du "${3#*:}" >> rucio.log
   echo "::endgroup::"
-  append_benchmark "rucio.log" "${start_time}" "${wall_time}" "${end_time}" "rucio"
+  append_benchmark "rucio.log" "${start_time}" "${end_time}" "rucio"
   mv rucio.log "${1}"
 }
 

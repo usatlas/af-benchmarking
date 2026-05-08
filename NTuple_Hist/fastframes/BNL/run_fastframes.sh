@@ -5,7 +5,6 @@ source /usatlas/u/qlei/dev/af-benchmarking/parsing/utils/benchmark_utils.sh
 # current time used for log file storage
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-start_epoch=$(date -u +%s)
 
 cd /atlasgpfs01/usatlas/data/qlei/ || exit
 
@@ -32,8 +31,6 @@ hostname >> split.log
 echo "::endgroup::"
 
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-end_epoch=$(date -u +%s)
-wall_time=$((end_epoch - start_epoch))
 
 # output directory
 output_dir="/atlasgpfs01/usatlas/data/qlei/logs/FastFrames_NTuple/${start_time}"
@@ -41,7 +38,7 @@ output_dir="/atlasgpfs01/usatlas/data/qlei/logs/FastFrames_NTuple/${start_time}"
 # Creates output dir
 mkdir -p "${output_dir}"
 
-append_benchmark fastframes.log "${start_time}" "${wall_time}" "${end_time}" "time_v"
+append_benchmark fastframes.log "${start_time}" "${end_time}" "time_v"
 
 # Moves log to outputdir
 mv fastframes.log "${output_dir}"

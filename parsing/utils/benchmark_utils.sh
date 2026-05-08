@@ -58,13 +58,12 @@ extract_rucio_metrics() {
 }
 
 # Append standardized benchmark block to a log file
-# Usage: append_benchmark <log_file> <start_time> <wall_time_sec> <end_time>
+# Usage: append_benchmark <log_file> <start_time> <end_time> [mode]
 append_benchmark() {
   local log_file=$1
   local start_time=$2
-  local wall_time_sec=$3
-  local end_time=$4
-  local mode=${5:-time_v}
+  local end_time=$3
+  local mode=${4:-time_v}
 
   local extra_metrics=""
   case "${mode}" in
@@ -76,7 +75,6 @@ append_benchmark() {
   cat >> "${log_file}" <<EOF
 === BENCHMARK ===
 start_time_utc=${start_time}
-wall_time_sec=${wall_time_sec}
 end_time_utc=${end_time}
 ${extra_metrics}
 =================
