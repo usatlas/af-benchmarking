@@ -13,7 +13,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.syntax import Syntax
 
-from parsing.handlers import base_parser
+from parsing import base_parser
 
 # Initialize rich console
 console = Console()
