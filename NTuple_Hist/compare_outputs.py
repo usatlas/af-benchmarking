@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """Compare photon pT histogram outputs across NTuple-to-histogram frameworks.
 
-Requires: uproot, numpy, matplotlib
-  pip install uproot numpy matplotlib
+Requires: ROOT (PyROOT) — available on ATLAS analysis facilities.
 
 Usage:
     python compare_outputs.py \\
@@ -24,25 +23,57 @@ but FastFrames will have extra entries in the underflow.
 
 import argparse
 
-import numpy as np
-import uproot
-import matplotlib.pyplot as plt
+import ROOT
+
+ROOT.gROOT.SetBatch(True)
+ROOT.gStyle.SetOptStat(0)
+ROOT.gStyle.SetOptTitle(0)
 
 
 def load_th1(path, name):
-    """Return (bin_values, bin_edges) arrays for a TH1 in a ROOT file."""
-    with uproot.open(path) as f:
-        available = list(f.keys())
-        if name not in available:
-            raise KeyError(
-                f"{name!r} not found in {path}.\nAvailable keys: {available}"
-            )
-        values, edges = f[name].to_numpy()
-    return values, edges
+    """Load a TH1 from a ROOT file, detached from the file."""
+    f = ROOT.TFile.Open(path, "READ")
+    if not f or f.IsZombie():
+        raise OSError(f"Cannot open {path}")
+    h = f.Get(name)
+    if not h:
+        keys = [k.GetName() for k in f.GetListOfKeys()]
+        raise KeyError(f"{name!r} not found in {path}.\nAvailable keys: {keys}")
+    h = h.Clone()
+    h.SetDirectory(0)
+    f.Close()
+    return h
 
 
-def weighted_integral(values, edges):
-    return float(np.sum(values * (edges[1:] - edges[:-1])))
+def check_binning(hists):
+    ref_label, ref_h = hists[0]
+    ok = True
+    for label, h in hists[1:]:
+        if h.GetNbinsX() != ref_h.GetNbinsX() or \
+                h.GetXaxis().GetXmin() != ref_h.GetXaxis().GetXmin() or \
+                h.GetXaxis().GetXmax() != ref_h.GetXaxis().GetXmax():
+            print(f"WARNING: binning of {label!r} differs from {ref_label!r}")
+            ok = False
+    return ok
+
+
+def print_summary(hists):
+    print(f"\n{'Framework':<12} {'Integral':>14} {'Peak bin':>12} {'Non-zero bins':>16}")
+    print("-" * 58)
+    for label, h in hists:
+        integral = h.Integral()
+        peak = h.GetMaximum()
+        nonzero = sum(
+            1 for i in range(1, h.GetNbinsX() + 1) if h.GetBinContent(i) > 0
+        )
+        print(f"{label:<12} {integral:>14.4f} {peak:>12.4f} {nonzero:>16d}")
+
+
+def make_ratio(h_num, h_den, name):
+    ratio = h_num.Clone(name)
+    ratio.SetDirectory(0)
+    ratio.Divide(h_den)
+    return ratio
 
 
 def main():
@@ -67,94 +98,134 @@ def main():
         help="histogram name in fastframes ROOT file (default: example_FS_Muon_ph_pt_NOSYS)",
     )
     parser.add_argument(
-        "--plot", default="comparison.png", metavar="PATH",
-        help="output plot file (default: comparison.png; pass empty string to skip)",
+        "--plot", default="comparison.pdf", metavar="PATH",
+        help="output plot file (default: comparison.pdf; pass empty string to skip)",
     )
     args = parser.parse_args()
 
-    coffea_vals, coffea_edges = load_th1(args.coffea, args.coffea_hist)
-    el_vals, el_edges = load_th1(args.eventloop, args.eventloop_hist)
-    ff_vals, ff_edges = load_th1(args.fastframes, args.fastframes_hist)
+    coffea_h = load_th1(args.coffea, args.coffea_hist)
+    el_h = load_th1(args.eventloop, args.eventloop_hist)
+    ff_h = load_th1(args.fastframes, args.fastframes_hist)
 
-    binning_consistent = np.allclose(coffea_edges, el_edges) and np.allclose(
-        coffea_edges, ff_edges
-    )
-    if not binning_consistent:
-        print("WARNING: histogram binning differs across frameworks")
-        for label, edges in [
-            ("coffea", coffea_edges),
-            ("eventloop", el_edges),
-            ("fastframes", ff_edges),
-        ]:
-            print(f"  {label}: {len(edges) - 1} bins, [{edges[0]:.1f}, {edges[-1]:.1f}]")
+    hists = [("coffea", coffea_h), ("eventloop", el_h), ("fastframes", ff_h)]
 
-    # Summary table
-    print(f"\n{'Framework':<12} {'Integral':>14} {'Peak bin':>12} {'Non-zero bins':>16}")
-    print("-" * 58)
-    for label, vals, edges in [
-        ("coffea", coffea_vals, coffea_edges),
-        ("eventloop", el_vals, el_edges),
-        ("fastframes", ff_vals, ff_edges),
-    ]:
-        print(
-            f"{label:<12}"
-            f" {weighted_integral(vals, edges):>14.4f}"
-            f" {float(np.max(vals)):>12.4f}"
-            f" {int(np.sum(vals > 0)):>16d}"
+    binning_ok = check_binning(hists)
+    print_summary(hists)
+
+    if binning_ok:
+        ratio_el = make_ratio(el_h, coffea_h, "ratio_el")
+        ratio_ff = make_ratio(ff_h, coffea_h, "ratio_ff")
+
+        mean_el = sum(
+            ratio_el.GetBinContent(i)
+            for i in range(1, ratio_el.GetNbinsX() + 1)
+            if coffea_h.GetBinContent(i) > 0
+        ) / max(
+            1,
+            sum(1 for i in range(1, coffea_h.GetNbinsX() + 1) if coffea_h.GetBinContent(i) > 0),
         )
-
-    if binning_consistent:
-        with np.errstate(divide="ignore", invalid="ignore"):
-            ratio_el = np.where(coffea_vals != 0, el_vals / coffea_vals, np.nan)
-            ratio_ff = np.where(coffea_vals != 0, ff_vals / coffea_vals, np.nan)
+        mean_ff = sum(
+            ratio_ff.GetBinContent(i)
+            for i in range(1, ratio_ff.GetNbinsX() + 1)
+            if coffea_h.GetBinContent(i) > 0
+        ) / max(
+            1,
+            sum(1 for i in range(1, coffea_h.GetNbinsX() + 1) if coffea_h.GetBinContent(i) > 0),
+        )
         print(f"\nMean bin ratio (where coffea > 0):")
-        print(f"  EventLoop  / Coffea : {np.nanmean(ratio_el):.4f}")
-        print(f"  FastFrames / Coffea : {np.nanmean(ratio_ff):.4f}")
+        print(f"  EventLoop  / Coffea : {mean_el:.4f}")
+        print(f"  FastFrames / Coffea : {mean_ff:.4f}")
 
     if not args.plot:
         return
 
-    fig, (ax_top, ax_bot) = plt.subplots(
-        2, 1, figsize=(8, 8),
-        gridspec_kw={"height_ratios": [3, 1]},
-        sharex=True,
-    )
+    canvas = ROOT.TCanvas("comparison", "Framework Comparison", 800, 800)
+    pad_top = ROOT.TPad("pad_top", "", 0, 0.3, 1, 1)
+    pad_bot = ROOT.TPad("pad_bot", "", 0, 0, 1, 0.3)
+    pad_top.SetBottomMargin(0.03)
+    pad_top.SetTopMargin(0.08)
+    pad_bot.SetTopMargin(0.03)
+    pad_bot.SetBottomMargin(0.32)
+    pad_top.Draw()
+    pad_bot.Draw()
 
-    for label, vals, edges, color, ls in [
-        ("Coffea", coffea_vals, coffea_edges, "tab:blue", "-"),
-        ("EventLoop", el_vals, el_edges, "tab:green", "--"),
-        ("FastFrames", ff_vals, ff_edges, "tab:red", ":"),
-    ]:
-        ax_top.stairs(vals, edges, label=label, color=color, linestyle=ls, linewidth=1.5)
+    # --- top pad ---
+    pad_top.cd()
+    pad_top.SetLogy()
 
-    ax_top.set_ylabel("Events / bin")
-    ax_top.set_yscale("log")
-    ax_top.legend()
-    ax_top.set_title(r"Photon $p_\mathrm{T}$: Coffea vs EventLoop vs FastFrames")
-    ax_top.set_xlim(coffea_edges[0], coffea_edges[-1])
+    coffea_h.SetLineColor(ROOT.kBlue)
+    coffea_h.SetLineWidth(2)
+    coffea_h.GetYaxis().SetTitle("Events / bin")
+    coffea_h.GetYaxis().SetTitleSize(0.05)
+    coffea_h.GetYaxis().SetLabelSize(0.04)
+    coffea_h.GetXaxis().SetLabelSize(0)
+    coffea_h.Draw("HIST")
 
-    if binning_consistent:
-        ax_bot.axhline(1.0, color="black", linewidth=0.8, linestyle="-")
-        ax_bot.stairs(
-            ratio_el, coffea_edges,
-            label="EventLoop / Coffea", color="tab:green", linestyle="--", linewidth=1.5,
-        )
-        ax_bot.stairs(
-            ratio_ff, coffea_edges,
-            label="FastFrames / Coffea", color="tab:red", linestyle=":", linewidth=1.5,
-        )
-        ax_bot.set_ylim(0.5, 1.5)
-        ax_bot.set_ylabel("Ratio to Coffea")
-        ax_bot.legend(fontsize=9)
+    el_h.SetLineColor(ROOT.kGreen + 2)
+    el_h.SetLineWidth(2)
+    el_h.SetLineStyle(2)
+    el_h.Draw("HIST SAME")
+
+    ff_h.SetLineColor(ROOT.kRed)
+    ff_h.SetLineWidth(2)
+    ff_h.SetLineStyle(3)
+    ff_h.Draw("HIST SAME")
+
+    legend = ROOT.TLegend(0.58, 0.68, 0.88, 0.88)
+    legend.SetBorderSize(0)
+    legend.AddEntry(coffea_h, "Coffea", "l")
+    legend.AddEntry(el_h, "EventLoop", "l")
+    legend.AddEntry(ff_h, "FastFrames", "l")
+    legend.Draw()
+
+    title_latex = ROOT.TLatex()
+    title_latex.SetNDC()
+    title_latex.SetTextSize(0.05)
+    title_latex.DrawLatex(0.12, 0.93, "Photon p_{T}: Coffea vs EventLoop vs FastFrames")
+
+    # --- bottom pad ---
+    pad_bot.cd()
+
+    if binning_ok:
+        ratio_el.SetLineColor(ROOT.kGreen + 2)
+        ratio_el.SetLineWidth(2)
+        ratio_el.SetLineStyle(2)
+        ratio_el.GetYaxis().SetTitle("Ratio to Coffea")
+        ratio_el.GetYaxis().SetRangeUser(0.5, 1.5)
+        ratio_el.GetYaxis().SetNdivisions(505)
+        ratio_el.GetYaxis().SetTitleSize(0.11)
+        ratio_el.GetYaxis().SetTitleOffset(0.45)
+        ratio_el.GetYaxis().SetLabelSize(0.09)
+        ratio_el.GetXaxis().SetTitle("Photon p_{T} [GeV]")
+        ratio_el.GetXaxis().SetTitleSize(0.12)
+        ratio_el.GetXaxis().SetLabelSize(0.10)
+        ratio_el.Draw("HIST")
+
+        ratio_ff.SetLineColor(ROOT.kRed)
+        ratio_ff.SetLineWidth(2)
+        ratio_ff.SetLineStyle(3)
+        ratio_ff.Draw("HIST SAME")
+
+        xmin = coffea_h.GetXaxis().GetXmin()
+        xmax = coffea_h.GetXaxis().GetXmax()
+        unity = ROOT.TLine(xmin, 1.0, xmax, 1.0)
+        unity.SetLineColor(ROOT.kBlack)
+        unity.SetLineWidth(1)
+        unity.Draw()
+
+        bot_legend = ROOT.TLegend(0.58, 0.78, 0.88, 0.95)
+        bot_legend.SetBorderSize(0)
+        bot_legend.SetTextSize(0.09)
+        bot_legend.AddEntry(ratio_el, "EventLoop / Coffea", "l")
+        bot_legend.AddEntry(ratio_ff, "FastFrames / Coffea", "l")
+        bot_legend.Draw()
     else:
-        ax_bot.text(
-            0.5, 0.5, "Binning mismatch — ratio unavailable",
-            ha="center", va="center", transform=ax_bot.transAxes,
-        )
+        msg = ROOT.TLatex()
+        msg.SetNDC()
+        msg.SetTextSize(0.08)
+        msg.DrawLatex(0.15, 0.5, "Binning mismatch #font[52]{ratio unavailable}")
 
-    ax_bot.set_xlabel(r"Photon $p_\mathrm{T}$ [GeV]")
-    fig.tight_layout()
-    fig.savefig(args.plot, dpi=150)
+    canvas.SaveAs(args.plot)
     print(f"\nPlot saved to: {args.plot}")
 
 
