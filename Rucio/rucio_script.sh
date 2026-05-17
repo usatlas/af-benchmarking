@@ -27,7 +27,7 @@ container_el9 (){
     du \"${4#*:}\"/ >> rucio.log &&\
     mv rucio.log \"${3}\""
   end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-  append_benchmark "${3}/rucio.log" "${start_time}" "${end_time}" "rucio"
+  append_benchmark "${3}/rucio.log" "${start_time}" "${end_time}" "${start_time}" "${start_time}" "rucio"
 }
 
 native_el9 () {
@@ -57,7 +57,7 @@ native_el9 () {
   hostname >> rucio.log
   du "${3#*:}" >> rucio.log
   echo "::endgroup::"
-  append_benchmark "rucio.log" "${start_time}" "${end_time}" "rucio"
+  append_benchmark "rucio.log" "${start_time}" "${end_time}" "${start_time}" "${start_time}" "rucio"
   mv rucio.log "${1}"
 }
 

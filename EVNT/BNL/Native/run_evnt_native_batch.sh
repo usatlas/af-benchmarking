@@ -8,6 +8,8 @@ start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 # The seed used in the job
 seed=1001
 
+setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+
 # Sets up our working environment
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 # shellcheck disable=SC1091
@@ -15,6 +17,8 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 
 # Sets up the Ath* version
 asetup AthGeneration,23.6.34,here
+
+setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Appends time before Gen_tf.py to log file
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
@@ -36,7 +40,7 @@ mkdir -p "${output_dir}"
 hostname >> split.log
 du EVNT.root >> split.log
 
-append_benchmark log.generate "${start_time}" "${end_time}" "time_v"
+append_benchmark log.generate "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
 
 # Moves the log file to the output directory
 mv log.generate "${output_dir}"

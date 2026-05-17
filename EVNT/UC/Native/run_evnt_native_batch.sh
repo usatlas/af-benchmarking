@@ -12,6 +12,8 @@ config_dir="${GITHUB_WORKSPACE}/EVNT/EVNTFiles/100xxx/100001"
 
 max_events=1000
 
+setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+
 # Sets up our working environment
 echo "::group::setupATLAS"
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
@@ -24,6 +26,8 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 # Sets up the Ath* version
 asetup AthGeneration,23.6.34,here
+
+setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 echo "::group::EVNT Generation"
 /usr/bin/time -v Gen_tf.py --ecmEnergy=13000.0 --jobConfig="${config_dir}"  --outputEVNTFile=EVNT.root --maxEvents="${max_events}" --randomSeed="${seed}" 2>&1 | tee pipe_file.log
@@ -41,4 +45,4 @@ echo "::group::Collect Metrics"
 } >> split.log
 echo "::endgroup::"
 
-append_benchmark "log.generate" "${start_time}" "${end_time}" "time_v"
+append_benchmark "log.generate" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"

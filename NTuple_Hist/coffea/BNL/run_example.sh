@@ -18,6 +18,7 @@ fi
 
 cp ~/AF-Benchmarking/NTuple_Hist/coffea/BNL/example.py .
 
+setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir="$HOME"/localConfig
 # shellcheck disable=SC1091
@@ -25,8 +26,10 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01
   python3 -m venv venv &&\
   ./venv/bin/python -m pip install -U pip &&\
   ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' &&\
+  echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
   /usr/bin/time -v ./venv/bin/python example.py 2>&1 | tee coffea_hist.log"
 
+setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 {
@@ -39,7 +42,7 @@ output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Coffea_Hist/${start_time}"
 
 mkdir -p "${output_dir}"
 
-append_benchmark coffea_hist.log "${start_time}" "${end_time}" "time_v"
+append_benchmark coffea_hist.log "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
 
 mv coffea_hist.log "${output_dir}"
 mv split.log "${output_dir}"

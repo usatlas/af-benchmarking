@@ -12,14 +12,17 @@ OScontainer="el9"
 ## -c : used to make a container followed by the OS we want to use
 ## -m : mounts a specific directory
 ## -r : precedes the commands we want to run within the container
+setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 # shellcheck disable=SC1091
 source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh -c ${OScontainer} -m /atlasgpfs01 -r "asetup AthGeneration,23.6.34,here &&\
+  echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
   echo $(date -u "+%Y-%m-%dT%H:%M:%SZ") >> split.log &&\
   /usr/bin/time -v Gen_tf.py --ecmEnergy=13000.0 --jobConfig=/atlasgpfs01/usatlas/data/qlei/EVNTJob/100xxx/100001/ --outputEVNTFile=EVNT.root --maxEvents=1000 --randomSeed=1001 2>&1 | tee pipe_file.log &&\
   cat pipe_file.log >> log.generate &&\
   echo $(date -u "+%Y-%m-%dT%H:%M:%SZ") >> split.log"
 
+setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Output directory
@@ -31,7 +34,7 @@ mkdir -p "${output_dir}"
 hostname >> split.log
 du EVNT.root >> split.log
 
-append_benchmark log.generate "${start_time}" "${end_time}" "time_v"
+append_benchmark log.generate "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
 
 # Moves the log file to the output directory
 mv log.generate "${output_dir}"

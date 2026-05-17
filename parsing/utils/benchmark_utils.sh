@@ -58,12 +58,15 @@ extract_rucio_metrics() {
 }
 
 # Append standardized benchmark block to a log file
-# Usage: append_benchmark <log_file> <start_time> <end_time> [mode]
+# Usage: append_benchmark <log_file> <start_time> <end_time> [setup_start] [setup_end] [mode]
+# Reads SUBMIT_TIME from environment if set (injected by cron/submit scripts via HTCondor).
 append_benchmark() {
   local log_file=$1
   local start_time=$2
   local end_time=$3
-  local mode=${4:-time_v}
+  local setup_start=${4:-}
+  local setup_end=${5:-}
+  local mode=${6:-time_v}
 
   local extra_metrics=""
   case "${mode}" in
@@ -72,11 +75,14 @@ append_benchmark() {
     none)   ;;
   esac
 
-  cat >> "${log_file}" <<EOF
-=== BENCHMARK ===
-start_time_utc=${start_time}
-end_time_utc=${end_time}
-${extra_metrics}
-=================
-EOF
+  {
+    echo "=== BENCHMARK ==="
+    [[ -n "${SUBMIT_TIME:-}" ]] && echo "submit_time_utc=${SUBMIT_TIME}"
+    echo "start_time_utc=${start_time}"
+    echo "end_time_utc=${end_time}"
+    [[ -n "${setup_start}" ]] && echo "setup_start_time_utc=${setup_start}"
+    [[ -n "${setup_end}" ]] && echo "setup_end_time_utc=${setup_end}"
+    [[ -n "${extra_metrics}" ]] && printf '%s\n' "${extra_metrics}"
+    echo "================="
+  } >> "${log_file}"
 }

@@ -5,11 +5,16 @@ source /usatlas/u/qlei/dev/af-benchmarking/parsing/utils/benchmark_utils.sh
 # current time used for log file storage
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
+setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir="$HOME"/localConfig
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 asetup StatAnalysis,0.6.3
+
+setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 /usr/bin/time -v python3 ~/AF-Benchmarking/NTuple_Hist/event_loop/BNL/columnar/eventloop_arrays.py 2>&1 | tee eventloop_arrays.log
 
@@ -30,7 +35,7 @@ echo "End Time: ${end_time}"
 
 # Verify the log exists before appending
 if [ -f eventloop_arrays.log ]; then
-  append_benchmark eventloop_arrays.log "${start_time}" "${end_time}" "time_v"
+  append_benchmark eventloop_arrays.log "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
 else
   echo "ERROR: eventloop_arrays.log not found in $(pwd)"
 fi

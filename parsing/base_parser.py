@@ -64,13 +64,25 @@ def parse_atlas_log(path, log_name="ATLAS"):
 
     start_dt = arrow.get(benchmark["start_time_utc"])
     end_dt = arrow.get(benchmark["end_time_utc"])
-    queue_time = 0
-    run_time = int((end_dt - start_dt).total_seconds())
 
-    return {
-        "submitTime": start_dt.int_timestamp * 1000,  # milliseconds
+    if "submit_time_utc" in benchmark:
+        submit_dt = arrow.get(benchmark["submit_time_utc"])
+        submit_time_ms = submit_dt.int_timestamp * 1000
+        queue_time = int((start_dt - submit_dt).total_seconds())
+    else:
+        submit_time_ms = start_dt.int_timestamp * 1000
+        queue_time = 0
+
+    result = {
+        "submitTime": submit_time_ms,
         "queueTime": queue_time,
-        "runTime": run_time,
+        "runTime": int((end_dt - start_dt).total_seconds()),
         "status": int(benchmark.get("exit_status", 0)),
-        # "benchmark":  benchmark,  # full block — subparsers can pull extra fields from here
     }
+
+    if "setup_start_time_utc" in benchmark and "setup_end_time_utc" in benchmark:
+        setup_start_dt = arrow.get(benchmark["setup_start_time_utc"])
+        setup_end_dt = arrow.get(benchmark["setup_end_time_utc"])
+        result["setupTime"] = int((setup_end_dt - setup_start_dt).total_seconds())
+
+    return result

@@ -122,3 +122,55 @@ class TestParseAtlasLog:
         assert result["submitTime"] == 1765216860000
         assert result["runTime"] == 45
         assert result["status"] == 0
+
+    def test_submit_time_utc_sets_submit_time_and_queue_time(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "submit_time_utc=2025-12-08T18:00:00Z\n"
+            "start_time_utc=2025-12-08T18:05:00Z\n"
+            "end_time_utc=2025-12-08T18:45:00Z\n"
+            "exit_status=0\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["submitTime"] == 1765216800000  # submit_time_utc in ms
+        assert result["queueTime"] == 300             # 5 minutes in queue
+        assert result["runTime"] == 2400              # 40 minutes running
+
+    def test_missing_submit_time_uses_start_time(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["submitTime"] == 1765216800000
+        assert result["queueTime"] == 0
+
+    def test_setup_times_produce_setup_time(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:30:00Z\n"
+            "setup_start_time_utc=2025-12-08T18:00:00Z\n"
+            "setup_end_time_utc=2025-12-08T18:02:30Z\n"
+            "exit_status=0\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["setupTime"] == 150  # 2.5 minutes in seconds
+
+    def test_missing_setup_times_omits_setup_time(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert "setupTime" not in result

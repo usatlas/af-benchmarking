@@ -6,6 +6,8 @@ yml_dir="${GITHUB_WORKSPACE}/NTuple_Hist/fastframes/UC/"
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
+setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+
 # Sets up our working environment
 echo "::group::setupATLAS"
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
@@ -19,6 +21,8 @@ lsetup emi
 printf "%s" "${VOMS_PASSWORD}" | voms-proxy-init -voms atlas
 # shellcheck disable=SC1091
 source /data/selbor/FastFramesTutorial/TutorialClass/build/setup.sh
+
+setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
@@ -44,4 +48,4 @@ if [[ -d "${cleanup_dir}" && "${cleanup_dir}" == "/home/selbor/ntuple/fastframes
     rm -rf "${cleanup_dir:?}/"*
 fi
 
-append_benchmark "fastframes.log" "${start_time}" "${end_time}" "time_v"
+append_benchmark "fastframes.log" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"

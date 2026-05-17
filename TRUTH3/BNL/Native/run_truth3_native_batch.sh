@@ -8,6 +8,8 @@ start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 # Copying input files to working directory
 cp -r ~/AF-Benchmarking/TRUTH3/EVNT.root .
 
+setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+
 # Sets up our environment
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 # shellcheck disable=SC1091
@@ -15,6 +17,8 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 
 # Sets the Athena version we want
 asetup Athena,24.0.53,here
+
+setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Appends time before Derivation_tf.py to log file
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
@@ -38,7 +42,7 @@ mkdir -p "${output_dir}"
 hostname >> split.log
 du DAOD_TRUTH3.TRUTH3.root >> split.log
 
-append_benchmark log.Derivation "${start_time}" "${end_time}" "truth_v"
+append_benchmark log.Derivation "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" "truth_v"
 
 # Moves the log file to the output directory
 mv log.Derivation "${output_dir}"
