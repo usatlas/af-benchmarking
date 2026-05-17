@@ -135,8 +135,8 @@ class TestParseAtlasLog:
         )
         result = parse_atlas_log(log_file)
         assert result["submitTime"] == 1765216800000  # submit_time_utc in ms
-        assert result["queueTime"] == 300             # 5 minutes in queue
-        assert result["runTime"] == 2400              # 40 minutes running
+        assert result["queueTime"] == 300  # 5 minutes in queue
+        assert result["runTime"] == 2400  # 40 minutes running
 
     def test_missing_submit_time_uses_start_time(self, tmp_path):
         log_file = tmp_path / "log.generate"

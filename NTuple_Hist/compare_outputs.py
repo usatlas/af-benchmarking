@@ -49,23 +49,25 @@ def check_binning(hists):
     ref_label, ref_h = hists[0]
     ok = True
     for label, h in hists[1:]:
-        if h.GetNbinsX() != ref_h.GetNbinsX() or \
-                h.GetXaxis().GetXmin() != ref_h.GetXaxis().GetXmin() or \
-                h.GetXaxis().GetXmax() != ref_h.GetXaxis().GetXmax():
+        if (
+            h.GetNbinsX() != ref_h.GetNbinsX()
+            or h.GetXaxis().GetXmin() != ref_h.GetXaxis().GetXmin()
+            or h.GetXaxis().GetXmax() != ref_h.GetXaxis().GetXmax()
+        ):
             print(f"WARNING: binning of {label!r} differs from {ref_label!r}")
             ok = False
     return ok
 
 
 def print_summary(hists):
-    print(f"\n{'Framework':<12} {'Integral':>14} {'Peak bin':>12} {'Non-zero bins':>16}")
+    print(
+        f"\n{'Framework':<12} {'Integral':>14} {'Peak bin':>12} {'Non-zero bins':>16}"
+    )
     print("-" * 58)
     for label, h in hists:
         integral = h.Integral()
         peak = h.GetMaximum()
-        nonzero = sum(
-            1 for i in range(1, h.GetNbinsX() + 1) if h.GetBinContent(i) > 0
-        )
+        nonzero = sum(1 for i in range(1, h.GetNbinsX() + 1) if h.GetBinContent(i) > 0)
         print(f"{label:<12} {integral:>14.4f} {peak:>12.4f} {nonzero:>16d}")
 
 
@@ -84,21 +86,31 @@ def main():
     )
     parser.add_argument("--coffea", required=True, help="coffea output ROOT file")
     parser.add_argument(
-        "--coffea-hist", default="all", metavar="NAME",
+        "--coffea-hist",
+        default="all",
+        metavar="NAME",
         help="histogram name in coffea ROOT file (default: all)",
     )
     parser.add_argument("--eventloop", required=True, help="eventloop output ROOT file")
     parser.add_argument(
-        "--eventloop-hist", default="baseline_pt_total", metavar="NAME",
+        "--eventloop-hist",
+        default="baseline_pt_total",
+        metavar="NAME",
         help="histogram name in eventloop ROOT file (default: baseline_pt_total)",
     )
-    parser.add_argument("--fastframes", required=True, help="fastframes output ROOT file")
     parser.add_argument(
-        "--fastframes-hist", default="example_FS_Muon_ph_pt_NOSYS", metavar="NAME",
+        "--fastframes", required=True, help="fastframes output ROOT file"
+    )
+    parser.add_argument(
+        "--fastframes-hist",
+        default="example_FS_Muon_ph_pt_NOSYS",
+        metavar="NAME",
         help="histogram name in fastframes ROOT file (default: example_FS_Muon_ph_pt_NOSYS)",
     )
     parser.add_argument(
-        "--plot", default="comparison.pdf", metavar="PATH",
+        "--plot",
+        default="comparison.pdf",
+        metavar="PATH",
         help="output plot file (default: comparison.pdf; pass empty string to skip)",
     )
     args = parser.parse_args()
@@ -122,7 +134,11 @@ def main():
             if coffea_h.GetBinContent(i) > 0
         ) / max(
             1,
-            sum(1 for i in range(1, coffea_h.GetNbinsX() + 1) if coffea_h.GetBinContent(i) > 0),
+            sum(
+                1
+                for i in range(1, coffea_h.GetNbinsX() + 1)
+                if coffea_h.GetBinContent(i) > 0
+            ),
         )
         mean_ff = sum(
             ratio_ff.GetBinContent(i)
@@ -130,9 +146,13 @@ def main():
             if coffea_h.GetBinContent(i) > 0
         ) / max(
             1,
-            sum(1 for i in range(1, coffea_h.GetNbinsX() + 1) if coffea_h.GetBinContent(i) > 0),
+            sum(
+                1
+                for i in range(1, coffea_h.GetNbinsX() + 1)
+                if coffea_h.GetBinContent(i) > 0
+            ),
         )
-        print(f"\nMean bin ratio (where coffea > 0):")
+        print("\nMean bin ratio (where coffea > 0):")
         print(f"  EventLoop  / Coffea : {mean_el:.4f}")
         print(f"  FastFrames / Coffea : {mean_ff:.4f}")
 
