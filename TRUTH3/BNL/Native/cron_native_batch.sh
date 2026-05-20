@@ -4,7 +4,7 @@
 readonly log_base="/atlasgpfs01/usatlas/data/qlei/logs/TRUTH3_native_batch"
 readonly log_output="log.Derivation"
 readonly job_dir="/usatlas/u/qlei/test/TRUTH3/native"
-readonly AF_BENCH_DIR="/usatlas/u/qlei/dev/af-benchmarking"
+readonly AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
 readonly sub_file="${AF_BENCH_DIR}/TRUTH3/BNL/Native/truth3_native.sub"
 
 readonly pixi_job="truth3"

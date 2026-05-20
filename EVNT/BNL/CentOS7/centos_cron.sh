@@ -4,7 +4,7 @@
 readonly log_base="/atlasgpfs01/usatlas/data/qlei/logs/EVNT_centos7_batch"
 readonly log_output="log.generate"
 readonly job_dir="/usatlas/u/qlei/test/EVNT/centos"
-readonly AF_BENCH_DIR="/usatlas/u/qlei/dev/af-benchmarking"
+readonly AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
 readonly sub_file="${AF_BENCH_DIR}/EVNT/BNL/CentOS7/evnt_centos.sub"
 
 readonly pixi_job="evnt"

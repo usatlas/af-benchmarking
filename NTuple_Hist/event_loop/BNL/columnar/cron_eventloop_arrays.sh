@@ -4,7 +4,7 @@
 readonly log_base="/atlasgpfs01/usatlas/data/qlei/logs/eventloop_arrays"
 readonly log_output="eventloop_arrays.log"
 readonly job_dir="/usatlas/u/qlei/test/eventloop_arrays"
-readonly AF_BENCH_DIR="/usatlas/u/qlei/dev/af-benchmarking"
+readonly AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
 readonly sub_file="${AF_BENCH_DIR}/NTuple_Hist/event_loop/BNL/columnar/eventloop_arrays.sub"
 
 readonly pixi_job="eventloop-columnar"

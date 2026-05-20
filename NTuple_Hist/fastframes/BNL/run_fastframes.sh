@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /usatlas/u/qlei/dev/af-benchmarking/parsing/utils/benchmark_utils.sh
+source /usatlas/u/qlei/AF-Benchmarking/parsing/utils/benchmark_utils.sh
 
 # current time used for log file storage
 

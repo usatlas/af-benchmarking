@@ -88,7 +88,7 @@ case "$site" in
         job_dir="/usatlas/u/qlei/test/Rucio/"
         dir_mount="/atlasgpfs01/usatlas/data/"
         output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Rucio/${curr_time}/"
-        AF_BENCH_DIR="/usatlas/u/qlei/dev/af-benchmarking"
+        AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
         source ${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh
         container_el9 "$job_dir" "$dir_mount" "$output_dir" "$download_ID"
         ;;

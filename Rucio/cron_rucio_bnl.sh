@@ -4,7 +4,7 @@
 readonly log_base="/atlasgpfs01/usatlas/data/qlei/logs/Rucio"
 readonly log_output="rucio.log"
 readonly job_dir="/usatlas/u/qlei/test/Rucio"
-readonly AF_BENCH_DIR="/usatlas/u/qlei/dev/af-benchmarking"
+readonly AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
 readonly sub_file="${AF_BENCH_DIR}/Rucio/rucio_el.sub"
 
 readonly pixi_job="rucio"

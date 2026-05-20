@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /usatlas/u/qlei/dev/af-benchmarking/parsing/utils/benchmark_utils.sh
+source /usatlas/u/qlei/AF-Benchmarking/parsing/utils/benchmark_utils.sh
 
 # Current time used for file storage
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
