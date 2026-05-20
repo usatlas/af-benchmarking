@@ -68,7 +68,7 @@ def parse_atlas_log(path, log_name="ATLAS"):
     if "submit_time_utc" in benchmark:
         submit_dt = arrow.get(benchmark["submit_time_utc"])
         submit_time_ms = submit_dt.int_timestamp * 1000
-        queue_time = int((start_dt - submit_dt).total_seconds())
+        queue_time = max(0, int((start_dt - submit_dt).total_seconds()))
     else:
         submit_time_ms = start_dt.int_timestamp * 1000
         queue_time = 0
@@ -83,6 +83,6 @@ def parse_atlas_log(path, log_name="ATLAS"):
     if "setup_start_time_utc" in benchmark and "setup_end_time_utc" in benchmark:
         setup_start_dt = arrow.get(benchmark["setup_start_time_utc"])
         setup_end_dt = arrow.get(benchmark["setup_end_time_utc"])
-        result["setupTime"] = int((setup_end_dt - setup_start_dt).total_seconds())
+        result["setupTime"] = max(0, int((setup_end_dt - setup_start_dt).total_seconds()))
 
     return result

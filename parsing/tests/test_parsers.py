@@ -174,3 +174,28 @@ class TestParseAtlasLog:
         )
         result = parse_atlas_log(log_file)
         assert "setupTime" not in result
+
+    def test_clock_skew_on_queue_time_clamps_to_zero(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "submit_time_utc=2025-12-08T18:00:02Z\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["queueTime"] == 0
+
+    def test_clock_skew_on_setup_time_clamps_to_zero(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:30:00Z\n"
+            "setup_start_time_utc=2025-12-08T18:00:01Z\n"
+            "setup_end_time_utc=2025-12-08T18:00:00Z\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["setupTime"] == 0
