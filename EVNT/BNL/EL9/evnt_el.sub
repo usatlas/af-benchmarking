@@ -4,7 +4,7 @@ Output = /usatlas/u/qlei/batch_output_files/evnt/el/myjob.$(Cluster).$(Process).
 Error = /usatlas/u/qlei/batch_output_files/evnt/el/myjob.$(Cluster).$(Process).err
 Log = /usatlas/u/qlei/batch_output_files/evnt/el/myjob.$(Cluster).$(Process).log
 
-Executable = /usatlas/u/qlei/dev/af-benchmarking/EVNT/BNL/EL9/run_evnt_el9_batch.sh
+Executable = /usatlas/u/qlei/AF-Benchmarking/EVNT/BNL/EL9/run_evnt_el9_batch.sh
 
 request_memory = 3GB
 request_cpus = 1

@@ -4,7 +4,7 @@ Output = /usatlas/u/qlei/batch_output_files/evnt/native/myjob.$(Cluster).$(Proce
 Error = /usatlas/u/qlei/batch_output_files/evnt/native/myjob.$(Cluster).$(Process).err
 Log = /usatlas/u/qlei/batch_output_files/evnt/native/myjob.$(Cluster).$(Process).log
 
-Executable = /usatlas/u/qlei/dev/af-benchmarking/EVNT/BNL/Native/run_evnt_native_batch.sh
+Executable = /usatlas/u/qlei/AF-Benchmarking/EVNT/BNL/Native/run_evnt_native_batch.sh
 
 request_memory = 3GB
 request_cpus = 1
