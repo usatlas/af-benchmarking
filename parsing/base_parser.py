@@ -83,6 +83,8 @@ def parse_atlas_log(path, log_name="ATLAS"):
     if "setup_start_time_utc" in benchmark and "setup_end_time_utc" in benchmark:
         setup_start_dt = arrow.get(benchmark["setup_start_time_utc"])
         setup_end_dt = arrow.get(benchmark["setup_end_time_utc"])
-        result["setupTime"] = max(0, int((setup_end_dt - setup_start_dt).total_seconds()))
+        result["setupTime"] = max(
+            0, int((setup_end_dt - setup_start_dt).total_seconds())
+        )
 
     return result
