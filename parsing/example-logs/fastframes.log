@@ -340,3 +340,7 @@
 
 [Total elapsed time: 5:45m  processed files: 18 / 18  processed evts: 18304905 / 18304905]
 [1;32m[ INFO    ][0;0m FastFramesExecutor.cc:76       08-12-2025 18:06:07 | Finished running the code
+=== BENCHMARK ===
+start_time_utc=2025-12-08T18:00:19Z
+end_time_utc=2025-12-08T18:06:07Z
+=================
