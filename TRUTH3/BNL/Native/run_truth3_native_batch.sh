@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # shellcheck disable=SC1091
-source /usatlas/u/qlei/AF-Benchmarking/parsing/utils/benchmark_utils.sh
+source ./parsing/utils/benchmark_utils.sh
 
 # current time used for log file storage
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")

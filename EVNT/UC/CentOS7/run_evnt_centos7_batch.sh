@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
+source ./parsing/utils/benchmark_utils.sh
 
 # shellcheck disable=SC2034
 OS_container="centos7"
@@ -12,7 +12,7 @@ seed=1001
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Directory storing the input files
-config_dir="${GITHUB_WORKSPACE}/EVNT/EVNTFiles/100xxx/100001"
+config_dir=./EVNT/EVNTFiles/100xxx/100001
 
 # Creates the ATLAS Environment
 setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")

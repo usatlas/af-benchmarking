@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
+source ./parsing/utils/benchmark_utils.sh
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
@@ -20,7 +20,7 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 # Running the script
 echo "::group::EventLoop Execution"
-/usr/bin/time -v python3 "${GITHUB_WORKSPACE}"/NTuple_Hist/event_loop/UC/standard/event_loop_noarrays.py 2>&1 | tee eventloop_noarrays.log
+/usr/bin/time -v python3 ./NTuple_Hist/event_loop/UC/standard/event_loop_noarrays.py 2>&1 | tee eventloop_noarrays.log
 echo "::endgroup::"
 
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")

@@ -100,7 +100,7 @@ case "$site" in
         ;;
     uchicago)
         output_dir="${PWD}"
-        source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
+        source ./parsing/utils/benchmark_utils.sh
         native_el9 "${PWD}" "${PWD}" "$download_ID"
         ;;
     nersc)

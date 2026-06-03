@@ -1,8 +1,8 @@
 #!/bin/bash
 
-source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
+source ./parsing/utils/benchmark_utils.sh
 
-yml_dir="${GITHUB_WORKSPACE}/NTuple_Hist/fastframes/UC/"
+yml_dir=./NTuple_Hist/fastframes/UC/
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 

@@ -1,12 +1,12 @@
 #!/bin/bash
 
-source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
+source ./parsing/utils/benchmark_utils.sh
 
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
-#cp ${GITHUB_WORKSPACE}/NTuple_Hist/coffea/UC/example.py .
+#cp ./NTuple_Hist/coffea/UC/example.py .
 
 # Setting up environment and container
 setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
@@ -18,7 +18,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /data -r "ls
   ./venv/bin/python -m pip install -U pip &&\
   ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' &&\
   echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
-  /usr/bin/time -v ./venv/bin/python ${GITHUB_WORKSPACE}/NTuple_Hist/coffea/UC/example.py  2>&1 | tee coffea_hist.log"
+  /usr/bin/time -v ./venv/bin/python ./NTuple_Hist/coffea/UC/example.py  2>&1 | tee coffea_hist.log"
 
 setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")

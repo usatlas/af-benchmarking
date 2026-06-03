@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
+source ./parsing/utils/benchmark_utils.sh
 
 # The seed used in the job
 seed=1001
@@ -8,7 +8,7 @@ seed=1001
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Directory storing the input files
-config_dir="${GITHUB_WORKSPACE}/EVNT/EVNTFiles/100xxx/100001"
+config_dir=./EVNT/EVNTFiles/100xxx/100001
 
 max_events=1000
 

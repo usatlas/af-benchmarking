@@ -1,10 +1,10 @@
 #!/bin/bash
 # shellcheck disable=SC1091
 
-source "${GITHUB_WORKSPACE}/parsing/utils/benchmark_utils.sh"
+source ./parsing/utils/benchmark_utils.sh
 
 # Input files are stored here
-config_dir="${GITHUB_WORKSPACE}/TRUTH3/EVNT.root"
+config_dir=./TRUTH3/EVNT.root
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
