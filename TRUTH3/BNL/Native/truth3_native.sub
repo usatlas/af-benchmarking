@@ -1,5 +1,6 @@
 Universe = vanilla
 
+initialdir = /usatlas/u/qlei/AF-Benchmarking
 
 Output = /usatlas/u/qlei/batch_output_files/truth3/native/myjob.$(Cluster).$(Process).out
 Error = /usatlas/u/qlei/batch_output_files/truth3/native/myjob.$(Cluster).$(Process).err

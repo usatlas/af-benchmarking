@@ -1,12 +1,17 @@
 #!/bin/bash
+
+# shellcheck disable=SC1091
+source ./parsing/utils/benchmark_utils.sh
+
 # current time used for log file storage
 
-curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Copying input files to working directory
 cp -r ~/AF-Benchmarking/TRUTH3/EVNT.root .
 
 # Sets up the ATLAS Environment
+setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 # Sets up the container:
@@ -15,16 +20,24 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 ## -r : precedes the commands we want to run within the container
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c centos7 -r "asetup AthDerivation,21.2.178.0,here && \
-  date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log &&\
-  Reco_tf.py --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --reductionConf TRUTH3 2>&1 | tee pipe_file.log &&\
-  date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log"
+  echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
+  date -u \"+%Y-%m-%dT%H:%M:%SZ\" >> split.log &&\
+  /usr/bin/time -v Reco_tf.py --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --reductionConf TRUTH3 2>&1 | tee pipe_file.log &&\
+  cat pipe_file.log >> log.EVNTtoDAOD &&\
+  date -u \"+%Y-%m-%dT%H:%M:%SZ\" >> split.log"
 
-output_dir="/atlasgpfs01/usatlas/data/qlei/logs/TRUTH3_centos7_batch/${curr_time}"
+setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
+end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+
+output_dir="/atlasgpfs01/usatlas/data/qlei/logs/TRUTH3_centos7_batch/${start_time}"
 
 mkdir -p "${output_dir}"
 
 hostname >> split.log
 du DAOD_TRUTH3.TRUTH3.root >> split.log
+
+append_benchmark log.EVNTtoDAOD "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
+
 # Moves the log file to the output directory
 mv log.EVNTtoDAOD "${output_dir}"
 mv split.log "${output_dir}"

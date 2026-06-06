@@ -1,101 +1,201 @@
-"""Test suite for benchmark log parsers.
+"""Test suite for benchmark log parsers."""
 
-This module tests all parsers against example logs to ensure
-they correctly extract timing and status information. These tests
-serve as a regression suite when refactoring parser code.
-"""
+import pytest
 
-from pathlib import Path
-
-# Import all parsers
-from parsing.handlers.truth3_parser import parse_truth3_log
-from parsing.handlers.evnt_parser import parse_evnt_log
-from parsing.handlers.rucio_parser import parse_rucio_log
-from parsing.handlers.coffea_parser import parse_coffea_log
-from parsing.handlers.fastframes_parser import parse_fastframes_log
-
-# Path to example logs directory
-EXAMPLE_LOGS = Path(__file__).parent.parent / "example-logs"
+from parsing.base_parser import parse_atlas_log, parse_benchmark_block
 
 
-class TestTruth3Parser:
-    """Tests for TRUTH3 derivation log parser."""
+class TestParseBenchmarkBlock:
+    def test_parses_basic_block(self):
+        lines = [
+            "some log line\n",
+            "=== BENCHMARK ===\n",
+            "start_time_utc=2025-12-08T18:00:19Z\n",
+            "end_time_utc=2025-12-08T18:01:07Z\n",
+            "exit_status=0\n",
+            "=================\n",
+        ]
+        result = parse_benchmark_block(lines)
+        assert result == {
+            "start_time_utc": "2025-12-08T18:00:19Z",
+            "end_time_utc": "2025-12-08T18:01:07Z",
+            "exit_status": "0",
+        }
 
-    def test_parse_truth3_example_log(self):
-        """Test parsing of example TRUTH3 derivation log."""
-        log_file = EXAMPLE_LOGS / "log.Derivation"
-        result = parse_truth3_log(log_file)
+    def test_returns_last_block_when_multiple(self):
+        lines = [
+            "=== BENCHMARK ===\n",
+            "start_time_utc=2025-12-08T18:00:00Z\n",
+            "end_time_utc=2025-12-08T18:00:30Z\n",
+            "exit_status=1\n",
+            "=================\n",
+            "=== BENCHMARK ===\n",
+            "start_time_utc=2025-12-08T18:01:00Z\n",
+            "end_time_utc=2025-12-08T18:01:30Z\n",
+            "exit_status=0\n",
+            "=================\n",
+        ]
+        result = parse_benchmark_block(lines)
+        assert result["start_time_utc"] == "2025-12-08T18:01:00Z"
+        assert result["exit_status"] == "0"
 
-        # Validate actual values from example log (not just key existence)
-        # These expected values come from running parser on example log
-        # Timestamps are in UTC (logs are from UTC timezone systems)
-        assert result["submitTime"] == 1765216819000, "Submit time mismatch"
-        assert result["queueTime"] == 0, "Queue time should be 0"
-        assert result["runTime"] == 48, "Runtime should be 48 seconds"
-        assert result["status"] == 0, "Status should be 0 (success)"
+    def test_returns_empty_dict_if_no_block(self):
+        lines = ["some line\n", "another line\n"]
+        assert parse_benchmark_block(lines) == {}
 
-
-class TestEvntParser:
-    """Tests for EVNT generation log parser."""
-
-    def test_parse_evnt_example_log(self):
-        """Test parsing of example EVNT generation log."""
-        log_file = EXAMPLE_LOGS / "log.generate"
-        result = parse_evnt_log(log_file)
-
-        # Validate actual values to catch calculation regressions
-        # Timestamps are in UTC (logs are from UTC timezone systems)
-        assert result["submitTime"] == 1765216848000, "Submit time mismatch"
-        assert result["queueTime"] == 0, "Queue time should be 0"
-        assert result["runTime"] == 2418, "Runtime should be 2418 seconds"
-        assert result["status"] == 0, "Status should be 0 (success)"
-
-
-class TestRucioParser:
-    """Tests for Rucio data download log parser."""
-
-    def test_parse_rucio_example_log(self):
-        """Test parsing of example Rucio download log."""
-        log_file = EXAMPLE_LOGS / "rucio.log"
-        result = parse_rucio_log(log_file)
-
-        # Check actual parsed values
-        # Timestamps are in UTC (logs are from UTC timezone systems)
-        assert result["submitTime"] == 1765216822000, "Submit time mismatch"
-        assert result["queueTime"] == 0, "Queue time should be 0"
-        assert result["runTime"] == 31, "Runtime should be 31 seconds"
-        assert result["status"] == 0, "Status should be 0 (success)"
-
-
-class TestFastFramesParser:
-    """Tests for FastFrames analysis log parser."""
-
-    def test_parse_fastframes_example_log(self):
-        """Test parsing of example FastFrames log."""
-        log_file = EXAMPLE_LOGS / "fastframes.log"
-        result = parse_fastframes_log(log_file)
-
-        # Check actual parsed values including frequency
-        # Timestamps are in UTC (logs are from UTC timezone systems)
-        assert result["submitTime"] == 1765217167000, "Submit time mismatch"
-        assert result["queueTime"] == 0, "Queue time should be 0"
-        assert result["runTime"] == 345, "Runtime should be 345 seconds"
-        assert result["frequency"] == 53, "Frequency should be 53"
-        assert result["status"] == 0, "Status should be 0 (success)"
+    def test_preserves_extra_fields(self):
+        lines = [
+            "=== BENCHMARK ===\n",
+            "start_time_utc=2025-12-08T18:00:00Z\n",
+            "end_time_utc=2025-12-08T18:00:30Z\n",
+            "exit_status=0\n",
+            "user_time_sec=25.5\n",
+            "max_rss_kb=512000\n",
+            "=================\n",
+        ]
+        result = parse_benchmark_block(lines)
+        assert result["user_time_sec"] == "25.5"
+        assert result["max_rss_kb"] == "512000"
 
 
-class TestCoffeaParser:
-    """Tests for Coffea analysis log parser."""
+class TestParseAtlasLog:
+    def test_parses_timing_fields(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "some header\n"
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:48Z\n"
+            "end_time_utc=2025-12-08T18:41:06Z\n"
+            "exit_status=0\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["submitTime"] == 1765216848000
+        assert result["queueTime"] == 0
+        assert result["runTime"] == 2418
+        assert result["status"] == 0
 
-    def test_parse_coffea_example_log(self):
-        """Test parsing of example Coffea log."""
-        log_file = EXAMPLE_LOGS / "coffea_hist.log"
-        result = parse_coffea_log(log_file)
+    def test_nonzero_exit_status(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "exit_status=127\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["status"] == 127
 
-        # Check actual parsed values including frequency
-        # Timestamps are in UTC (parsed from ISO 8601 format with Z suffix)
-        assert result["submitTime"] == 1765932487953, "Submit time mismatch"
-        assert result["queueTime"] == 0, "Queue time should be 0"
-        assert result["runTime"] == 205, "Runtime should be 205 seconds"
-        assert result["frequency"] == 89, "Frequency should be 89 kHz"
-        assert result["status"] == 0, "Status should be 0 (success)"
+    def test_missing_exit_status_defaults_to_zero(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["status"] == 0
+
+    def test_raises_if_no_benchmark_block(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text("some log content without a benchmark block\n")
+        with pytest.raises(ValueError, match="No BENCHMARK block"):
+            parse_atlas_log(log_file)
+
+    def test_uses_last_benchmark_block(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:10Z\n"
+            "exit_status=1\n"
+            "=================\n"
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:01:00Z\n"
+            "end_time_utc=2025-12-08T18:01:45Z\n"
+            "exit_status=0\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["submitTime"] == 1765216860000
+        assert result["runTime"] == 45
+        assert result["status"] == 0
+
+    def test_submit_time_utc_sets_submit_time_and_queue_time(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "submit_time_utc=2025-12-08T18:00:00Z\n"
+            "start_time_utc=2025-12-08T18:05:00Z\n"
+            "end_time_utc=2025-12-08T18:45:00Z\n"
+            "exit_status=0\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["submitTime"] == 1765216800000  # submit_time_utc in ms
+        assert result["queueTime"] == 300  # 5 minutes in queue
+        assert result["runTime"] == 2400  # 40 minutes running
+
+    def test_missing_submit_time_uses_start_time(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["submitTime"] == 1765216800000
+        assert result["queueTime"] == 0
+
+    def test_setup_times_produce_setup_time(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:30:00Z\n"
+            "setup_start_time_utc=2025-12-08T18:00:00Z\n"
+            "setup_end_time_utc=2025-12-08T18:02:30Z\n"
+            "exit_status=0\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["setupTime"] == 150  # 2.5 minutes in seconds
+
+    def test_missing_setup_times_omits_setup_time(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert "setupTime" not in result
+
+    def test_clock_skew_on_queue_time_clamps_to_zero(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "submit_time_utc=2025-12-08T18:00:02Z\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["queueTime"] == 0
+
+    def test_clock_skew_on_setup_time_clamps_to_zero(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:30:00Z\n"
+            "setup_start_time_utc=2025-12-08T18:00:01Z\n"
+            "setup_end_time_utc=2025-12-08T18:00:00Z\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["setupTime"] == 0

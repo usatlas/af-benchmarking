@@ -1130,3 +1130,8 @@
 18:01:07 ApplicationMgr                                       INFO Application Manager Finalized successfully
 18:01:07 ApplicationMgr                                       INFO Application Manager Terminated successfully
 18:01:07 leaving with code 0: "successful run"
+=== BENCHMARK ===
+start_time_utc=2025-12-08T18:00:19Z
+end_time_utc=2025-12-08T18:01:07Z
+exit_status=0
+=================
