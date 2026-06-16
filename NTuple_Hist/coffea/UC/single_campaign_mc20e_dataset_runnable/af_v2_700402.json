@@ -1,7 +1,7 @@
 {
   "Wmunugamma": {
     "files": {
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000001.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000001.ANALYSIS.root": {
         "num_entries": 1124948,
         "object_path": "analysis",
         "steps": [
@@ -30,7 +30,7 @@
         ],
         "uuid": "09389c48-a9a3-11ef-9d94-189fc782beef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000002.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000002.ANALYSIS.root": {
         "num_entries": 281597,
         "object_path": "analysis",
         "steps": [
@@ -43,7 +43,7 @@
         ],
         "uuid": "3ed3a6cc-a9f3-11ef-9d9a-9fe1a595beef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000003.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000003.ANALYSIS.root": {
         "num_entries": 1126313,
         "object_path": "analysis",
         "steps": [
@@ -73,7 +73,7 @@
         ],
         "uuid": "fdf38bf6-a9ff-11ef-bdcc-25041cacbeef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000004.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000004.ANALYSIS.root": {
         "num_entries": 305783,
         "object_path": "analysis",
         "steps": [
@@ -86,7 +86,7 @@
         ],
         "uuid": "01859912-aa14-11ef-900e-c177529dbeef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000005.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000005.ANALYSIS.root": {
         "num_entries": 1127763,
         "object_path": "analysis",
         "steps": [
@@ -116,7 +116,7 @@
         ],
         "uuid": "a5426a4c-aa0c-11ef-8695-7f041cacbeef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000006.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000006.ANALYSIS.root": {
         "num_entries": 1127425,
         "object_path": "analysis",
         "steps": [
@@ -146,7 +146,7 @@
         ],
         "uuid": "db759662-aa10-11ef-bc10-7495c782beef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000007.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000007.ANALYSIS.root": {
         "num_entries": 1128415,
         "object_path": "analysis",
         "steps": [
@@ -176,7 +176,7 @@
         ],
         "uuid": "b4c49476-aa17-11ef-9fea-04cec782beef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000008.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000008.ANALYSIS.root": {
         "num_entries": 1127140,
         "object_path": "analysis",
         "steps": [
@@ -206,7 +206,7 @@
         ],
         "uuid": "706f6ffe-aa25-11ef-bcf5-a217140abeef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000009.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000009.ANALYSIS.root": {
         "num_entries": 1127829,
         "object_path": "analysis",
         "steps": [
@@ -236,7 +236,7 @@
         ],
         "uuid": "4b7d7818-aa42-11ef-986d-cc17140abeef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000010.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000010.ANALYSIS.root": {
         "num_entries": 1124642,
         "object_path": "analysis",
         "steps": [
@@ -265,7 +265,7 @@
         ],
         "uuid": "37f5a7b2-aa46-11ef-8680-578da8c0beef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000011.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000011.ANALYSIS.root": {
         "num_entries": 1126225,
         "object_path": "analysis",
         "steps": [
@@ -295,7 +295,7 @@
         ],
         "uuid": "63a758f6-aa4b-11ef-8f96-8c17140abeef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000012.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000012.ANALYSIS.root": {
         "num_entries": 1127768,
         "object_path": "analysis",
         "steps": [
@@ -325,7 +325,7 @@
         ],
         "uuid": "9b541c30-aa4b-11ef-be2a-938da8c0beef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000013.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000013.ANALYSIS.root": {
         "num_entries": 1127200,
         "object_path": "analysis",
         "steps": [
@@ -355,7 +355,7 @@
         ],
         "uuid": "ded4e33a-aa56-11ef-85a9-4ce0a595beef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000014.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000014.ANALYSIS.root": {
         "num_entries": 1124059,
         "object_path": "analysis",
         "steps": [
@@ -384,7 +384,7 @@
         ],
         "uuid": "83a56e7a-aa57-11ef-9b5c-9d17140abeef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000015.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000015.ANALYSIS.root": {
         "num_entries": 1127435,
         "object_path": "analysis",
         "steps": [
@@ -414,7 +414,7 @@
         ],
         "uuid": "64637b6e-aa5d-11ef-a50b-17c2228dbeef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000016.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000016.ANALYSIS.root": {
         "num_entries": 1124593,
         "object_path": "analysis",
         "steps": [
@@ -443,7 +443,7 @@
         ],
         "uuid": "8d5fa36e-aa65-11ef-8a8c-dbc2228dbeef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000017.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000017.ANALYSIS.root": {
         "num_entries": 819811,
         "object_path": "analysis",
         "steps": [
@@ -466,7 +466,7 @@
         ],
         "uuid": "74b3e7e4-aa74-11ef-87e4-a29cc782beef"
       },
-      "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000018.ANALYSIS.root": {
+      "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/user.bhodkins.42165201._000018.ANALYSIS.root": {
         "num_entries": 1125959,
         "object_path": "analysis",
         "steps": [
