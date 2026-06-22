@@ -18,7 +18,7 @@ jobs:
   test-actions:
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-globus
         with:
           voms-usercert: ${{ secrets.VOMS_USERCERT }}
@@ -27,7 +27,7 @@ jobs:
   test-handlers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -60,7 +60,7 @@ jobs:
             log-type: "truth3"
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
