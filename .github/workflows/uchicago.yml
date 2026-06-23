@@ -22,7 +22,7 @@ jobs:
       || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-globus
         with:
@@ -69,7 +69,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: execute
         run: ./EVNT/UC/Native/run_evnt_native_batch.sh
@@ -110,7 +110,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: execute
         run: ./EVNT/UC/EL9/run_evnt_el9_batch.sh
@@ -151,7 +151,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: execute
         run: ./EVNT/UC/CentOS7/run_evnt_centos7_batch.sh
@@ -192,7 +192,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: execute
         run: ./TRUTH3/UC/Native/run_truth3_native_batch.sh
@@ -233,7 +233,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: execute
         run: ./TRUTH3/UC/EL9/run_truth3_el9_batch.sh
@@ -274,7 +274,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: execute
         run: ./TRUTH3/UC/CentOS7/run_truth3_centos7_batch.sh
@@ -315,7 +315,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: execute
         run: ./NTuple_Hist/coffea/UC/run_example.sh
@@ -357,7 +357,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: execute
         run: ./NTuple_Hist/event_loop/UC/columnar/run_eventloop_arrays.sh
@@ -398,7 +398,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: execute
         run: ./NTuple_Hist/event_loop/UC/standard/run_eventloop_noarrays.sh
@@ -439,7 +439,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-globus
         with:
