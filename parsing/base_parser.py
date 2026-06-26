@@ -87,4 +87,10 @@ def parse_atlas_log(path, log_name="ATLAS"):
             0, int((setup_end_dt - setup_start_dt).total_seconds())
         )
 
+    if "cpu_percent" in benchmark:
+        result["cpuPercent"] = float(benchmark["cpu_percent"])
+
+    if "max_rss_kb" in benchmark:
+        result["maxRssKb"] = int(benchmark["max_rss_kb"])
+
     return result

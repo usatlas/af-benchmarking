@@ -3,6 +3,7 @@
 import pytest
 
 from parsing.base_parser import parse_atlas_log, parse_benchmark_block
+from parsing.scripts.ci_parse import parse_log, validate_payload
 
 
 class TestParseBenchmarkBlock:
@@ -175,6 +176,34 @@ class TestParseAtlasLog:
         result = parse_atlas_log(log_file)
         assert "setupTime" not in result
 
+    def test_cpu_and_memory_metrics_are_parsed(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "cpu_percent=97\n"
+            "max_rss_kb=512000\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert result["cpuPercent"] == 97.0
+        assert isinstance(result["cpuPercent"], float)
+        assert result["maxRssKb"] == 512000
+        assert isinstance(result["maxRssKb"], int)
+
+    def test_missing_cpu_and_memory_metrics_are_omitted(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "=================\n"
+        )
+        result = parse_atlas_log(log_file)
+        assert "cpuPercent" not in result
+        assert "maxRssKb" not in result
+
     def test_clock_skew_on_queue_time_clamps_to_zero(self, tmp_path):
         log_file = tmp_path / "log.generate"
         log_file.write_text(
@@ -199,3 +228,30 @@ class TestParseAtlasLog:
         )
         result = parse_atlas_log(log_file)
         assert result["setupTime"] == 0
+
+    def test_ci_parse_upload_json_includes_cpu_and_memory_metrics(self, tmp_path):
+        log_file = tmp_path / "log.generate"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "cpu_percent=97\n"
+            "max_rss_kb=512000\n"
+            "=================\n"
+        )
+        result = parse_log(
+            log_file=log_file,
+            log_type="athena",
+            job="evnt-native",
+            cluster="BNL-AF",
+            token="test-token",
+            kind="test-kind",
+            host="test.example.org",
+            payload_file="",
+            os="alma9",
+            mode="batch",
+            containerized=True,
+        )
+        assert result["cpuPercent"] == 97.0
+        assert result["maxRssKb"] == 512000
+        validate_payload(result)

@@ -7,4 +7,16 @@ Applying to fileset
 === BENCHMARK ===
 start_time_utc=2025-12-17T00:48:07.953454Z
 end_time_utc=2025-12-17T00:51:33.399984Z
+setup_start_time_utc=2025-12-17T00:48:07.953454Z
+setup_end_time_utc=2025-12-17T00:48:09.953454Z
+user_time_sec=188.32
+sys_time_sec=6.54
+cpu_percent=94
+elapsed_time=3:25.45
+max_rss_kb=1123456
+major_page_faults=0
+minor_page_faults=246810
+voluntary_ctx_switches=1824
+involuntary_ctx_switches=9342
+exit_status=0
 =================
