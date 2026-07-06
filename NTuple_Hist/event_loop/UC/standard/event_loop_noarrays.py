@@ -59,7 +59,7 @@ def main():
         {
             "name": "Wmunugamma",
             "path": Path(
-                "/data/maclwong/Ben_Bkg_Samples/v2/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
+                "/data/kratsg/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
             ),
             "metadata": {
                 "genFiltEff": 1.0,
