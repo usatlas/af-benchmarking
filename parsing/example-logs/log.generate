@@ -14166,5 +14166,16 @@
 === BENCHMARK ===
 start_time_utc=2025-12-08T18:00:48Z
 end_time_utc=2025-12-08T18:41:06Z
+setup_start_time_utc=2025-12-08T18:00:48Z
+setup_end_time_utc=2025-12-08T18:00:50Z
+user_time_sec=1029.14
+sys_time_sec=34.82
+cpu_percent=43
+elapsed_time=40:18.00
+max_rss_kb=1625292
+major_page_faults=0
+minor_page_faults=512408
+voluntary_ctx_switches=13854
+involuntary_ctx_switches=64122
 exit_status=0
 =================

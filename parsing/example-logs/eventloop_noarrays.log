@@ -381,5 +381,16 @@ Combined histogram written to event_loop_output_hist.root
 === BENCHMARK ===
 start_time_utc=2025-12-17T04:34:12.924108Z
 end_time_utc=2025-12-17T04:49:20.553920Z
+setup_start_time_utc=2025-12-17T04:34:12.924108Z
+setup_end_time_utc=2025-12-17T04:34:14.924108Z
+user_time_sec=790.45
+sys_time_sec=33.20
+cpu_percent=90
+elapsed_time=15:07.63
+max_rss_kb=565824
+major_page_faults=0
+minor_page_faults=223901
+voluntary_ctx_switches=5044
+involuntary_ctx_switches=28994
+exit_status=0
 =================
-

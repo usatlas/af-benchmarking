@@ -43,7 +43,7 @@ mkdir -p "${output_dir}"
 hostname >> split.log
 du DAOD_TRUTH3.TRUTH3.root >> split.log
 
-append_benchmark log.Derivation "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" "truth_v"
+append_benchmark log.Derivation "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" "time_v"
 
 # Moves the log file to the output directory
 mv log.Derivation "${output_dir}"
