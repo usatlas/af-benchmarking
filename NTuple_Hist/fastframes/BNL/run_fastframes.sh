@@ -46,4 +46,3 @@ append_benchmark fastframes.log "${start_time}" "${end_time}" "${setup_start}" "
 # Moves log to outputdir
 mv fastframes.log "${output_dir}"
 mv split.log "${output_dir}"
-
