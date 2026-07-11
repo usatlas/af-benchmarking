@@ -1,44 +1,28 @@
 # Rucio Script
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/Rucio/rucio_script.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/Rucio/cron_rucio_bnl.sh
 
 # EVNT Scripts
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/EVNT/BNL/centos_cron.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/EVNT/BNL/CentOS7/centos_cron.sh
 
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/EVNT/BNL/el_cron.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/EVNT/BNL/EL9/el_cron.sh
 
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/EVNT/BNL/native_cron.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/EVNT/BNL/Native/native_cron.sh
 
 # TRUTH3 Scripts
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/TRUTH3/BNL/cron_centos_batch.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/TRUTH3/BNL/CentOS7/cron_centos_batch.sh
 
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/TRUTH3/BNL/cron_native_interactive.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/TRUTH3/BNL/EL9/cron_el_batch.sh
 
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/TRUTH3/BNL/cron_el_batch.sh
-
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/TRUTH3/BNL/cron_centos_interactive.sh
-
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/TRUTH3/BNL/cron_native_batch.sh
-
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/TRUTH3/BNL/cron_el9_interactive.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/TRUTH3/BNL/Native/cron_native_batch.sh
 
 # Coffea Metrics
-30 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/NTuple_Hist/coffea/BNL/cron_example.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/coffea/BNL/cron_example.sh
 
 # FastFrames Script
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/NTuple_Hist/NTuple_Hist/fastframes/BNL/crontab_fastframes.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/fastframes/BNL/crontab_fastframes.sh
 
-# EventLoop Script
-0 */6 * * * /usatlas/u/jroblesgo/AF-Benchmarking/event_loop/BNL/run_photon_eventloop.sh
+# EventLoop Arrays Script
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/columnar/cron_eventloop_arrays.sh
 
-
-# Parsing Scripts
-30 */6 * * * /atlasgpfs01/usatlas/data/jroblesgo/parsing_jobs/rucio/run_parsing.sh
-30 */6 * * * /atlasgpfs01/usatlas/data/jroblesgo/parsing_jobs/truth3_centos_i/run_parsing.sh
-30 */6 * * * /atlasgpfs01/usatlas/data/jroblesgo/parsing_jobs/truth3_centos/run_parsing.sh
-30 */6 * * * /atlasgpfs01/usatlas/data/jroblesgo/parsing_jobs/evnt_native/run_parsing.sh
-30 */6 * * * /atlasgpfs01/usatlas/data/jroblesgo/parsing_jobs/evnt_el/run_parsing.sh
-30 */6 * * * /atlasgpfs01/usatlas/data/jroblesgo/parsing_jobs/evnt_centos/run_parsing.sh
-30 */6 * * * /atlasgpfs01/usatlas/data/jroblesgo/parsing_jobs/truth3_el_i/run_parsing.sh
-30 */6 * * * /atlasgpfs01/usatlas/data/jroblesgo/parsing_jobs/truth3_el/run_parsing.sh
-30 */6 * * * /atlasgpfs01/usatlas/data/jroblesgo/parsing_jobs/truth3_native_i/run_parsing.sh
-30 */6 * * * /atlasgpfs01/usatlas/data/jroblesgo/parsing_jobs/truth3_native/run_parsing.sh
+# EventLoop No Arrays Script
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/cron_eventloop_noarrays.sh
