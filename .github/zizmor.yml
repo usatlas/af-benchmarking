@@ -1,0 +1,12 @@
+# dangerous-triggers ignore below: semantic-pr-check.yml never checks out the
+# pull request's code (no `actions/checkout` step at all) and only reads PR
+# metadata (title) via the GitHub API through amannn/action-semantic-pull-request.
+# pull_request_target is used deliberately here so that PRs from forks still
+# get a token with `statuses: write` to report the check; a `pull_request`
+# trigger would be forced read-only for fork PRs and silently fail to post
+# the status, defeating the purpose of validating first-time contributors'
+# PR titles.
+rules:
+  dangerous-triggers:
+    ignore:
+      - semantic-pr-check.yml:3
