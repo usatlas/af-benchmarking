@@ -23,6 +23,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-globus
         with:
@@ -70,6 +72,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: execute
         run: ./EVNT/UC/Native/run_evnt_native_batch.sh
@@ -111,6 +115,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: execute
         run: ./EVNT/UC/EL9/run_evnt_el9_batch.sh
@@ -152,6 +158,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: execute
         run: ./EVNT/UC/CentOS7/run_evnt_centos7_batch.sh
@@ -193,6 +201,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: execute
         run: ./TRUTH3/UC/Native/run_truth3_native_batch.sh
@@ -234,6 +244,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: execute
         run: ./TRUTH3/UC/EL9/run_truth3_el9_batch.sh
@@ -275,6 +287,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: execute
         run: ./TRUTH3/UC/CentOS7/run_truth3_centos7_batch.sh
@@ -316,6 +330,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: execute
         run: ./NTuple_Hist/coffea/UC/run_example.sh
@@ -358,6 +374,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: execute
         run: ./NTuple_Hist/event_loop/UC/columnar/run_eventloop_arrays.sh
@@ -399,6 +417,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: execute
         run: ./NTuple_Hist/event_loop/UC/standard/run_eventloop_noarrays.sh
@@ -440,6 +460,8 @@ jobs:
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/setup-globus
         with:
