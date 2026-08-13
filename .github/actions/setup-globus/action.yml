@@ -17,13 +17,12 @@ runs:
       shell: bash
 
     - name: Create files
+      env:
+        VOMS_USERCERT: ${{ inputs.voms-usercert }}
+        VOMS_USERKEY: ${{ inputs.voms-userkey }}
       run: |
-        cat > ~/.globus/usercert.pem << 'EOF'
-        ${{ inputs.voms-usercert }}
-        EOF
-        cat > ~/.globus/userkey.pem << 'EOF'
-        ${{ inputs.voms-userkey }}
-        EOF
+        printf '%s\n' "$VOMS_USERCERT" > ~/.globus/usercert.pem
+        printf '%s\n' "$VOMS_USERKEY" > ~/.globus/userkey.pem
       shell: bash
 
     - name: Set permissions
