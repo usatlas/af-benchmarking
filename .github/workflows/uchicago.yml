@@ -68,7 +68,9 @@ jobs:
             rucio.log
 
   evnt-native:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -111,7 +113,9 @@ jobs:
             log.generate
 
   evnt-el9:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -154,7 +158,9 @@ jobs:
             log.generate
 
   evnt-centos7:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -197,7 +203,9 @@ jobs:
             log.generate
 
   truth3-native:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -240,7 +248,9 @@ jobs:
             log.Derivation
 
   truth3-el9:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -283,7 +293,9 @@ jobs:
             log.Derivation
 
   truth3-centos7:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -326,7 +338,9 @@ jobs:
             log.EVNTtoDAOD
 
   coffea:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -370,7 +384,9 @@ jobs:
             coffea_hist.log
 
   eventloop-columnar:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -413,7 +429,9 @@ jobs:
             eventloop_arrays.log
 
   eventloop-standard:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -456,7 +474,9 @@ jobs:
             eventloop_noarrays.log
 
   fastframes:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
