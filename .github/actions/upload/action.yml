@@ -13,23 +13,28 @@ runs:
   steps:
     - name: Validate payload file
       shell: bash
+      env:
+        PAYLOAD_FILE: ${{ inputs.payload-file }}
       run: |
-        if [ ! -f "${{ inputs.payload-file }}" ]; then
-          echo "Error: Payload file not found: ${{ inputs.payload-file }}"
+        if [ ! -f "$PAYLOAD_FILE" ]; then
+          echo "Error: Payload file not found: $PAYLOAD_FILE"
           exit 1
         fi
-        echo "Payload file found: ${{ inputs.payload-file }}"
+        echo "Payload file found: $PAYLOAD_FILE"
         echo "::group::File contents"
-        cat "${{ inputs.payload-file }}" || true
+        cat "$PAYLOAD_FILE" || true
         printf "\n"
         echo "::endgroup::"
 
     - name: Upload to LogStash
       shell: bash
+      env:
+        PAYLOAD_FILE: ${{ inputs.payload-file }}
+        KIBANA_URI: ${{ inputs.kibana-uri }}
       run: |
-        response=$(curl -X POST "${{ inputs.kibana-uri }}" \
+        response=$(curl -X POST "$KIBANA_URI" \
           -H "Content-Type: application/json" \
-          -d @${{ inputs.payload-file }} \
+          -d @"$PAYLOAD_FILE" \
           -w "%{http_code}" \
           -s -o response.txt)
 

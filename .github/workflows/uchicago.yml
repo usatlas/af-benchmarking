@@ -22,7 +22,12 @@ jobs:
       || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - uses: ./.github/actions/setup-globus
         with:
@@ -45,7 +50,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           os: alma9
           mode: batch
           containerized: "false"
@@ -59,17 +64,24 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |
             rucio.log
 
   evnt-native:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./EVNT/UC/Native/run_evnt_native_batch.sh
@@ -86,7 +98,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           os: alma9
           mode: batch
           containerized: "false"
@@ -100,17 +112,24 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |
             log.generate
 
   evnt-el9:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./EVNT/UC/EL9/run_evnt_el9_batch.sh
@@ -127,7 +146,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           os: alma9
           mode: batch
           containerized: "true"
@@ -141,17 +160,24 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |
             log.generate
 
   evnt-centos7:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./EVNT/UC/CentOS7/run_evnt_centos7_batch.sh
@@ -168,7 +194,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           os: centos7
           mode: batch
           containerized: "true"
@@ -182,17 +208,24 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |
             log.generate
 
   truth3-native:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./TRUTH3/UC/Native/run_truth3_native_batch.sh
@@ -209,7 +242,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           os: alma9
           mode: batch
           containerized: "false"
@@ -223,17 +256,24 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |
             log.Derivation
 
   truth3-el9:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./TRUTH3/UC/EL9/run_truth3_el9_batch.sh
@@ -250,7 +290,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           os: alma9
           mode: batch
           containerized: "true"
@@ -264,17 +304,24 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |
             log.Derivation
 
   truth3-centos7:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./TRUTH3/UC/CentOS7/run_truth3_centos7_batch.sh
@@ -291,7 +338,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           os: centos7
           mode: batch
           containerized: "true"
@@ -305,17 +352,24 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |
             log.EVNTtoDAOD
 
   coffea:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./NTuple_Hist/coffea/UC/run_example.sh
@@ -332,7 +386,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           payload-file: coffea.root
           os: alma9
           mode: batch
@@ -347,17 +401,24 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |
             coffea_hist.log
 
   eventloop-columnar:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./NTuple_Hist/event_loop/UC/columnar/run_eventloop_arrays.sh
@@ -374,7 +435,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           os: alma9
           mode: batch
           containerized: "false"
@@ -388,17 +449,24 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |
             eventloop_arrays.log
 
   eventloop-standard:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./NTuple_Hist/event_loop/UC/standard/run_eventloop_noarrays.sh
@@ -415,7 +483,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           os: alma9
           mode: batch
           containerized: "false"
@@ -429,17 +497,24 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |
             eventloop_noarrays.log
 
   fastframes:
-    if: github.actor != 'dependabot[bot]'
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - uses: ./.github/actions/setup-globus
         with:
@@ -462,7 +537,7 @@ jobs:
           cluster: UC-AF
           kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
           kibana-kind: "benchmark"
-          host: ${NODE_NAME}
+          host: ${{ env.NODE_NAME }}
           payload-file: ./NTuple_Hist/fastframes/UC/example_FS.root
           os: alma9
           mode: batch
@@ -477,7 +552,7 @@ jobs:
 
       - name: upload log
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ${{ github.job }}-logs
           path: |

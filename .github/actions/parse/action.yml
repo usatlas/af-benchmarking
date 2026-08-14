@@ -51,24 +51,37 @@ runs:
   using: "composite"
   steps:
     - name: Setup pixi
-      uses: prefix-dev/setup-pixi@v0.9.3
+      uses: prefix-dev/setup-pixi@f00437f565399d418b0acc85936d12c1fb668347 # v0.10.1
       with:
         pixi-version: v0.49.0
         environments: kibana
 
     - name: Parse log file
       shell: bash
+      env:
+        JOB: ${{ inputs.job }}
+        LOG_FILE: ${{ inputs.log-file }}
+        LOG_TYPE: ${{ inputs.log-type }}
+        CLUSTER: ${{ inputs.cluster }}
+        KIBANA_TOKEN: ${{ inputs.kibana-token }}
+        KIBANA_KIND: ${{ inputs.kibana-kind }}
+        HOST: ${{ inputs.host }}
+        PAYLOAD_FILE: ${{ inputs.payload-file }}
+        OS: ${{ inputs.os }}
+        MODE: ${{ inputs.mode }}
+        CONTAINERIZED: ${{ inputs.containerized }}
+        OUTPUT_FILE: ${{ inputs.output-file }}
       run: |
         pixi run -e kibana python -m parsing.scripts.ci_parse \
-          --job "${{ inputs.job }}" \
-          --log-file "${{ inputs.log-file }}" \
-          --log-type "${{ inputs.log-type }}" \
-          --cluster "${{ inputs.cluster }}" \
-          --token "${{ inputs.kibana-token }}" \
-          --kind "${{ inputs.kibana-kind }}" \
-          --host "${{ inputs.host }}" \
-          --payload-file "${{ inputs.payload-file }}" \
-          --os "${{ inputs.os }}" \
-          --mode "${{ inputs.mode }}" \
-          --containerized "${{ inputs.containerized }}" \
-          --output "${{ inputs.output-file }}"
+          --job "$JOB" \
+          --log-file "$LOG_FILE" \
+          --log-type "$LOG_TYPE" \
+          --cluster "$CLUSTER" \
+          --token "$KIBANA_TOKEN" \
+          --kind "$KIBANA_KIND" \
+          --host "$HOST" \
+          --payload-file "$PAYLOAD_FILE" \
+          --os "$OS" \
+          --mode "$MODE" \
+          --containerized "$CONTAINERIZED" \
+          --output "$OUTPUT_FILE"

@@ -16,9 +16,14 @@ permissions:
 
 jobs:
   test-actions:
+    if:
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.fork == false
     runs-on: arc-runner-set-uchicago
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup-globus
         with:
           voms-usercert: ${{ secrets.VOMS_USERCERT }}
@@ -27,11 +32,12 @@ jobs:
   test-handlers:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
-      - uses: prefix-dev/setup-pixi@v0.10.1
+      - uses: prefix-dev/setup-pixi@f00437f565399d418b0acc85936d12c1fb668347 # v0.10.1
         with:
           pixi-version: v0.49.0
           environments: kibana
@@ -60,9 +66,10 @@ jobs:
             log-type: "truth3"
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: parse ${{ matrix.log-type }} log
         uses: ./.github/actions/parse
