@@ -31,4 +31,10 @@ SLAC, BNL. The jobs used to benchmark are:
 |
 [Script used at the UC AF](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/fastframes)
 
-[EventLoop](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/event_loop)
+[EventLoop (columnar)](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/event_loop)
+|
+[Script used at the UC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/UC/columnar/run_eventloop_arrays.sh)
+
+[EventLoop (standard)](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/event_loop)
+|
+[Script used at the UC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/UC/standard/run_eventloop_noarrays.sh)
