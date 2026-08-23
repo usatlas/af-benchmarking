@@ -121,7 +121,9 @@ invocation would not be caught by CI.
 
 ## Next Steps
 
-- Learn about the [parsing and upload action](parsing.md)
-- See the [UChicago benchmark workflow](benchmarks.md) for how these actions are
-  used with real benchmark data
-- Check the [development guide](development.md) for local testing
+- [Overview](index.md)
+- [Flowchart](flowchart.md)
+- [Benchmarks](benchmarks.md)
+- [Parsing & Upload](parsing.md)
+- [Documentation](documentation.md)
+- [Development](development.md)

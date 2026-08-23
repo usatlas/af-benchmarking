@@ -168,6 +168,9 @@ Converts NTuple ROOT files to histograms using various frameworks:
 
 ## Next Steps
 
-- Learn about the [parsing and upload action](parsing.md)
-- See the [development guide](development.md) for adding new benchmarks
-- Check [documentation workflow](documentation.md) details
+- [Overview](index.md)
+- [Flowchart](flowchart.md)
+- [Parsing & Upload](parsing.md)
+- [CI Validation](ci.md)
+- [Documentation](documentation.md)
+- [Development](development.md)

@@ -297,6 +297,9 @@ Can be extended to:
 
 ## Next Steps
 
-- Review the [UChicago benchmark workflow](benchmarks.md)
-- Learn about [local development](development.md)
-- Understand the [pixi environments](index.md#pixi-environments)
+- [Overview](index.md)
+- [Flowchart](flowchart.md)
+- [Benchmarks](benchmarks.md)
+- [CI Validation](ci.md)
+- [Documentation](documentation.md)
+- [Development](development.md)

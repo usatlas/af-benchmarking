@@ -73,10 +73,11 @@ pixi run -e docs build-check # Build and validate links
 pixi run -e kibana python parsing/scripts/...
 ```
 
-## Quick Links
+## Next Steps
 
-- [Benchmark Jobs Details](benchmarks.md)
-- [Parsing and Kibana Integration](parsing.md)
-- [CI Validation Workflow](ci.md)
-- [Documentation Workflow](documentation.md)
-- [Local Development Guide](development.md)
+- [Flowchart](flowchart.md)
+- [Benchmarks](benchmarks.md)
+- [Parsing & Upload](parsing.md)
+- [CI Validation](ci.md)
+- [Documentation](documentation.md)
+- [Development](development.md)

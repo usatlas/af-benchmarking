@@ -271,6 +271,9 @@ Set in the workflow at the job level.
 
 ## Next Steps
 
-- See [local development guide](development.md) for contributing
-- Review the [benchmark workflow](benchmarks.md)
-- Check the [overview](index.md) for all workflows
+- [Overview](index.md)
+- [Flowchart](flowchart.md)
+- [Benchmarks](benchmarks.md)
+- [Parsing & Upload](parsing.md)
+- [CI Validation](ci.md)
+- [Development](development.md)

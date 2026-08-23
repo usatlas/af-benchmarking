@@ -346,6 +346,10 @@ Never commit these values to git!
 
 ## Contributing Workflow
 
+See
+[CONTRIBUTING.md](https://github.com/usatlas/af-benchmarking/blob/main/.github/CONTRIBUTING.md)
+for the full contribution guidelines.
+
 1. **Create feature branch** from `main`
 2. **Make changes** (code, docs, workflows)
 3. **Test locally** using pixi
@@ -368,9 +372,9 @@ chore: update dependencies
 
 ## Next Steps
 
-- Review [benchmark workflow details](benchmarks.md)
-- Learn about [parsing and upload](parsing.md)
-- Check [documentation workflow](documentation.md)
-- See [overview](index.md) for all workflows
-- Read
-  [CONTRIBUTING.md](https://github.com/usatlas/af-benchmarking/blob/main/.github/CONTRIBUTING.md)
+- [Overview](index.md)
+- [Flowchart](flowchart.md)
+- [Benchmarks](benchmarks.md)
+- [Parsing & Upload](parsing.md)
+- [CI Validation](ci.md)
+- [Documentation](documentation.md)
