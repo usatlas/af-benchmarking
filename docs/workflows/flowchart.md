@@ -11,7 +11,7 @@ flowchart TD
     RecoTF/Derivation_TF --> DAOD_TRUTH
     Event_Loop --> Hist
 
-    EVNT--> bash["Hits_ESD, AOD, DAOD_PHYS"]
+    RecoTF/Derivation_TF --> bash["Hits_ESD, AOD, DAOD_PHYS"]
     bash["Hits_ESD, AOD, DAOD_PHYS"] --> DAOD_PHYSLITE
 
     ntuple --> Coffea
@@ -23,9 +23,6 @@ flowchart TD
     ntuple --> Event_Loop
     DAOD_PHYSLITE --> ntuple
     DAOD_PHYSLITE --> Rucio_Downloads
-
-    Hist --> Plot
-    Hist --> Fit
 
     click Event_Loop "https://github.com/usatlas/AF-Benchmarking/tree/main/event_loop" "Event Loop documentation"
     click Coffea "https://github.com/usatlas/AF-Benchmarking/tree/main/NTuple_Hist/coffea" "Coffea documentation"
