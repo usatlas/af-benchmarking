@@ -268,12 +268,3 @@ permissions:
 ```
 
 Set in the workflow at the job level.
-
-## Next Steps
-
-- [Overview](index.md)
-- [Flowchart](flowchart.md)
-- [Benchmarks](benchmarks.md)
-- [Parsing & Upload](parsing.md)
-- [CI Validation](ci.md)
-- [Development](development.md)

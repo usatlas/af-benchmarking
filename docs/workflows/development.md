@@ -369,12 +369,3 @@ fix: correct parsing for truth3 logs
 docs: update workflow documentation
 chore: update dependencies
 ```
-
-## Next Steps
-
-- [Overview](index.md)
-- [Flowchart](flowchart.md)
-- [Benchmarks](benchmarks.md)
-- [Parsing & Upload](parsing.md)
-- [CI Validation](ci.md)
-- [Documentation](documentation.md)

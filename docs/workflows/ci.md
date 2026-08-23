@@ -118,12 +118,3 @@ parsing code paths.
 `./.github/actions/upload` — the `upload` action is only exercised by the real
 benchmark jobs in `uchicago.yml`. A regression in the upload action's `curl`
 invocation would not be caught by CI.
-
-## Next Steps
-
-- [Overview](index.md)
-- [Flowchart](flowchart.md)
-- [Benchmarks](benchmarks.md)
-- [Parsing & Upload](parsing.md)
-- [Documentation](documentation.md)
-- [Development](development.md)
