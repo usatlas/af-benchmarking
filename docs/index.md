@@ -25,11 +25,11 @@ SLAC, BNL. The jobs used to benchmark are:
 ## Ntuple -> Histogram:
 
 [Coffea](https://coffea-hep.readthedocs.io/en/latest/index.html) |
-[Script used at the UC AF](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/coffea)
+[Script used at the UC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/coffea/UC/run_example.sh)
 
 [FastFrames](https://atlas-project-topreconstruction.web.cern.ch/fastframesdocumentation/latest/)
 |
-[Script used at the UC AF](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/fastframes)
+[Script used at the UC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/fastframes/UC/run_fastframes.sh)
 
 [EventLoop (columnar)](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/event_loop)
 |
