@@ -2,7 +2,7 @@ site_name: Benchmarking ATLAS Analyses
 site_description:
   Contains example jobs that are used to benchmark Tier-3 AF performance
 site_author: Juan Robles
-site_url: https://usatlas.readthedocs.io/projects/af-benchmarking/
+site_url: https://usatlas.github.io/af-benchmarking/
 repo_name: usatlas/af-benchmarking
 repo_url: https://github.com/usatlas/af-benchmarking
 edit_uri: edit/main/docs
@@ -138,7 +138,6 @@ markdown_extensions:
       check_paths: true
       base_path:
         - docs/.snippets
-        - docs/README.md
       auto_append:
         - links.txt
         - abbrs.txt

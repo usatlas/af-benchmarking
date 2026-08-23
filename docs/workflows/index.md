@@ -37,7 +37,6 @@ The workflows require these GitHub repository secrets:
 | `VOMS_USERKEY`  | VOMS user key                | Globus setup     |
 | `VOMS_PASSWORD` | VOMS password                | Globus setup     |
 | `KIBANA_TOKEN`  | Kibana benchmark token       | Parse and upload |
-| `KIBANA_KIND`   | Kibana benchmark kind        | Parse and upload |
 | `KIBANA_URI`    | LogStash/Kibana URI endpoint | Parse and upload |
 
 To add or update secrets:
@@ -65,7 +64,7 @@ pixi run -e docs build-check # Build and validate links
 ### `kibana` Environment
 
 **Python:** 3.13 **Purpose:** Parsing logs and uploading to Kibana
-**Dependencies:** elasticsearch
+**Dependencies:** elasticsearch, jsonschema, idna, rich, pytest, arrow
 
 ```bash
 pixi run -e kibana python parsing/scripts/...
