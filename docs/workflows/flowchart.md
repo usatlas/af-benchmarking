@@ -24,12 +24,12 @@ flowchart TD
     DAOD_PHYSLITE --> ntuple
     DAOD_PHYSLITE --> Rucio_Downloads
 
-    click Event_Loop "https://github.com/usatlas/AF-Benchmarking/tree/main/event_loop" "Event Loop documentation"
-    click Coffea "https://github.com/usatlas/AF-Benchmarking/tree/main/NTuple_Hist/coffea" "Coffea documentation"
-    click Fast_Frames "https://github.com/usatlas/AF-Benchmarking/tree/main/NTuple_Hist/fastframes" "Fast Frames documentation"
-    click Rucio_Downloads "https://github.com/usatlas/AF-Benchmarking/blob/main/Rucio/rucio_script.sh" "'Rucio Downloads' Script"
-    click GenTF "https://github.com/usatlas/AF-Benchmarking/tree/main/EVNT" "EVNT Job Scripts"
-    click RecoTF/Derivation_TF "https://github.com/usatlas/AF-Benchmarking/tree/main/TRUTH3" "TRUTH3 Job Scripts"
+    click Event_Loop "https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/event_loop" "Event Loop documentation"
+    click Coffea "https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/coffea" "Coffea documentation"
+    click Fast_Frames "https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/fastframes" "Fast Frames documentation"
+    click Rucio_Downloads "https://github.com/usatlas/af-benchmarking/blob/main/Rucio/rucio_script.sh" "'Rucio Downloads' Script"
+    click GenTF "https://github.com/usatlas/af-benchmarking/tree/main/EVNT" "EVNT Job Scripts"
+    click RecoTF/Derivation_TF "https://github.com/usatlas/af-benchmarking/tree/main/TRUTH3" "TRUTH3 Job Scripts"
 
     Event_Loop(["Event Loop"])
     Coffea(["Coffea"])
