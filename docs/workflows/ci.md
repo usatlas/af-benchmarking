@@ -2,9 +2,10 @@
 
 **File:** `.github/workflows/ci.yml`
 
-This workflow validates that the parsing and upload machinery itself works
-correctly, using fixture logs checked into the repository rather than live
-cluster data — it does not run real benchmark jobs.
+This workflow validates that the parsing machinery itself works correctly, using
+fixture logs checked into the repository rather than live cluster data — it does
+not run real benchmark jobs, and it does not validate uploading (see
+`test-parser` below).
 
 /// warning | A pull request also triggers real benchmark jobs
 

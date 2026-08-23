@@ -9,8 +9,8 @@ The repository contains several automated workflows:
 
 - **[UChicago Benchmarks](benchmarks.md)** - Runs benchmark jobs at the UChicago
   Analysis Facility every 6 hours
-- **[CI Validation](ci.md)** - Validates the parsing/upload machinery against
-  fixture logs on every push and pull request
+- **[CI Validation](ci.md)** - Validates the parsing machinery against fixture
+  logs on every push and pull request
 - **[Documentation](documentation.md)** - Builds and deploys documentation to
   GitHub Pages
 - **Semantic PR Check** - Validates pull request titles follow conventional
