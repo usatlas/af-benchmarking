@@ -51,17 +51,21 @@ Open http://127.0.0.1:8000 to preview documentation.
 pixi shell -e kibana
 
 # Run parsing script to generate payload.json
-python parsing/scripts/ci_parse.py \
+python -m parsing.scripts.ci_parse \
+  --job rucio \
   --log-file path/to/rucio.log \
   --log-type rucio \
   --cluster UC-AF \
   --token $KIBANA_TOKEN \
   --kind $KIBANA_KIND \
   --host $HOSTNAME \
+  --os alma9 \
+  --mode batch \
+  --containerized false \
   --output payload.json
 
 # Test upload to LogStash
-curl -X POST "https://$KIBANA_URI" \
+curl -X POST "$KIBANA_URI" \
   -H "Content-Type: application/json" \
   -d @payload.json \
   -w "\nHTTP Status: %{http_code}\n"
@@ -111,7 +115,7 @@ Edit `.github/workflows/uchicago.yml` and add a new job:
 new-benchmark:
   runs-on: arc-runner-set-uchicago
   steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     # Add setup steps if needed (e.g., Globus)
     - uses: ./.github/actions/setup-globus
@@ -129,14 +133,16 @@ new-benchmark:
       if: always()
       uses: ./.github/actions/parse
       with:
-        job: ${{ github.job }}
+        job: new-benchmark # Update to match your job name
         log-file: new-benchmark.log # Update to match your log file
         log-type: new-benchmark # Update to match your parser type
         cluster: UC-AF
-        kibana-token: ${{ secrets.KIBANA_TOKEN }}
-        kibana-kind: ${{ secrets.KIBANA_KIND }}
+        kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+        kibana-kind: "benchmark"
         host: ${{ env.NODE_NAME }}
-      continue-on-error: true
+        os: alma9 # Update to match the OS the job runs on
+        mode: batch # Or "interactive"
+        containerized: "false" # Or "true"
 
     - name: upload to kibana
       if: always()
@@ -144,14 +150,14 @@ new-benchmark:
       with:
         payload-file: payload.json
         kibana-uri: ${{ secrets.KIBANA_URI }}
-      continue-on-error: true
 
     - name: upload log
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: ${{ github.job }}-logs
-        path: new-benchmark.log # Update to match your log file
+        path: |
+          new-benchmark.log # Update to match your log file
 ```
 
 {% endraw %}
@@ -164,7 +170,7 @@ Coordinate with Juan to update parsing scripts to handle the new log format:
 - Extract timing metrics (submitTime, queueTime, runTime)
 - Extract payload size
 - Determine exit status
-- Map job type to testType
+- Decide the `os`, `mode`, and `containerized` values for the new job
 
 ### 4. Test Locally
 

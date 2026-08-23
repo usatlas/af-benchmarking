@@ -15,7 +15,7 @@ The workflow runs:
 
 ## Benchmark Jobs
 
-The workflow runs 10 parallel benchmark jobs on `arc-runner-set-uchicago`
+The workflow runs 11 parallel benchmark jobs on `arc-runner-set-uchicago`
 runners:
 
 | Job                  | Script                                                           | Log File                 | Description                           |
@@ -53,7 +53,7 @@ Each job follows this pattern:
 rucio:
   runs-on: arc-runner-set-uchicago
   steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
     - uses: ./.github/actions/setup-globus
       with:
@@ -70,14 +70,16 @@ rucio:
       if: always()
       uses: ./.github/actions/parse
       with:
-        job: ${{ github.job }}
+        job: rucio
         log-file: rucio.log
         log-type: rucio
         cluster: UC-AF
-        kibana-token: ${{ secrets.KIBANA_TOKEN }}
-        kibana-kind: ${{ secrets.KIBANA_KIND }}
+        kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+        kibana-kind: "benchmark"
         host: ${{ env.NODE_NAME }}
-      continue-on-error: true
+        os: alma9
+        mode: batch
+        containerized: "false"
 
     - name: upload to kibana
       if: always()
@@ -85,14 +87,14 @@ rucio:
       with:
         payload-file: payload.json
         kibana-uri: ${{ secrets.KIBANA_URI }}
-      continue-on-error: true
 
     - name: upload log
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: ${{ github.job }}-logs
-        path: rucio.log
+        path: |
+          rucio.log
 ```
 
 {% endraw %}
