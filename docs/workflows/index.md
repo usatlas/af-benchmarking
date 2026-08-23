@@ -9,6 +9,8 @@ The repository contains several automated workflows:
 
 - **[UChicago Benchmarks](benchmarks.md)** - Runs benchmark jobs at the UChicago
   Analysis Facility every 6 hours
+- **[CI Validation](ci.md)** - Validates the parsing/upload machinery against
+  fixture logs on every push and pull request
 - **[Documentation](documentation.md)** - Builds and deploys documentation to
   GitHub Pages
 - **Semantic PR Check** - Validates pull request titles follow conventional
@@ -75,5 +77,6 @@ pixi run -e kibana python parsing/scripts/...
 
 - [Benchmark Jobs Details](benchmarks.md)
 - [Parsing and Kibana Integration](parsing.md)
+- [CI Validation Workflow](ci.md)
 - [Documentation Workflow](documentation.md)
 - [Local Development Guide](development.md)

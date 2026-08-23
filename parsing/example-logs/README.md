@@ -26,7 +26,7 @@ same Wmunugamma (DSID 700402) Monte Carlo samples as `eventloop_arrays.log` but
 without columnar optimizations, resulting in ~20.2 kHz event processing rate.
 Useful for comparing array vs scalar performance in event loop analyses.
 
-### ff.log
+### fastframes.log
 
 [FastFrames](https://gitlab.cern.ch/atlas-amglab/fastframes) framework log. A
 C++/Python framework for producing histograms from ROOT ntuples using
