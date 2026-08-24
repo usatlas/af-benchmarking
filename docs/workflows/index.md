@@ -75,7 +75,8 @@ pixi run -e kibana python parsing/scripts/...
 ## Next Steps
 
 - [Flowchart](flowchart.md)
-- [Benchmarks](benchmarks.md)
+- [UChicago Benchmarks](benchmarks.md)
+- [BNL Benchmarks](../bnl/benchmarks.md)
 - [Parsing & Upload](parsing.md)
 - [CI Validation](ci.md)
 - [Documentation](documentation.md)
