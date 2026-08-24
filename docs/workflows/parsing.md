@@ -44,17 +44,20 @@ single, simple integration point for GitHub Actions workflows.
 
 ### Parse Action Inputs
 
-| Input          | Description                               | Required | Example                                      |
-| -------------- | ----------------------------------------- | -------- | -------------------------------------------- |
-| `job`          | Job name                                  | Yes      | `rucio`, `eventloop-columnar`, `evnt-native` |
-| `log-file`     | Path to log file                          | Yes      | `rucio.log`                                  |
-| `log-type`     | Type of log parser to use                 | Yes      | `rucio`, `athena`, `coffea`, `fastframes`    |
-| `cluster`      | Cluster name                              | Yes      | `UC-AF`, `SLAC-AF`, `BNL-AF`                 |
-| `kibana-token` | Token for benchmark ID                    | Yes      | From secrets                                 |
-| `kibana-kind`  | Kind for benchmark ID                     | Yes      | From secrets                                 |
-| `host`         | Hostname to identify the machine          | Yes      | `${NODE_NAME}`                               |
-| `payload-file` | Path to payload file for size calculation | No       | Empty string (default, payloadSize = -1)     |
-| `output-file`  | Output JSON file path                     | No       | `payload.json` (default)                     |
+| Input           | Description                               | Required | Example                                                                                                                                                |
+| --------------- | ----------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `job`           | Job name                                  | Yes      | `rucio`, `evnt`, `truth3`, `coffea`, `eventloop-columnar`, `eventloop-standard`, `fastframes`                                                          |
+| `log-file`      | Path to log file                          | Yes      | `rucio.log`, `log.generate`, `log.Derivation`, `log.EVNTtoDAOD`, `coffea_hist.log`, `eventloop_arrays.log`, `eventloop_noarrays.log`, `fastframes.log` |
+| `log-type`      | Type of log parser to use                 | Yes      | `rucio`, `evnt`, `truth3`, `coffea`, `eventloop`, `fastframes`                                                                                         |
+| `cluster`       | Cluster name                              | Yes      | `UC-AF`, `SLAC-AF`, `BNL-AF`                                                                                                                           |
+| `kibana-token`  | Token for benchmark ID                    | Yes      | From secrets                                                                                                                                           |
+| `kibana-kind`   | Kind for benchmark ID                     | Yes      | `"benchmark"` (literal value)                                                                                                                          |
+| `host`          | Hostname to identify the machine          | Yes      | `${NODE_NAME}`                                                                                                                                         |
+| `payload-file`  | Path to payload file for size calculation | No       | Empty string (default, payloadSize = -1)                                                                                                               |
+| `os`            | Operating system the job ran on           | Yes      | `alma9`, `centos7`                                                                                                                                     |
+| `mode`          | Job execution mode                        | Yes      | `batch`, `interactive`                                                                                                                                 |
+| `containerized` | Whether the job ran inside a container    | Yes      | `"true"`, `"false"`                                                                                                                                    |
+| `output-file`   | Output JSON file path                     | No       | `payload.json` (default)                                                                                                                               |
 
 ### Upload Action Inputs
 
@@ -74,7 +77,7 @@ The parse action performs these steps:
 2. **Parse log file**: Runs the parsing script to generate JSON payload:
 
 ```bash
-pixi run -e kibana python parsing/scripts/ci_parse.py \
+pixi run -e kibana python -m parsing.scripts.ci_parse \
   --job <job> \
   --log-file <log-file> \
   --log-type <log-type> \
@@ -82,6 +85,9 @@ pixi run -e kibana python parsing/scripts/ci_parse.py \
   --token <token> \
   --kind <kind> \
   --host <host> \
+  --os <os> \
+  --mode <mode> \
+  --containerized <containerized> \
   --output payload.json
 ```
 
@@ -96,11 +102,11 @@ The upload action performs these steps:
 2. **Upload to LogStash**: POSTs the JSON payload using curl:
 
 ```bash
-curl -X POST "https://<kibana-uri>" \
+curl -X POST "<kibana-uri>" \
   -H "Content-Type: application/json" \
   -d @payload.json \
   -w "%{http_code}" \
-  -s -o /tmp/response.txt
+  -s -o response.txt
 ```
 
 3. **Verify response**: Checks HTTP status code and fails if not 2xx
@@ -115,51 +121,69 @@ Required structure:
 
 ```json
 {
-  "job": "rucio",
-  "cluster": "UC-AF",
-  "submitTime": 1234567890000,
+  "submitTime": 1787510063000,
   "queueTime": 0,
-  "runTime": 3600,
-  "payloadSize": 1073741824,
+  "runTime": 337,
   "status": 0,
-  "host": "hostname.example.com",
-  "token": "<TOKEN>",
-  "kind": "benchmark"
+  "setupTime": 4,
+  "cpuPercent": 95.0,
+  "maxRssKb": 1600792,
+  "job": "evnt",
+  "cluster": "UC-AF",
+  "payloadSize": -1,
+  "token": "***",
+  "kind": "benchmark",
+  "host": "g006.af.uchicago.edu",
+  "os": "alma9",
+  "mode": "batch",
+  "containerized": false
 }
 ```
 
 ### Field Descriptions
 
-| Field         | Type    | Description                                       | Source                                                                                                    |
-| ------------- | ------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `job`         | String  | Job name (e.g., `rucio`, `eventloop-columnar`)    | Passed from workflow via {% raw %} `${{ github.job }}` {% endraw %}                                       |
-| `cluster`     | String  | AF cluster name (UC-AF, SLAC-AF, BNL-AF)          | Passed from workflow                                                                                      |
-| `submitTime`  | Integer | UTC timestamp (ms since epoch)                    | Parsed from log                                                                                           |
-| `queueTime`   | Integer | Queue time (seconds)                              | Parsed from log                                                                                           |
-| `runTime`     | Integer | Execution time (seconds)                          | Parsed from log                                                                                           |
-| `payloadSize` | Integer | Output file size (bytes)                          | Calculated from `payload-file` input using `Path().stat().st_size` (-1 if not provided, 0 for empty file) |
-| `status`      | Integer | Exit code (0=success, non-zero=failure)           | Parsed from log                                                                                           |
-| `host`        | String  | Hostname where job executed (idn-hostname format) | Passed from workflow via `${NODE_NAME}`                                                                   |
-| `token`       | String  | Benchmark identifier AND LogStash routing key     | Passed from workflow (secrets)                                                                            |
-| `kind`        | String  | Benchmark type AND LogStash routing kind          | Passed from workflow (secrets)                                                                            |
+| Field           | Type    | Description                                       | Source                                                                                                    |
+| --------------- | ------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `job`           | String  | Job name (e.g., `rucio`, `evnt`, `truth3`)        | Passed from workflow as a literal value                                                                   |
+| `cluster`       | String  | AF cluster name (UC-AF, SLAC-AF, BNL-AF)          | Passed from workflow                                                                                      |
+| `submitTime`    | Integer | UTC timestamp (ms since epoch)                    | Parsed from log                                                                                           |
+| `queueTime`     | Integer | Queue time (seconds)                              | Parsed from log                                                                                           |
+| `runTime`       | Integer | Execution time (seconds)                          | Parsed from log                                                                                           |
+| `payloadSize`   | Integer | Output file size (bytes)                          | Calculated from `payload-file` input using `Path().stat().st_size` (-1 if not provided, 0 for empty file) |
+| `status`        | Integer | Exit code (0=success, non-zero=failure)           | Parsed from log                                                                                           |
+| `host`          | String  | Hostname where job executed (idn-hostname format) | Passed from workflow via the `NODE_NAME` environment variable                                             |
+| `setupTime`     | Integer | Environment setup time (seconds), optional        | Parsed from log, when present                                                                             |
+| `cpuPercent`    | Number  | CPU usage percentage, optional                    | Parsed from `/usr/bin/time -v` output, when present                                                       |
+| `maxRssKb`      | Integer | Maximum resident set size (KB), optional          | Parsed from `/usr/bin/time -v` output, when present                                                       |
+| `os`            | String  | Operating system (`centos7`, `alma9`)             | Passed from workflow as a literal value                                                                   |
+| `mode`          | String  | Job execution mode (`batch`, `interactive`)       | Passed from workflow as a literal value                                                                   |
+| `containerized` | Boolean | Whether the job ran inside a container            | Passed from workflow as a literal value                                                                   |
+| `token`         | String  | Benchmark identifier AND LogStash routing key     | Passed from workflow (secrets, with a hardcoded fallback)                                                 |
+| `kind`          | String  | Benchmark type AND LogStash routing kind          | Passed from workflow as a literal value                                                                   |
 
 ### Static vs Parsed Fields
 
 **Static fields** (from workflow configuration):
 
+- `job` - Job name, a literal value per job
 - `cluster` - Set per site (UC-AF, SLAC-AF, etc.)
 - `token` - Benchmark identifier token AND LogStash routing key
 - `kind` - Benchmark kind/category AND LogStash routing kind
-- `host` - Hostname from workflow environment (`${NODE_NAME}`)
+- `host` - Hostname from the `NODE_NAME` environment variable
+- `os` - Operating system, a literal value per job
+- `mode` - Execution mode, a literal value per job
+- `containerized` - Whether the job runs in a container, a literal value per job
 
 **Parsed fields** (extracted from logs):
 
-- `testType` - Determined from job type or log content
 - `submitTime` - Start timestamp from log
 - `queueTime` - Time waiting before execution
 - `runTime` - Total execution duration
 - `payloadSize` - Size of output files
 - `status` - Job exit code
+- `setupTime` - Environment setup time, when present in the log
+- `cpuPercent` - CPU usage percentage, when present in the log
+- `maxRssKb` - Maximum resident set size, when present in the log
 
 **Note:** The `token` and `kind` fields are included in the JSON document body
 sent to LogStash, where they serve the dual purpose of identifying the benchmark
@@ -167,15 +191,16 @@ and routing the data to the appropriate Kibana instance.
 
 ## Failure Handling
 
-The action uses `continue-on-error: true` in workflows, which means:
+Neither action uses `continue-on-error`, so a parsing or upload failure fails
+the benchmark job:
 
-- **Parsing failures don't fail the benchmark job**
-- Logs are always uploaded as artifacts
-- Parsing errors are visible in workflow logs
-- Benchmarks complete successfully even if Kibana upload fails
-
-This design ensures benchmark execution is never blocked by parsing/upload
-issues.
+- **A parsing failure fails the job** — the `parse benchmark log` step's
+  `if: always()` only guarantees it _runs_ even if the benchmark script failed,
+  not that its own failure is tolerated
+- **An upload failure fails the job** the same way
+- Logs are still uploaded as artifacts regardless, since the "upload log" step
+  also uses `if: always()`
+- Parsing and upload errors are visible in the workflow's job logs
 
 ## Usage Example
 
@@ -186,14 +211,16 @@ issues.
   if: always() # Run even if benchmark failed
   uses: ./.github/actions/parse
   with:
-    job: ${{ github.job }}
+    job: rucio
     log-file: rucio.log
     log-type: rucio
     cluster: UC-AF
-    kibana-token: ${{ secrets.KIBANA_TOKEN }}
-    kibana-kind: ${{ secrets.KIBANA_KIND }}
-    host: ${NODE_NAME}
-  continue-on-error: true # Don't fail job if parsing fails
+    kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+    kibana-kind: "benchmark"
+    host: ${{ env.NODE_NAME }}
+    os: alma9
+    mode: batch
+    containerized: "false"
 
 - name: upload to kibana
   if: always() # Run even if parsing failed
@@ -201,7 +228,6 @@ issues.
   with:
     payload-file: payload.json
     kibana-uri: ${{ secrets.KIBANA_URI }}
-  continue-on-error: true # Don't fail job if upload fails
 ```
 
 {% endraw %}
@@ -231,7 +257,7 @@ authentication headers or stored credentials.
 
 1. Go to the workflow run in GitHub Actions
 2. Click on the specific job
-3. Expand the "parse and upload to kibana" step
+3. Expand the "parse benchmark log" or "upload to kibana" step
 4. Review the output for parsing errors
 
 ### Common Parsing Issues
@@ -263,7 +289,7 @@ Test parsing and upload separately:
 ```bash
 pixi shell -e kibana
 
-python parsing/scripts/ci_parse.py \
+python -m parsing.scripts.ci_parse \
   --job rucio \
   --log-file path/to/rucio.log \
   --log-type rucio \
@@ -271,13 +297,16 @@ python parsing/scripts/ci_parse.py \
   --token $KIBANA_TOKEN \
   --kind $KIBANA_KIND \
   --host $HOSTNAME \
+  --os alma9 \
+  --mode batch \
+  --containerized false \
   --output payload.json
 ```
 
 **Test upload:**
 
 ```bash
-curl -X POST "https://$KIBANA_URI" \
+curl -X POST "$KIBANA_URI" \
   -H "Content-Type: application/json" \
   -d @payload.json \
   -w "\nHTTP Status: %{http_code}\n"
@@ -287,7 +316,7 @@ curl -X POST "https://$KIBANA_URI" \
 
 These actions are currently used by:
 
-- [UChicago Benchmark Workflow](benchmarks.md) - All 10 benchmark jobs
+- [UChicago Benchmark Workflow](benchmarks.md) - All 11 benchmark jobs
 
 Can be extended to:
 
