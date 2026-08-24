@@ -141,7 +141,7 @@ Downloads ATLAS data files using the Rucio data management system. Measures data
 transfer performance.
 
 **Documentation:**
-[Rucio Download Tutorial](https://atlassoftwaredocs.web.cern.ch/internal-links/grid-tutorial/rucio-download-files/)
+[Rucio Download Tutorial](https://atlas-software.docs.cern.ch/analysis/analysis_tutorial/AnalysisSWTutorial/rucio_download_files/)
 
 ### EVNT Generation
 
@@ -149,14 +149,14 @@ Generates Monte Carlo event files (EVNT format) using different runtime
 environments.
 
 **Documentation:**
-[EVNT Production Tutorial](https://atlassoftwaredocs.web.cern.ch/analysis-software/AnalysisSWTutorial/mc_generation/)
+[EVNT Production Tutorial](https://atlas-software.docs.cern.ch/analysis/analysis_tutorial/AnalysisSWTutorial/mc_generation/)
 
 ### TRUTH3 Derivation
 
 Creates TRUTH3 derivation files from EVNT files for truth-level analysis.
 
 **Documentation:**
-[TRUTH3 Derivation Tutorial](https://atlassoftwaredocs.web.cern.ch/analysis-software/AnalysisSWTutorial/mc_truth_derivation/)
+[TRUTH3 Derivation Tutorial](https://atlas-software.docs.cern.ch/analysis/analysis_tutorial/AnalysisSWTutorial/mc_truth_derivation/)
 
 ### NTuple to Histogram
 
