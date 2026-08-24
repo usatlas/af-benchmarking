@@ -167,9 +167,3 @@ Converts NTuple ROOT files to histograms using various frameworks:
 - **Coffea:** Python-based columnar analysis framework
 - **FastFrames:** C++ framework for fast ROOT analysis
 - **EventLoop:** Traditional ATLAS event processing framework
-
-## Next Steps
-
-- Learn about the [parsing and upload action](parsing.md)
-- See the [development guide](development.md) for adding new benchmarks
-- Check [documentation workflow](documentation.md) details

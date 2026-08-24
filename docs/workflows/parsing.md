@@ -323,9 +323,3 @@ Can be extended to:
 - SLAC benchmark workflows
 - BNL benchmark workflows
 - NERSC benchmark workflows
-
-## Next Steps
-
-- Review the [UChicago benchmark workflow](benchmarks.md)
-- Learn about [local development](development.md)
-- Understand the [pixi environments](index.md#pixi-environments)

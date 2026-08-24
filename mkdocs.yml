@@ -67,6 +67,7 @@ nav:
       - Flowchart: workflows/flowchart.md
       - Benchmarks: workflows/benchmarks.md
       - Parsing & Upload: workflows/parsing.md
+      - CI Validation: workflows/ci.md
       - Documentation: workflows/documentation.md
       - Development: workflows/development.md
 
