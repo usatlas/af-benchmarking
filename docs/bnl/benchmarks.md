@@ -1,28 +1,56 @@
 # BNL Benchmark Pipeline
 
+**Schedule:** `CrontabFiles/crontab_bnl.txt`
+
 Unlike UChicago, BNL has no GitHub Actions workflow behind it — every benchmark
 job runs via a plain `cron` entry on the BNL login node, submitting to HTCondor
 directly. There is no equivalent of `uchicago.yml`; the entire pipeline lives in
 shell scripts checked into this repo and a crontab installed on the host.
 
-## Directory Layout
+## Trigger
 
-Each job type has a `BNL/` subdirectory, split by OS/container variant the same
-way UChicago's are:
+The pipeline runs:
 
-- `EVNT/BNL/{CentOS7,EL9,Native}/`
-- `TRUTH3/BNL/{CentOS7,EL9,Native}/`, plus `{CentOS7,EL9,Native}_i/` interactive
-  variants
-- `Rucio/` — BNL doesn't have its own script; it shares `rucio_script.sh` with
-  every other site, dispatched via a `bnl)` case branch
-- `NTuple_Hist/{coffea,event_loop,fastframes}/BNL/`
+- **Every 6 hours** (cron schedule: `0 */6 * * *`)
 
-## The Cron → HTCondor → Parse → Upload Pipeline
+There's no pull-request trigger and no manual dispatch equivalent — those are
+GitHub Actions concepts, and BNL has no CI system in the loop.
 
-Every top-level cron entry point follows the same pattern: submit to HTCondor,
-wait for it to finish, find the freshest output directory, parse the log, and
-upload the payload — all in one script, since there's no CI system to hand any
-of these steps off to.
+## Benchmark Jobs
+
+The crontab runs 11 jobs, all on the same 6-hour cadence:
+
+| Job                  | Script                                                            | Log File                 | Description                           |
+| -------------------- | ----------------------------------------------------------------- | ------------------------ | ------------------------------------- |
+| `rucio`              | `./Rucio/rucio_script.sh` (via `cron_rucio_bnl.sh`)               | `rucio.log`              | Download data using Rucio             |
+| `evnt-native`        | `./EVNT/BNL/Native/run_evnt_native_batch.sh`                      | `log.generate`           | EVNT generation (native)              |
+| `evnt-el9`           | `./EVNT/BNL/EL9/run_evnt_el9_batch.sh`                            | `log.generate`           | EVNT generation (EL9 container)       |
+| `evnt-centos7`       | `./EVNT/BNL/CentOS7/run_evnt_centos7_batch.sh`                    | `log.generate`           | EVNT generation (CentOS7 container)   |
+| `truth3-native`      | `./TRUTH3/BNL/Native/run_truth3_native_batch.sh`                  | `log.Derivation`         | TRUTH3 derivation (native)            |
+| `truth3-el9`         | `./TRUTH3/BNL/EL9/run_truth3_el9_batch.sh`                        | `log.Derivation`         | TRUTH3 derivation (EL9 container)     |
+| `truth3-centos7`     | `./TRUTH3/BNL/CentOS7/run_truth3_centos7_batch.sh`                | `log.EVNTtoDAOD`         | TRUTH3 derivation (CentOS7 container) |
+| `coffea`             | `./NTuple_Hist/coffea/BNL/run_example.sh`                         | `coffea_hist.log`        | NTuple to histogram (Coffea)          |
+| `eventloop-columnar` | `./NTuple_Hist/event_loop/BNL/columnar/run_eventloop_arrays.sh`   | `eventloop_arrays.log`   | Event loop (columnar)                 |
+| `eventloop-standard` | `./NTuple_Hist/event_loop/BNL/standard/run_eventloop_noarrays.sh` | `eventloop_noarrays.log` | Event loop (standard)                 |
+| `fastframes`         | `./NTuple_Hist/fastframes/BNL/run_fastframes.sh`                  | `fastframes.log`         | NTuple to histogram (FastFrames)      |
+
+## Workflow Steps
+
+Each job follows this pattern:
+
+1. **Cron trigger** - `cron` fires the wrapper script every 6 hours
+2. **Submit** - `condor_submit` queues the job on HTCondor
+3. **Wait** - `condor_wait` blocks until the job finishes
+4. **Execute** - HTCondor runs the job executable, which does the actual work
+   and calls `append_benchmark` (the same `benchmark_utils.sh` helper every
+   site's scripts use) once at the end
+5. **Parse** - the cron wrapper runs `python -m parsing.scripts.ci_parse`
+   directly — the same script the `parse` composite action wraps on UChicago
+   (see [parsing and upload](../workflows/parsing.md))
+6. **Upload to Kibana** - the cron wrapper `curl`s the payload to LogStash — the
+   same mechanism the `upload` action wraps
+
+### Example Job Structure
 
 Using `TRUTH3/BNL/Native/cron_native_batch.sh` as the concrete example:
 
@@ -44,12 +72,7 @@ readonly pixi_containerized="false"
 
 export PATH="/usatlas/u/qlei/.pixi/bin:$PATH"
 [ -r /usatlas/u/qlei/.secrets ] && . /usatlas/u/qlei/.secrets
-```
 
-It then submits the job, extracts the HTCondor cluster ID from `condor_submit`'s
-output, and blocks on `condor_wait` for that specific job's log file:
-
-```bash
 submit_out=$(condor_submit "${sub_file}")
 cluster_id=$(echo "${submit_out}" | grep -oP '(?<=cluster )\d+')
 
@@ -58,13 +81,7 @@ condor_log="${log_template//\$(Cluster)/${cluster_id}}"
 condor_log="${condor_log//\$(Process)/0}"
 
 condor_wait "${condor_log}" || { echo "ERROR: condor_wait failed"; exit 1; }
-```
 
-Once the job completes, it finds the most recently modified output directory,
-then parses and uploads exactly the way the `parse`/`upload` composite actions
-do on UChicago — just inlined instead of factored into a reusable action:
-
-```bash
 latest_dir=$(find "${log_base}" -mindepth 1 -maxdepth 1 -type d -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | awk '{print $2}')
 
 pixi run --manifest-path "${AF_BENCH_DIR}/pixi.toml" -e kibana python -m parsing.scripts.ci_parse \
@@ -88,39 +105,10 @@ response=$(curl -X POST "${KIBANA_URI}" \
 ```
 
 This same ~94-line skeleton — only the path constants and the four `pixi_*`
-variables change — is used by all 11 BNL cron wrappers: EVNT
-(CentOS7/EL9/Native), TRUTH3 batch (CentOS7/EL9/Native), Rucio, Coffea, and both
-EventLoop variants.
+variables change — is used by all 11 BNL cron wrappers.
 
-## The Job Executable
-
-The cron wrapper only orchestrates — it never sources
-`parsing/utils/benchmark_utils.sh` itself. That happens one layer down, in the
-actual job executable that HTCondor runs
-(`TRUTH3/BNL/Native/run_truth3_native_batch.sh`):
-
-```bash
-#!/bin/bash
-source /usatlas/u/qlei/AF-Benchmarking/parsing/utils/benchmark_utils.sh
-
-start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-# ... setup, asetup, Derivation_tf.py ...
-end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-
-append_benchmark log.Derivation "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" "time_v"
-
-mv log.Derivation "${output_dir}"
-```
-
-Every batch job executable at BNL follows this same split: the `.sub` file tells
-HTCondor which executable to run, the executable does the actual work and calls
-`append_benchmark` once at the end, and the cron wrapper (running outside
-HTCondor, on the login node) picks up the result afterward.
-
-## HTCondor Submission
-
-`.sub` files are minimal — `Universe = vanilla`, a fixed `request_memory`, and
-`Queue 1`:
+The `.sub` file it submits is minimal — `Universe = vanilla`, a fixed
+`request_memory`, and `Queue 1`:
 
 ```
 Universe = vanilla
@@ -136,60 +124,72 @@ request_memory = 3G
 Queue 1
 ```
 
-## Schedule
+## Monitoring Results
 
-`CrontabFiles/crontab_bnl.txt` installs all 11 jobs on the same cadence —
-`0 */6 * * *`, i.e. every 6 hours on the hour:
+### Viewing Job Runs
 
-```
-# Rucio Script
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/Rucio/cron_rucio_bnl.sh
+- **Output directories:**
+  `/atlasgpfs01/usatlas/data/qlei/logs/<job>/<timestamp>/` — no GitHub Actions
+  UI equivalent; check the filesystem directly
+- **HTCondor status:** `condor_q` while a job is queued or running
 
-# EVNT Scripts
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/EVNT/BNL/CentOS7/centos_cron.sh
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/EVNT/BNL/EL9/el_cron.sh
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/EVNT/BNL/Native/native_cron.sh
+### Checking Logs
 
-# TRUTH3 Scripts
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/TRUTH3/BNL/CentOS7/cron_centos_batch.sh
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/TRUTH3/BNL/EL9/cron_el_batch.sh
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/TRUTH3/BNL/Native/cron_native_batch.sh
+- **HTCondor logs:** the `.out`/`.err`/`.log` files at the paths set in the
+  `.sub` file's `Output`/`Error`/`Log` fields
+- **Benchmark logs:** the job's own log file (e.g. `log.Derivation`), moved into
+  the output directory once the job completes
 
-# Coffea Metrics
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/coffea/BNL/cron_example.sh
+### Common Issues
 
-# FastFrames Script
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/fastframes/BNL/crontab_fastframes.sh
+**Benchmark job failures:**
 
-# EventLoop Arrays Script
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/columnar/cron_eventloop_arrays.sh
+- Check the HTCondor `.err` file for the job
+- Verify `condor_submit`/`condor_wait` succeeded in the cron wrapper's own
+  output
+- Review the job executable's log for script errors
 
-# EventLoop No Arrays Script
-0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/cron_eventloop_noarrays.sh
-```
+**Parsing failures:**
 
-Only the 3 TRUTH3 batch variants are scheduled here — the `_i` interactive
-variants below are not on any crontab.
+- Check that the log file contains a `=== BENCHMARK ===` block
+- Verify the payload validates against the schema
+- Check `KIBANA_TOKEN`/`KIBANA_URI` are set (sourced from `~/.secrets`)
 
-## TRUTH3 Interactive Variants
+**Upload failures:**
 
-`TRUTH3/BNL/` has `CentOS7_i/`, `EL9_i/`, and `Native_i/` directories alongside
-the batch ones. These run under a different account (`jroblesgo`, rather than
-the batch pipeline's `qlei`), with no HTCondor `.sub` file at all — the cron
-entry just `cd`s into a job directory and runs the executable directly on the
-login node:
+- Verify `payload.json` was generated by the parse step
+- Check the HTTP response status printed by the cron wrapper
+- Verify `KIBANA_URI` is correct
 
-```bash
-#! /bin/bash
-job_dir="/atlasgpfs01/usatlas/data/jroblesgo/TRUTH3Job/native_i"
+## Benchmark Types Explained
 
-if [ -d ${job_dir} ]; then
-  cd "${job_dir}" || exit
-  /usatlas/u/jroblesgo/AF-Benchmarking/TRUTH3/BNL/Native_i/run_truth3_native_interactive.sh
-fi
-```
+### Rucio Download
 
-The interactive job executable itself never sources `benchmark_utils.sh` and
-never calls `append_benchmark` — it runs `Derivation_tf.py`, moves the resulting
-logs to an output directory, and stops there. No benchmark data from these runs
-reaches Kibana.
+Downloads ATLAS data files using the Rucio data management system. Measures data
+transfer performance.
+
+**Documentation:**
+[Rucio Download Tutorial](https://atlas-software.docs.cern.ch/analysis/analysis_tutorial/AnalysisSWTutorial/rucio_download_files/)
+
+### EVNT Generation
+
+Generates Monte Carlo event files (EVNT format) using different runtime
+environments.
+
+**Documentation:**
+[EVNT Production Tutorial](https://atlas-software.docs.cern.ch/analysis/analysis_tutorial/AnalysisSWTutorial/mc_generation/)
+
+### TRUTH3 Derivation
+
+Creates TRUTH3 derivation files from EVNT files for truth-level analysis.
+
+**Documentation:**
+[TRUTH3 Derivation Tutorial](https://atlas-software.docs.cern.ch/analysis/analysis_tutorial/AnalysisSWTutorial/mc_truth_derivation/)
+
+### NTuple to Histogram
+
+Converts NTuple ROOT files to histograms using various frameworks:
+
+- **Coffea:** Python-based columnar analysis framework
+- **FastFrames:** C++ framework for fast ROOT analysis
+- **EventLoop:** Traditional ATLAS event processing framework
