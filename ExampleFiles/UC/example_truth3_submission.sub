@@ -7,7 +7,7 @@ Log = example_truth3_native.$(Cluster).$(Process).log
 
 # Path to your job script, in this case
 # Change <username> to your own username
-Executable = /home/<username>/AF-Benchmarking/ExampleFiles/UC/truth3_example_executable.sh
+Executable = /home/<username>/af-benchmarking/ExampleFiles/UC/example_truth3_executable.sh
 
 request_memory = 3GB
 request_cpus = 1
