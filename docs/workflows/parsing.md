@@ -316,7 +316,8 @@ curl -X POST "$KIBANA_URI" \
 
 These actions are currently used by:
 
-- [UChicago Benchmark Workflow](benchmarks.md) - All 11 benchmark jobs
+- [UChicago Benchmark Workflow](../uchicago/benchmarks.md) - All 11 benchmark
+  jobs
 
 Can be extended to:
 

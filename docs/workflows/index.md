@@ -7,8 +7,8 @@ documentation deployment.
 
 The repository contains several automated workflows:
 
-- **[UChicago Benchmarks](benchmarks.md)** - Runs benchmark jobs at the UChicago
-  Analysis Facility every 6 hours
+- **[UChicago Benchmarks](../uchicago/benchmarks.md)** - Runs benchmark jobs at
+  the UChicago Analysis Facility every 6 hours
 - **[CI Validation](ci.md)** - Validates the parsing machinery against fixture
   logs on every push and pull request
 - **[Documentation](documentation.md)** - Builds and deploys documentation to
@@ -75,7 +75,7 @@ pixi run -e kibana python parsing/scripts/...
 ## Next Steps
 
 - [Flowchart](flowchart.md)
-- [UChicago Benchmarks](benchmarks.md)
+- [UChicago Benchmarks](../uchicago/benchmarks.md)
 - [BNL Benchmarks](../bnl/benchmarks.md)
 - [Parsing & Upload](parsing.md)
 - [CI Validation](ci.md)
