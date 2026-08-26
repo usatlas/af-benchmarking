@@ -15,8 +15,6 @@ The jobs used for benchmarking are of the following type:
 - Rucio Downloads
 - NTuple-to-Histogram
 
-Said jobs can either run interactively or in the batch system.
-
 For more information on the Tier 3 AFs check out the docs page,
 [here](https://usatlas.github.io/af-docs/).
 
