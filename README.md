@@ -2,23 +2,25 @@
 
 Contains benchmarking scripts used at the Tier 3 Analysis Facilities:
 
-- [UChicago](https://github.com/usatlas/AF-Benchmarking?tab=readme-ov-file#uchicago)
-- [SLAC](https://github.com/usatlas/AF-Benchmarking#slac)
-- [BNL](https://github.com/usatlas/AF-Benchmarking#bnl)
+- [UChicago](https://github.com/usatlas/af-benchmarking?tab=readme-ov-file#uchicago)
+- [SLAC](https://github.com/usatlas/af-benchmarking#slac)
+- [BNL](https://github.com/usatlas/af-benchmarking#bnl)
 
 It now contains scripts used at NERSC.
 
-The jobs used for benchmarking are the of the following type:
+The jobs used for benchmarking are of the following type:
 
 - EVNT Generation
 - TRUTH3
 - Rucio Downloads
 - NTuple-to-Histogram
 
-Said jobs can either run interactively or in the batch system.
+For more information on the Tier 3 AFs check out the docs page,
+[here](https://usatlas.github.io/af-docs/).
 
-For more information on the Tier 3 AFs check out the read-the-docs page,
-[here](https://usatlas.readthedocs.io/projects/af-docs/en/latest/).
+Documentation for this repository's benchmarking pipeline, parsing, and CI is
+published at
+[usatlas.github.io/af-benchmarking](https://usatlas.github.io/af-benchmarking/).
 
 ## Batch System
 
@@ -30,19 +32,21 @@ you can find examples to help you get started at the Tier 3 AFs.
 
 The following sections display submission and executable files that can be used
 at the respective analysis facilities. This assumes you've acquired your
-accounts. If you have not done so, follow the instructions outlines
-[here](https://usatlas.readthedocs.io/projects/af-docs/en/latest/UserOnboarding/account/).
+accounts. If you have not done so, follow the account setup instructions for
+your site: [UChicago](https://usatlas.github.io/af-docs/uchicago/account/),
+[SLAC](https://usatlas.github.io/af-docs/slac/account/), or
+[BNL](https://usatlas.github.io/af-docs/bnl/account/).
 
 After logging into the desired AF, obtain the directory by following these
 steps:
 
 ```bash
-git clone https://github.com/usatlas/AF-Benchmarking.git AF-Benchmarking
+git clone https://github.com/usatlas/af-benchmarking.git af-benchmarking
 ```
 
 ### UChicago
 
-[_TRUTH3 Executable File_](https://github.com/usatlas/AF-Benchmarking/blob/main/ExampleFiles/UC/example_truth3_executable.sh)
+[_TRUTH3 Executable File_](https://github.com/usatlas/af-benchmarking/blob/main/ExampleFiles/UC/example_truth3_executable.sh)
 
 ```bash
 #!/bin/bash
@@ -55,7 +59,7 @@ inputFile_dir="/data/<username>/TRUTH3_Native_input_file/"
 mkdir -p ${inputFile_dir}
 
 # Moves input files to the input file directory
-cp ~/AF-Benchmarking/TRUTH3/EVNT.root ${inputFile_dir}
+cp ~/af-benchmarking/TRUTH3/EVNT.root ${inputFile_dir}
 
 # Sets up our environment
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
@@ -70,7 +74,7 @@ hostname >> log.Derivation
 
 ```
 
-[_TRUTH3 Submission File_](https://github.com/usatlas/AF-Benchmarking/blob/main/ExampleFiles/UC/example_truth3_submission.sub)
+[_TRUTH3 Submission File_](https://github.com/usatlas/af-benchmarking/blob/main/ExampleFiles/UC/example_truth3_submission.sub)
 
 ```bash
 Universe = vanilla
@@ -82,7 +86,7 @@ Log = example_truth3_native.$(Cluster).$(Process).log
 
 # Path to your job script, in this case
 # Change <username> to your own username
-Executable = /home/<username>/AF-Benchmarking/TRUTH3/UC/example_run_truth3_native_batch.sh
+Executable = /home/<username>/af-benchmarking/TRUTH3/UC/Native/example_run_truth3_native_batch.sh
 
 request_memory = 3GB
 request_cpus = 1
@@ -95,7 +99,7 @@ Queue 1
 When working at SLAC, the jobs submitted must be containerized. The example
 below outlines how to do this using a TRUTH3 job running in EL9 container.
 
-[_TRUTH3 Executable File_](https://github.com/usatlas/AF-Benchmarking/blob/main/ExampleFiles/SLAC/example_truth3_executable.sh)
+[_TRUTH3 Executable File_](https://github.com/usatlas/af-benchmarking/blob/main/ExampleFiles/SLAC/example_truth3_executable.sh)
 
 ```bash
 #!/bin/bash
@@ -116,7 +120,7 @@ Derivation_tf.py --CA True --inputEVNTFile /srv/TRUTH3Files/el9/EVNT.root --outp
 hostname >> log.Derivation
 ```
 
-[_TRUTH3 Submission File_](https://github.com/usatlas/AF-Benchmarking/blob/main/ExampleFiles/SLAC/example_truth3_submission.sub)
+[_TRUTH3 Submission File_](https://github.com/usatlas/af-benchmarking/blob/main/ExampleFiles/SLAC/example_truth3_submission.sub)
 
 ```bash
 #!/bin/bash
@@ -140,14 +144,14 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 export ALRB_CONT_CMDOPTS="-B /sdf"
 
-export ALRB_CONT_RUNPAYLOAD="source $HOME/AF-Benchmarking/TRUTH3/SLAC/run_truth3_el9_container.sh"
+export ALRB_CONT_RUNPAYLOAD="source $HOME/af-benchmarking/TRUTH3/SLAC/EL9/run_truth3_el9_container.sh"
 
 source $ATLAS_LOCAL_ROOT_BASE/user/atlasLocalSetup.sh -c el9
 ```
 
 ### BNL
 
-[_TRUTH3 Executable File_](https://github.com/usatlas/AF-Benchmarking/blob/main/ExampleFiles/BNL/example_truth3_executable.sh)
+[_TRUTH3 Executable File_](https://github.com/usatlas/af-benchmarking/blob/main/ExampleFiles/BNL/example_truth3_executable.sh)
 
 ```bash
 #!/bin/bash
@@ -169,7 +173,7 @@ source ${ATLAS_LOCAL_ROOT_BASE}/user/atlasLocalSetup.sh -c el9 -r "asetup Athena
 hostname >> log.Derivation
 ```
 
-[_TRUTH3 Submission File_](https://github.com/usatlas/AF-Benchmarking/blob/main/ExampleFiles/BNL/example_truth3_submission.sub)
+[_TRUTH3 Submission File_](https://github.com/usatlas/af-benchmarking/blob/main/ExampleFiles/BNL/example_truth3_submission.sub)
 
 ```bash
 Universe = vanilla
@@ -179,7 +183,7 @@ Output = /atlasgpfs01/usatlas/data/<username>/myjob.$(Cluster).$(Process).out
 Error = /atlasgpfs01/usatlas/data/<username>/myjob.$(Cluster).$(Process).err
 Log = /atlasgpfs01/usatlas/data/<username>/myjob.$(Cluster).$(Process).log
 
-Executable = /usatlas/u/<username>/AF-Benchmarking/TRUTH3/BNL/run_truth3_el9_batch.sh
+Executable = /usatlas/u/<username>/af-benchmarking/TRUTH3/BNL/EL9/run_truth3_el9_batch.sh
 
 request_memory = 3GB
 request_cpus = 1
