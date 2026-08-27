@@ -10,11 +10,15 @@ SLAC, BNL. The jobs used to benchmark are:
 
 [Script used at AFs](https://github.com/usatlas/af-benchmarking/blob/main/Rucio/rucio_script.sh)
 
+[Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/Rucio/cron_rucio_bnl.sh)
+
 ## EVNT:
 
 [Documentation for EVNT Production](https://atlas-software.docs.cern.ch/analysis/analysis_tutorial/AnalysisSWTutorial/mc_generation/)
 
 [Script used at the UC AF](https://github.com/usatlas/af-benchmarking/blob/main/EVNT/UC/Native/run_evnt_native_batch.sh)
+
+[Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/EVNT/BNL/Native/run_evnt_native_batch.sh)
 
 ## TRUTH3:
 
@@ -22,19 +26,29 @@ SLAC, BNL. The jobs used to benchmark are:
 
 [Script used at the UC AF](https://github.com/usatlas/af-benchmarking/blob/main/TRUTH3/UC/Native/run_truth3_native_batch.sh)
 
+[Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/TRUTH3/BNL/Native/run_truth3_native_batch.sh)
+
 ## Ntuple -> Histogram:
 
 [Coffea](https://coffea-hep.readthedocs.io/en/latest/index.html) |
 [Script used at the UC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/coffea/UC/run_example.sh)
+|
+[Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/coffea/BNL/run_example.sh)
 
 [FastFrames](https://atlas-project-topreconstruction.web.cern.ch/fastframesdocumentation/latest/)
 |
 [Script used at the UC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/fastframes/UC/run_fastframes.sh)
+|
+[Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/fastframes/BNL/run_fastframes.sh)
 
 [EventLoop (columnar)](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/event_loop)
 |
 [Script used at the UC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/UC/columnar/run_eventloop_arrays.sh)
+|
+[Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/BNL/columnar/run_eventloop_arrays.sh)
 
 [EventLoop (standard)](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/event_loop)
 |
 [Script used at the UC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/UC/standard/run_eventloop_noarrays.sh)
+|
+[Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/BNL/standard/run_eventloop_noarrays.sh)

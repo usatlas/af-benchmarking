@@ -65,7 +65,9 @@ nav:
   - Workflows:
       - Overview: workflows/index.md
       - Flowchart: workflows/flowchart.md
-      - Benchmarks: workflows/benchmarks.md
+      - Benchmarks:
+          - UChicago: uchicago/benchmarks.md
+          - BNL: bnl/benchmarks.md
       - Parsing & Upload: workflows/parsing.md
       - CI Validation: workflows/ci.md
       - Documentation: workflows/documentation.md

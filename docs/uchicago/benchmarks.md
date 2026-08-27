@@ -40,9 +40,9 @@ Each job follows this pattern:
 2. **Setup Globus** (if required) - Configure VOMS certificates for data access
 3. **Execute** - Run the benchmark script
 4. **Parse** - Parse logs and generate JSON payload (via
-   [parse action](parsing.md))
+   [parse action](../workflows/parsing.md))
 5. **Upload to Kibana** - Send results to LogStash/Kibana (via
-   [upload action](parsing.md))
+   [upload action](../workflows/parsing.md))
 6. **Upload Logs** - Store log files as GitHub artifacts
 
 ### Example Job Structure

@@ -10,8 +10,8 @@ not run real benchmark jobs, and it does not validate uploading (see
 /// warning | A pull request also triggers real benchmark jobs
 
 Opening or updating a pull request against `main` does not only trigger this
-workflow — it also triggers [`uchicago.yml`](benchmarks.md), which runs all 11
-real benchmark jobs on the actual UChicago self-hosted runner
+workflow — it also triggers [`uchicago.yml`](../uchicago/benchmarks.md), which
+runs all 11 real benchmark jobs on the actual UChicago self-hosted runner
 (`arc-runner-set-uchicago`). That trigger is gated only by a fork/dependabot
 check, not by which files changed, so a documentation-only PR still runs real
 EVNT/TRUTH3/Rucio/etc jobs on live UC infrastructure unless it comes from a fork
