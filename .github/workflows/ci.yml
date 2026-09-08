@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: ./.github/actions/setup-globus
+      - uses: $/.github/actions/setup-globus
         with:
           voms-usercert: ${{ secrets.VOMS_USERCERT }}
           voms-userkey: ${{ secrets.VOMS_USERKEY }}
@@ -72,7 +72,7 @@ jobs:
           persist-credentials: false
 
       - name: parse ${{ matrix.log-type }} log
-        uses: ./.github/actions/parse
+        uses: $/.github/actions/parse
         with:
           job: ${{ matrix.log-type }}
           log-file: parsing/example-logs/${{ matrix.log-file }}
