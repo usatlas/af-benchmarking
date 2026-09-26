@@ -1,5 +1,12 @@
 #! /usr/bin/env bash
 
+# Resolved relative to this script rather than hardcoded per-site, so it
+# works no matter which site or account this repo is checked out under.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+AF_BENCH_DIR="${SCRIPT_DIR}/.."
+# shellcheck disable=SC1091
+source "${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh"
+
 # Gets the current time
 curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
@@ -88,19 +95,52 @@ case "$site" in
         job_dir="/usatlas/u/qlei/test/Rucio/"
         dir_mount="/atlasgpfs01/usatlas/data/"
         output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Rucio/${curr_time}/"
-        AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
-        source ${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh
         container_el9 "$job_dir" "$dir_mount" "$output_dir" "$download_ID"
         ;;
     slac)
         job_dir="$HOME/af_benchmarking/rucio/"
-        dir_mount="/sdf/data/atlas/u/selbor/benchmarks/"
+        dir_mount="/sdf/data/atlas/u/qlei/benchmarks/"
         output_dir="${job_dir}/logs/${curr_time}/"
         container_el9 "$job_dir" "$dir_mount" "$output_dir" "$download_ID"
+
+        # Unlike the other SLAC jobs, this one runs directly on iana (no
+        # sbatch/compute node involved) via container_el9's synchronous -r
+        # launch, so $(hostname) below already reflects where it ran --
+        # no hostname.txt indirection needed. Parse+upload only ever ran
+        # here for SLAC before via the now-retired external
+        # parsing_jobs/cron_parsing.sh; wire it in directly instead.
+        export PATH="$HOME/.pixi/bin:$PATH"
+        # shellcheck disable=SC1091
+        [ -r "$HOME/.secrets" ] && . "$HOME/.secrets"
+
+        pixi run --manifest-path "${AF_BENCH_DIR}/pixi.toml" -e kibana python -m parsing.scripts.ci_parse \
+          --job rucio \
+          --log-type rucio \
+          --log-file "${output_dir}/rucio.log" \
+          --cluster "SLAC-AF" \
+          --token="${KIBANA_TOKEN}" \
+          --kind="benchmark" \
+          --host="$(hostname)" \
+          --os="alma9" \
+          --mode="batch" \
+          --containerized="true" \
+          --output="${output_dir}/payload.json"
+
+        response=$(curl -X POST "${KIBANA_URI}" \
+          -H "Content-Type: application/json" \
+          -d @"${output_dir}/payload.json" \
+          -w "%{http_code}" \
+          -s -o "${output_dir}/response.txt")
+        echo "HTTP Response Code: ${response}"
+        cat "${output_dir}/response.txt" || true
+        if [[ ! "${response}" =~ ^2 ]]; then
+          echo "Upload failed with HTTP status: ${response}"
+          exit 1
+        fi
+        echo "Upload successful!"
         ;;
     uchicago)
         output_dir="${PWD}"
-        source ./parsing/utils/benchmark_utils.sh
         native_el9 "${PWD}" "${PWD}" "$download_ID"
         ;;
     nersc)
