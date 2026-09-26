@@ -113,6 +113,12 @@ case "$site" in
         # shellcheck disable=SC1091
         [ -r "$HOME/.secrets" ] && . "$HOME/.secrets"
 
+        # ci_parse imports the repo's own `parsing` package via `-m`, which
+        # resolves relative to CWD -- and container_el9 above already cd'd
+        # into job_dir, not the repo root. Without this, ci_parse fails with
+        # ModuleNotFoundError and payload.json is never written.
+        cd "${AF_BENCH_DIR}" || exit 1
+
         pixi run --manifest-path "${AF_BENCH_DIR}/pixi.toml" -e kibana python -m parsing.scripts.ci_parse \
           --job rucio \
           --log-type rucio \
@@ -125,6 +131,15 @@ case "$site" in
           --mode="batch" \
           --containerized="true" \
           --output="${output_dir}/payload.json"
+
+        # Without this, a failed/crashed ci_parse leaves no payload.json,
+        # and curl below would silently POST an empty body that still
+        # returns HTTP 200 -- a false "Upload successful!" with nothing
+        # actually in Kibana. `-s` here is "file exists and is non-empty".
+        if [ ! -s "${output_dir}/payload.json" ]; then
+          echo "ERROR: ci_parse did not produce a payload -- see output above"
+          exit 1
+        fi
 
         response=$(curl -X POST "${KIBANA_URI}" \
           -H "Content-Type: application/json" \

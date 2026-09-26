@@ -57,6 +57,14 @@ pixi run --manifest-path "${AF_BENCH_DIR}/pixi.toml" -e kibana python -m parsing
   --containerized="${pixi_containerized}" \
   --output="${latest_dir}/payload.json"
 
+# Without this, a failed/crashed ci_parse leaves no payload.json, and curl
+# below would silently POST an empty body that still returns HTTP 200 -- a
+# false "Upload successful!" with nothing actually in Kibana.
+if [ ! -s "${latest_dir}/payload.json" ]; then
+  echo "ERROR: ci_parse did not produce a payload -- see output above"
+  exit 1
+fi
+
 response=$(curl -X POST "${KIBANA_URI}" \
   -H "Content-Type: application/json" \
   -d @"${latest_dir}/payload.json" \
