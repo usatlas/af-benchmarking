@@ -1,22 +1,39 @@
 #!/bin/bash
 
+# shellcheck disable=SC1091
+source /sdf/home/q/qlei/AF-Benchmarking/parsing/utils/benchmark_utils.sh
+
 # Defines the current time
-
 curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-
-username=$USER
-# shellcheck disable=SC2034
-first_letter=${username:0:1}
+start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Appends time before Reco_tf.py to log file
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
-
+setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 asetup AthDerivation,21.2.178.0,here
-Reco_tf.py --inputEVNTFile /sdf/data/atlas/u/selbor/TRUTH3Files/centos/EVNT.root --outputDAODFile=TRUTH3.root --reductionConf TRUTH3 2>&1 | tee pipe_file.log
+setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+
+# /usr/bin/time -v may not exist in every ALRB container -- guard rather
+# than assume, so append_benchmark is never asked to extract metrics from
+# output that was never produced.
+if [ -x /usr/bin/time ]; then
+  TIME_CMD=(/usr/bin/time -v)
+  bench_mode=time_v
+else
+  TIME_CMD=()
+  bench_mode=none
+fi
+
+"${TIME_CMD[@]}" Reco_tf.py --inputEVNTFile /sdf/data/atlas/u/qlei/TRUTH3Files/centos/EVNT.root --outputDAODFile=TRUTH3.root --reductionConf TRUTH3 2>&1 | tee pipe_file.log
+
+# time -v's report lands in the tee'd pipe, not in Reco_tf.py's own
+# log.EVNTtoDAOD -- fold it in so append_benchmark can read it.
+cat pipe_file.log >> log.EVNTtoDAOD
 
 # Appends time after Reco_tf.py to a log file
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
+end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Defines the output directory where the log file will be stored
 output_dir="/sdf/data/atlas/u/$USER/benchmarks/${curr_time}/TRUTH3_centos7_container"
@@ -26,6 +43,14 @@ mkdir -p "${output_dir}"
 hostname >> split.log
 # Appends the size of the output DAOD file to the end of the log file
 du DAOD_TRUTH3.TRUTH3.root >> split.log
+
+# The parse step runs on iana, a different host than the compute node
+# that ran this job -- $(hostname) at parse time would report iana, not
+# the ampere node. Record the real one here instead.
+hostname > "${output_dir}/hostname.txt"
+
+append_benchmark log.EVNTtoDAOD "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" "${bench_mode}"
+
 # Moves the log file to the output directory defined above
 mv log.EVNTtoDAOD "${output_dir}"
 mv split.log "${output_dir}"

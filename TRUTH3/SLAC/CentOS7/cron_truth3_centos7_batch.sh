@@ -1,8 +1,9 @@
 #!/bin/bash
-ssh iana "
 
-cd /sdf/home/s/selbor/TRUTH3Job/container_centos || exit
-
-rm -r ./*
-
-sbatch /sdf/home/s/selbor/AF-Benchmarking/TRUTH3/SLAC/CentOS7/truth3_centos7_sub.sh"
+# Submission, waiting for completion, parsing, and uploading all happen in
+# submit_and_upload.sh on iana (the Slurm submit host) -- see that file for
+# why this is one script rather than the multi-line ssh block this used to
+# be. Keepalives are needed because this ssh session now blocks for the
+# job's full walltime.
+ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=20 iana \
+  /sdf/home/q/qlei/AF-Benchmarking/TRUTH3/SLAC/CentOS7/submit_and_upload.sh
