@@ -19,6 +19,13 @@ else
   bench_mode=none
 fi
 
+# The default ALRB el9 container has no science Python stack -- awkward,
+# coffea, dask, etc. are installed once via `installPip` into a persistent,
+# relocatable location, and this setup.sh (which installPip generates) is
+# what puts them on PYTHONPATH.
+# shellcheck disable=SC1091
+source /sdf/data/atlas/u/qlei/coffea_pip/setup.sh
+
 # No cat needed here: the log IS the tee'd pipe output, so time -v's
 # report is already in it.
 "${TIME_CMD[@]}" python3 example.py 2>&1 | tee coffea_hist.log
@@ -40,8 +47,9 @@ mkdir -p "${log_file_dir}"
 # the ampere node. Record the real one here instead.
 hostname > "${log_file_dir}/hostname.txt"
 
-# No asetup here (the ALRB container already has coffea installed), so
-# there's no separate setup phase to time -- setupTime comes out as 0.
+# No separate setup phase to time here (the installPip source above is
+# fast -- it's just PYTHONPATH/PATH exports, not a real install step on
+# every run) -- setupTime comes out as 0.
 append_benchmark coffea_hist.log "${start_time}" "${end_time}" "${curr_time}" "${curr_time}" "${bench_mode}"
 
 mv coffea_hist.log "${log_file_dir}"
