@@ -13,7 +13,7 @@ readonly log_base="/sdf/data/atlas/u/qlei/benchmarks"
 readonly log_output="event_loop_arrays.log"
 readonly job_output_name="eventloop_arrays"
 
-readonly pixi_job="eventloop"
+readonly pixi_job="eventloop-columnar"
 readonly pixi_log_type="eventloop"
 readonly pixi_os="alma9"
 readonly pixi_mode="batch"
