@@ -24,6 +24,17 @@ export PATH="$HOME/.pixi/bin:$PATH"
 # shellcheck disable=SC1091
 [ -r "$HOME/.secrets" ] && . "$HOME/.secrets"
 
+# Prevent a second cron-triggered run from racing this one: sbatch --wait
+# blocks for the job's full walltime, so if a run is still active past the
+# next 6-hour cron firing, an unguarded rm -rf below would delete the
+# still-running job's working directory out from under it.
+readonly lock_file="${job_dir}.lock"
+exec 200>"${lock_file}"
+if ! flock -n 200; then
+  echo "ERROR: another instance of this job is already running (lock: ${lock_file}) -- exiting without touching ${job_dir}"
+  exit 1
+fi
+
 # Clean the job's scratch directory before submitting, same as the old
 # fire-and-forget wrapper did.
 cd "${job_dir}" || { echo "ERROR: could not cd into ${job_dir}"; exit 1; }
