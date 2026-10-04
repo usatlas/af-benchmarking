@@ -38,6 +38,10 @@ mkdir -p "${CFS_DIR}/benchmarks" \
   "${SCRATCH}/ntuple/eventloop_arrays" \
   "${SCRATCH}/ntuple/eventloop_noarrays" || exit 1
 
+# Wrapper logs include ci_parse's payload printout, which carries the Kibana
+# token; CFS is group-readable by m2616, so keep this directory private.
+chmod 700 "${CFS_DIR}/wrapper_logs" || exit 1
+
 echo "== EVNT job options"
 # The EVNT jobs copy ~/evnt_<os>/ and read evnt_<os>/100xxx/100001.
 for name in evnt_el9 evnt_centos7; do

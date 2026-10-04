@@ -71,10 +71,22 @@ class TestSetupQleiDirectoriesAndInputs:
         ]:
             assert (tmp / path).is_dir(), path
 
+    def test_wrapper_logs_are_private(self, sandbox):
+        result = run_setup(sandbox)
+        assert result.returncode == 0, result.stderr
+        mode = (sandbox["tmp"] / "cfs" / "wrapper_logs").stat().st_mode & 0o777
+        assert mode == 0o700
+
     def test_stages_evnt_job_options(self, sandbox):
         run_setup(sandbox)
         for name in ["evnt_el9", "evnt_centos7"]:
-            jo = sandbox["home"] / name / "100xxx" / "100001" / "SUSY_Radiative_Decays_JO.py"
+            jo = (
+                sandbox["home"]
+                / name
+                / "100xxx"
+                / "100001"
+                / "SUSY_Radiative_Decays_JO.py"
+            )
             assert jo.is_file(), name
 
     def test_stages_coffea_and_fastframes_inputs(self, sandbox):
