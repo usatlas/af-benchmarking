@@ -13,6 +13,9 @@
 
 set -uo pipefail
 
+# The payload carries the Kibana token and CFS output dirs are group-readable.
+umask 077
+
 AF_BENCH_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 cluster="" job="" log_type="" log_file="" os="" mode="" containerized="" output_dir=""

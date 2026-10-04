@@ -133,6 +133,14 @@ class TestParseUploadSuccess:
         assert f"@{sandbox['output_dir'] / 'payload.json'}" in args
         assert "Upload successful!" in result.stdout
 
+    def test_payload_is_private_to_the_owner(self, sandbox):
+        # The payload carries the Kibana token and CFS output dirs are
+        # group-readable.
+        result = run_script(sandbox)
+        assert result.returncode == 0
+        payload = sandbox["output_dir"] / "payload.json"
+        assert payload.stat().st_mode & 0o777 == 0o600
+
     def test_host_falls_back_to_hostname(self, sandbox):
         (sandbox["output_dir"] / "hostname.txt").unlink()
         result = run_script(sandbox)
