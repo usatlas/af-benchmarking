@@ -71,3 +71,10 @@ class TestNerscJobsAreSubmittable:
         text = (REPO / sub_file).read_text()
         assert "#SBATCH -q regular" in text
         assert f'"$HOME"/AF-Benchmarking/{payload}' in text
+
+
+class TestRucioContainerFunction:
+    def test_container_el9_records_hostname(self):
+        text = (REPO / "Rucio" / "rucio_script.sh").read_text()
+        body = text.split("container_el9 (){", 1)[1].split("\n}\n", 1)[0]
+        assert 'hostname > "${3}/hostname.txt"' in body

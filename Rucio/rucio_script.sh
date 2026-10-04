@@ -27,6 +27,8 @@ container_el9 (){
     du \"${4#*:}\"/ >> rucio.log &&\
     mv rucio.log \"${3}\""
   end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+  # The upload may run later on another host; record where the download ran.
+  hostname > "${3}/hostname.txt"
   append_benchmark "${3}/rucio.log" "${start_time}" "${end_time}" "${start_time}" "${start_time}" "rucio"
 }
 
