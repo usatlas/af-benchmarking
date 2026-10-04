@@ -19,7 +19,13 @@ JOB_SCRIPTS = [
     "EVNT/NERSC/EL9/run_evnt_el9_batch.sh",
     "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh",
     "NTuple_Hist/fastframes/NERSC/run_fastframes.sh",
+    "NTuple_Hist/coffea/NERSC/run_example.sh",
 ]
+
+# Every NERSC job is submitted through sbatch; each payload needs a sub file.
+SUB_FILES = {
+    "NTuple_Hist/coffea/NERSC/coffea_el9_sub.sh": "NTuple_Hist/coffea/NERSC/run_example.sh",
+}
 
 
 @pytest.fixture(params=JOB_SCRIPTS)
@@ -50,3 +56,11 @@ class TestNerscJobScriptBenchmarkConventions:
         assert append and first_mv
         assert append.start() < first_mv.start()
         assert '"${bench_mode:-none}"' in script_text[append.start() :]
+
+
+class TestNerscJobsAreSubmittable:
+    @pytest.mark.parametrize("sub_file,payload", SUB_FILES.items())
+    def test_sub_file_runs_payload(self, sub_file, payload):
+        text = (REPO / sub_file).read_text()
+        assert "#SBATCH -q regular" in text
+        assert f'"$HOME"/AF-Benchmarking/{payload}' in text
