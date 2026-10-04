@@ -27,6 +27,7 @@ NERSC_DIRS = [
 NERSC_EXTRA_FILES = [
     "Rucio/cron_rucio_nersc.sh",
     "Rucio/rucio_nersc_sub.sh",
+    "NERSC/setup_qlei.sh",
 ]
 TEXT_SUFFIXES = {".sh", ".py", ".yml", ".json", ".txt"}
 # The photon eventloop job is a legacy predecessor of the columnar/standard
