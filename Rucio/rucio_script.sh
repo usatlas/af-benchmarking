@@ -89,6 +89,7 @@ case "$site" in
         dir_mount="/atlasgpfs01/usatlas/data/"
         output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Rucio/${curr_time}/"
         AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
+        # shellcheck disable=SC1091
         source ${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh
         container_el9 "$job_dir" "$dir_mount" "$output_dir" "$download_ID"
         ;;
@@ -100,6 +101,7 @@ case "$site" in
         ;;
     uchicago)
         output_dir="${PWD}"
+        # shellcheck disable=SC1091
         source ./parsing/utils/benchmark_utils.sh
         native_el9 "${PWD}" "${PWD}" "$download_ID"
         ;;
