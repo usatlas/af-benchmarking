@@ -18,76 +18,77 @@
 # 0 5 * * * /my/script/to/run
 #
 # min hour day-of-month month day-of-week command
+#
+# Every entry runs parsing/utils/submit_and_upload.sh on a login node
+# (workflow QOS): it sbatch's the job's sub file, waits for it, then parses
+# and uploads the log. Job resources live in each *_sub.sh.
 
-0 */6 * * * $HOME/AF-Benchmarking/Rucio/rucio_script.sh
+# Interactive TRUTH3 variants are out of scope for the qlei migration.
+# 0 */6 * * * $HOME/AF-Benchmarking/TRUTH3/NERSC/CentOS7_i/run_truth3_centos7_interactive.sh
+# 0 */6 * * * $HOME/AF-Benchmarking/TRUTH3/NERSC/EL9_i/run_truth3_el9_interactive.sh
 
-0 */6 * * * $HOME/AF-Benchmarking/TRUTH3/NERSC/run_truth3_centos7_interactive.sh
+# Legacy photon eventloop job, superseded by the columnar/standard jobs below.
+# 0 */6 * * * $HOME/AF-Benchmarking/NTuple_Hist/event_loop/NERSC/run_photon_eventloop.sh
 
-0 */6 * * * $HOME/AF-Benchmarking/TRUTH3/NERSC/run_truth3_el9_interactive.sh
+#SCRON -q workflow
+#SCRON -J wrap_truth3_el9
+#SCRON -t 12:00:00
+#SCRON --dependency=singleton
+#SCRON -o /global/cfs/cdirs/m2616/qlei/wrapper_logs/%x-%j.out
+0 */6 * * * $HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh --sub-file $HOME/AF-Benchmarking/TRUTH3/NERSC/EL9/truth3_el9_sub.sh --output-glob "/global/cfs/cdirs/m2616/qlei/benchmarks/*/TRUTH3_el9_container" --log-name log.Derivation --cluster NERSC-AF --job truth3 --log-type truth3 --os alma9 --mode batch --containerized true
 
-0 */6 * * * $HOME/AF-Benchmarking/NTuple_Hist/coffea/NERSC/run_example.sh
+#SCRON -q workflow
+#SCRON -J wrap_truth3_centos7
+#SCRON -t 12:00:00
+#SCRON --dependency=singleton
+#SCRON -o /global/cfs/cdirs/m2616/qlei/wrapper_logs/%x-%j.out
+0 */6 * * * $HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh --sub-file $HOME/AF-Benchmarking/TRUTH3/NERSC/CentOS7/truth3_centos7_sub.sh --output-glob "/global/cfs/cdirs/m2616/qlei/benchmarks/*/TRUTH3_centos" --log-name log.EVNTtoDAOD --cluster NERSC-AF --job truth3 --log-type truth3 --os centos7 --mode batch --containerized true
 
-0 */6 * * * $HOME/AF-Benchmarking/event_loop/NERSC/run_photon_eventloop.sh
+#SCRON -q workflow
+#SCRON -J wrap_evnt_el9
+#SCRON -t 12:00:00
+#SCRON --dependency=singleton
+#SCRON -o /global/cfs/cdirs/m2616/qlei/wrapper_logs/%x-%j.out
+0 */6 * * * $HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh --sub-file $HOME/AF-Benchmarking/EVNT/NERSC/EL9/evnt_el9_sub.sh --output-glob "/global/cfs/cdirs/m2616/qlei/benchmarks/*/EVNT_el9" --log-name log.generate --cluster NERSC-AF --job evnt --log-type evnt --os alma9 --mode batch --containerized true
 
-59 */6 * * * $HOME/AF-Benchmarking/parsing/NERSC/cron_parsing.sh
+#SCRON -q workflow
+#SCRON -J wrap_evnt_centos7
+#SCRON -t 12:00:00
+#SCRON --dependency=singleton
+#SCRON -o /global/cfs/cdirs/m2616/qlei/wrapper_logs/%x-%j.out
+0 */6 * * * $HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh --sub-file $HOME/AF-Benchmarking/EVNT/NERSC/CentOS7/evnt_centos7_sub.sh --output-glob "/global/cfs/cdirs/m2616/qlei/benchmarks/*/EVNT_centos7" --log-name log.generate --cluster NERSC-AF --job evnt --log-type evnt --os centos7 --mode batch --containerized true
 
-#SCRON -N 1
-#SCRON -C cpu
-#SCRON -q regular
-#SCRON -J truth3_el9
-#SCRON --cpus-per-task=1
-#SCRON --constraint=cpu
-#SCRON --mail-type=ALL
-#SCRON -t 1:0:0
-#SCRON --mem=4GB
+#SCRON -q workflow
+#SCRON -J wrap_fastframes
+#SCRON -t 12:00:00
+#SCRON --dependency=singleton
+#SCRON -o /global/cfs/cdirs/m2616/qlei/wrapper_logs/%x-%j.out
+0 */6 * * * $HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh --sub-file $HOME/AF-Benchmarking/NTuple_Hist/fastframes/NERSC/fastframes_el9_sub.sh --output-glob "/global/cfs/cdirs/m2616/qlei/benchmarks/*/FastFrames_NTuple" --log-name fastframes.log --cluster NERSC-AF --job fastframes --log-type fastframes --os alma9 --mode batch --containerized true
 
-0 */6 * * * $HOME/AF-Benchmarking/TRUTH3/NERSC/run_truth3_el9_batch.sh
+#SCRON -q workflow
+#SCRON -J wrap_coffea
+#SCRON -t 12:00:00
+#SCRON --dependency=singleton
+#SCRON -o /global/cfs/cdirs/m2616/qlei/wrapper_logs/%x-%j.out
+0 */6 * * * $HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh --sub-file $HOME/AF-Benchmarking/NTuple_Hist/coffea/NERSC/coffea_el9_sub.sh --output-glob "/global/cfs/cdirs/m2616/qlei/benchmarks/*/Coffea_Hist" --log-name coffea_hist.log --cluster NERSC-AF --job coffea --log-type coffea --os alma9 --mode batch --containerized true
 
-#SCRON -N 1
-#SCRON -C cpu
-#SCRON -q regular
-#SCRON -J truth3_centos7
-#SCRON --cpus-per-task=1
-#SCRON --constraint=cpu
-#SCRON --mail-type=ALL
-#SCRON -t 1:0:0
-#SCRON --mem=4GB
+#SCRON -q workflow
+#SCRON -J wrap_eventloop_columnar
+#SCRON -t 12:00:00
+#SCRON --dependency=singleton
+#SCRON -o /global/cfs/cdirs/m2616/qlei/wrapper_logs/%x-%j.out
+0 */6 * * * $HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh --sub-file $HOME/AF-Benchmarking/NTuple_Hist/event_loop/NERSC/columnar/eventloop_arrays_sub.sh --output-glob "/global/cfs/cdirs/m2616/qlei/benchmarks/*/eventloop_arrays" --log-name eventloop_arrays.log --cluster NERSC-AF --job eventloop-columnar --log-type eventloop --os alma9 --mode batch --containerized true
 
-0 */6 * * * $HOME/AF-Benchmarking/TRUTH3/NERSC/run_truth3_centos7_batch.sh
+#SCRON -q workflow
+#SCRON -J wrap_eventloop_standard
+#SCRON -t 12:00:00
+#SCRON --dependency=singleton
+#SCRON -o /global/cfs/cdirs/m2616/qlei/wrapper_logs/%x-%j.out
+0 */6 * * * $HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh --sub-file $HOME/AF-Benchmarking/NTuple_Hist/event_loop/NERSC/standard/eventloop_noarrays_sub.sh --output-glob "/global/cfs/cdirs/m2616/qlei/benchmarks/*/eventloop_noarrays" --log-name eventloop_noarrays.log --cluster NERSC-AF --job eventloop-standard --log-type eventloop --os alma9 --mode batch --containerized true
 
-#SCRON -N 1
-#SCRON -C cpu
-#SCRON -q regular
-#SCRON -J evnt_el9
-#SCRON --cpus-per-task=1
-#SCRON --constraint=cpu
-#SCRON --mail-type=ALL
-#SCRON -t 2:0:0
-#SCRON --mem=4GB
-
-0 */6 * * * $HOME/AF-Benchmarking/EVNT/NERSC/run_evnt_el9_batch.sh
-
-#SCRON -N 1
-#SCRON -C cpu
-#SCRON -q regular
-#SCRON -J evnt_centos7
-#SCRON --cpus-per-task=1
-#SCRON --constraint=cpu
-#SCRON --mail-type=ALL
-#SCRON -t 2:0:0
-#SCRON --mem=4GB
-
-0 */6 * * * $HOME/AF-Benchmarking/EVNT/NERSC/run_evnt_centos7_batch.sh
-
-
-#SCRON -N 1
-#SCRON -C cpu
-#SCRON -q regular
-#SCRON -J fastframes
-#SCRON --cpus-per-task=1
-#SCRON --constraint=cpu
-#SCRON --mail-type=ALL
-#SCRON -t 1:0:0
-#SCRON --mem=4GB
-
-0 */6 * * * $HOME/AF-Benchmarking/NTuple_Hist/fastframes/NERSC/run_fastframes.sh
+#SCRON -q workflow
+#SCRON -J wrap_rucio
+#SCRON -t 12:00:00
+#SCRON --dependency=singleton
+#SCRON -o /global/cfs/cdirs/m2616/qlei/wrapper_logs/%x-%j.out
+0 */6 * * * $HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh --sub-file $HOME/AF-Benchmarking/Rucio/rucio_nersc_sub.sh --output-glob "$HOME/af_benchmarking/rucio/logs/*" --log-name rucio.log --cluster NERSC-AF --job rucio --log-type rucio --os alma9 --mode batch --containerized true

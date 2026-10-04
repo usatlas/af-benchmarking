@@ -7,6 +7,7 @@ references must exist (several pointed at a pre-restructure layout).
 
 import os
 import re
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -117,3 +118,51 @@ class TestNerscRepoReferences:
             ["bash", "-n", str(path)], capture_output=True, text=True, check=False
         )
         assert result.returncode == 0, result.stderr
+
+
+CRONTAB = REPO / "CrontabFiles" / "crontab_nersc.txt"
+
+
+def crontab_entries():
+    """(scron_options, command_args) for each active entry."""
+    entries, options = [], []
+    for line in CRONTAB.read_text().splitlines():
+        if line.startswith("#SCRON"):
+            options.append(line)
+        elif line.strip() and not line.startswith("#"):
+            fields = line.split(None, 5)
+            entries.append((options, shlex.split(fields[5])))
+            options = []
+    return entries
+
+
+class TestNerscCrontab:
+    def test_has_nine_jobs(self):
+        assert len(crontab_entries()) == 9
+
+    @pytest.mark.parametrize("entry", crontab_entries(), ids=lambda e: e[1][2])
+    def test_entry_runs_wrapper_on_login_node(self, entry):
+        options, args = entry
+        assert args[0] == "$HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh"
+        assert "#SCRON -q workflow" in options
+        assert "#SCRON --dependency=singleton" in options
+        assert any(option.startswith("#SCRON -J ") for option in options)
+
+    @pytest.mark.parametrize("entry", crontab_entries(), ids=lambda e: e[1][2])
+    def test_sub_file_exists(self, entry):
+        args = entry[1]
+        sub_file = args[args.index("--sub-file") + 1]
+        assert sub_file.startswith("$HOME/AF-Benchmarking/")
+        assert (REPO / sub_file.removeprefix("$HOME/AF-Benchmarking/")).is_file()
+
+    @pytest.mark.parametrize("entry", crontab_entries(), ids=lambda e: e[1][2])
+    def test_cluster_is_nersc(self, entry):
+        args = entry[1]
+        assert args[args.index("--cluster") + 1] == "NERSC-AF"
+
+    def test_wrapper_scripts_are_executable(self):
+        for name in ["submit_and_upload.sh", "parse_upload.sh"]:
+            assert os.access(REPO / "parsing" / "utils" / name, os.X_OK), name
+
+    def test_no_separate_parsing_sweep(self):
+        assert "cron_parsing.sh" not in CRONTAB.read_text()
