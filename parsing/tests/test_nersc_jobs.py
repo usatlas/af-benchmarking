@@ -20,11 +20,15 @@ JOB_SCRIPTS = [
     "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh",
     "NTuple_Hist/fastframes/NERSC/run_fastframes.sh",
     "NTuple_Hist/coffea/NERSC/run_example.sh",
+    "NTuple_Hist/event_loop/NERSC/columnar/run_eventloop_arrays.sh",
+    "NTuple_Hist/event_loop/NERSC/standard/run_eventloop_noarrays.sh",
 ]
 
 # Every NERSC job is submitted through sbatch; each payload needs a sub file.
 SUB_FILES = {
     "NTuple_Hist/coffea/NERSC/coffea_el9_sub.sh": "NTuple_Hist/coffea/NERSC/run_example.sh",
+    "NTuple_Hist/event_loop/NERSC/columnar/eventloop_arrays_sub.sh": "NTuple_Hist/event_loop/NERSC/columnar/run_eventloop_arrays.sh",
+    "NTuple_Hist/event_loop/NERSC/standard/eventloop_noarrays_sub.sh": "NTuple_Hist/event_loop/NERSC/standard/run_eventloop_noarrays.sh",
 }
 
 
@@ -56,6 +60,9 @@ class TestNerscJobScriptBenchmarkConventions:
         assert append and first_mv
         assert append.start() < first_mv.start()
         assert '"${bench_mode:-none}"' in script_text[append.start() :]
+
+    def test_payload_stderr_reaches_log(self, script_text):
+        assert "2>1|" not in script_text
 
 
 class TestNerscJobsAreSubmittable:
