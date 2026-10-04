@@ -4,7 +4,7 @@ curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 # Run this in a container
 
-cd /pscratch/sd/s/selbor/ntuple/coffea || exit
+cd "$SCRATCH"/ntuple/coffea || exit
 
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
@@ -24,7 +24,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /global:/glo
   du coffea.root
 } >> split.log
 
-log_file_dir="/global/cfs/cdirs/m2616/selbor/benchmarks/${curr_time}/Coffea_Hist/"
+log_file_dir="/global/cfs/cdirs/m2616/qlei/benchmarks/${curr_time}/Coffea_Hist/"
 
 mkdir -p "${log_file_dir}"
 

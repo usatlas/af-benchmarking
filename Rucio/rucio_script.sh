@@ -105,7 +105,7 @@ case "$site" in
         ;;
     nersc)
         job_dir="$HOME/af_benchmarking/rucio/"
-        dir_mount="/global/cfs/cdirs/m2616/selbor/benchmarks/"
+        dir_mount="/global/cfs/cdirs/m2616/qlei/benchmarks/"
         output_dir="${job_dir}/logs/${curr_time}/"
         container_el9 "${job_dir}" "${dir_mount}" "${output_dir}" "${download_ID}"
         ;;

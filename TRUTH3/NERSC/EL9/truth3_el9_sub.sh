@@ -19,4 +19,4 @@ export OMP_PLACES=threads
 export OMP_PROC_BIND=spread
 
 #run the application:
-srun -n 1 -c 1 --cpu_bind=cores  "$HOME"/AF-Benchmarking/TRUTH3/NERSC/run_truth3_el9_batch.sh
+srun -n 1 -c 1 --cpu_bind=cores  "$HOME"/AF-Benchmarking/TRUTH3/NERSC/EL9/run_truth3_el9_batch.sh

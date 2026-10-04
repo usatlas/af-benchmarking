@@ -18,4 +18,4 @@ export OMP_PLACES=threads
 export OMP_PROC_BIND=spread
 
 #run the application:
-srun -n 1 -c 1 --cpu_bind=cores  "$HOME"/AF-Benchmarking/EVNT/NERSC/run_evnt_centos7_batch.sh
+srun -n 1 -c 1 --cpu_bind=cores  "$HOME"/AF-Benchmarking/EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh

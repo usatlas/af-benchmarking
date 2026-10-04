@@ -21,7 +21,7 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 ## -m : mounts a specific directory
 ## -r : precedes the commands we want to run within the container
 # shellcheck disable=SC1091
-source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c "${OScontainer}" -m /global/cfs/cdirs/m2616/selbor -r "asetup AthDerivation,21.2.178.0,here && \
+source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c "${OScontainer}" -m /global/cfs/cdirs/m2616/qlei -r "asetup AthDerivation,21.2.178.0,here && \
   Reco_tf.py --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --reductionConf TRUTH3 2>&1 | tee pipe_file.log"
 
 # Appends time after Reco_tf.py to a log file
@@ -30,7 +30,7 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 rm EVNT.root
 
 # Defining the output directory
-output_dir="/global/cfs/cdirs/m2616/selbor/benchmarks/${curr_time}/TRUTH3_centos/"
+output_dir="/global/cfs/cdirs/m2616/qlei/benchmarks/${curr_time}/TRUTH3_centos/"
 
 # Creates the output directory
 mkdir -p "${output_dir}"
