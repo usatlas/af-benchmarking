@@ -111,6 +111,15 @@ case "$site" in
         output_dir="${job_dir}/logs/${curr_time}/"
         container_el9 "${job_dir}" "${dir_mount}" "${output_dir}" "${download_ID}"
         ;;
+    odf)
+        job_dir="$HOME/af_benchmarking/rucio/"
+        dir_mount="$HOME"
+        output_dir="${job_dir}/logs/${curr_time}/"
+        # Sourced before container_el9 changes into job_dir, so run from the repo root
+        # shellcheck disable=SC1091
+        source ./parsing/utils/benchmark_utils.sh
+        container_el9 "${job_dir}" "${dir_mount}" "${output_dir}" "${download_ID}"
+        ;;
     *)
         echo "Unknown site: $site"
         exit 1
