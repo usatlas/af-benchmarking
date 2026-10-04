@@ -49,7 +49,7 @@ single, simple integration point for GitHub Actions workflows.
 | `job`           | Job name                                  | Yes      | `rucio`, `evnt`, `truth3`, `coffea`, `eventloop-columnar`, `eventloop-standard`, `fastframes`                                                          |
 | `log-file`      | Path to log file                          | Yes      | `rucio.log`, `log.generate`, `log.Derivation`, `log.EVNTtoDAOD`, `coffea_hist.log`, `eventloop_arrays.log`, `eventloop_noarrays.log`, `fastframes.log` |
 | `log-type`      | Type of log parser to use                 | Yes      | `rucio`, `evnt`, `truth3`, `coffea`, `eventloop`, `fastframes`                                                                                         |
-| `cluster`       | Cluster name                              | Yes      | `UC-AF`, `SLAC-AF`, `BNL-AF`                                                                                                                           |
+| `cluster`       | Cluster name                              | Yes      | `UC-AF`, `SLAC-AF`, `BNL-AF`, `NERSC-AF`                                                                                                               |
 | `kibana-token`  | Token for benchmark ID                    | Yes      | From secrets                                                                                                                                           |
 | `kibana-kind`   | Kind for benchmark ID                     | Yes      | `"benchmark"` (literal value)                                                                                                                          |
 | `host`          | Hostname to identify the machine          | Yes      | `${NODE_NAME}`                                                                                                                                         |
@@ -142,31 +142,31 @@ Required structure:
 
 ### Field Descriptions
 
-| Field           | Type    | Description                                       | Source                                                                                                    |
-| --------------- | ------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `job`           | String  | Job name (e.g., `rucio`, `evnt`, `truth3`)        | Passed from workflow as a literal value                                                                   |
-| `cluster`       | String  | AF cluster name (UC-AF, SLAC-AF, BNL-AF)          | Passed from workflow                                                                                      |
-| `submitTime`    | Integer | UTC timestamp (ms since epoch)                    | Parsed from log                                                                                           |
-| `queueTime`     | Integer | Queue time (seconds)                              | Parsed from log                                                                                           |
-| `runTime`       | Integer | Execution time (seconds)                          | Parsed from log                                                                                           |
-| `payloadSize`   | Integer | Output file size (bytes)                          | Calculated from `payload-file` input using `Path().stat().st_size` (-1 if not provided, 0 for empty file) |
-| `status`        | Integer | Exit code (0=success, non-zero=failure)           | Parsed from log                                                                                           |
-| `host`          | String  | Hostname where job executed (idn-hostname format) | Passed from workflow via the `NODE_NAME` environment variable                                             |
-| `setupTime`     | Integer | Environment setup time (seconds), optional        | Parsed from log, when present                                                                             |
-| `cpuPercent`    | Number  | CPU usage percentage, optional                    | Parsed from `/usr/bin/time -v` output, when present                                                       |
-| `maxRssKb`      | Integer | Maximum resident set size (KB), optional          | Parsed from `/usr/bin/time -v` output, when present                                                       |
-| `os`            | String  | Operating system (`centos7`, `alma9`)             | Passed from workflow as a literal value                                                                   |
-| `mode`          | String  | Job execution mode (`batch`, `interactive`)       | Passed from workflow as a literal value                                                                   |
-| `containerized` | Boolean | Whether the job ran inside a container            | Passed from workflow as a literal value                                                                   |
-| `token`         | String  | Benchmark identifier AND LogStash routing key     | Passed from workflow (secrets, with a hardcoded fallback)                                                 |
-| `kind`          | String  | Benchmark type AND LogStash routing kind          | Passed from workflow as a literal value                                                                   |
+| Field           | Type    | Description                                        | Source                                                                                                    |
+| --------------- | ------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `job`           | String  | Job name (e.g., `rucio`, `evnt`, `truth3`)         | Passed from workflow as a literal value                                                                   |
+| `cluster`       | String  | AF cluster name (UC-AF, SLAC-AF, BNL-AF, NERSC-AF) | Passed from workflow                                                                                      |
+| `submitTime`    | Integer | UTC timestamp (ms since epoch)                     | Parsed from log                                                                                           |
+| `queueTime`     | Integer | Queue time (seconds)                               | Parsed from log                                                                                           |
+| `runTime`       | Integer | Execution time (seconds)                           | Parsed from log                                                                                           |
+| `payloadSize`   | Integer | Output file size (bytes)                           | Calculated from `payload-file` input using `Path().stat().st_size` (-1 if not provided, 0 for empty file) |
+| `status`        | Integer | Exit code (0=success, non-zero=failure)            | Parsed from log                                                                                           |
+| `host`          | String  | Hostname where job executed (idn-hostname format)  | Passed from workflow via the `NODE_NAME` environment variable                                             |
+| `setupTime`     | Integer | Environment setup time (seconds), optional         | Parsed from log, when present                                                                             |
+| `cpuPercent`    | Number  | CPU usage percentage, optional                     | Parsed from `/usr/bin/time -v` output, when present                                                       |
+| `maxRssKb`      | Integer | Maximum resident set size (KB), optional           | Parsed from `/usr/bin/time -v` output, when present                                                       |
+| `os`            | String  | Operating system (`centos7`, `alma9`)              | Passed from workflow as a literal value                                                                   |
+| `mode`          | String  | Job execution mode (`batch`, `interactive`)        | Passed from workflow as a literal value                                                                   |
+| `containerized` | Boolean | Whether the job ran inside a container             | Passed from workflow as a literal value                                                                   |
+| `token`         | String  | Benchmark identifier AND LogStash routing key      | Passed from workflow (secrets, with a hardcoded fallback)                                                 |
+| `kind`          | String  | Benchmark type AND LogStash routing kind           | Passed from workflow as a literal value                                                                   |
 
 ### Static vs Parsed Fields
 
 **Static fields** (from workflow configuration):
 
 - `job` - Job name, a literal value per job
-- `cluster` - Set per site (UC-AF, SLAC-AF, etc.)
+- `cluster` - Set per site (UC-AF, SLAC-AF, BNL-AF, NERSC-AF)
 - `token` - Benchmark identifier token AND LogStash routing key
 - `kind` - Benchmark kind/category AND LogStash routing kind
 - `host` - Hostname from the `NODE_NAME` environment variable

@@ -28,7 +28,7 @@
     "cluster": {
       "type": "string",
       "description": "Cluster name where the benchmark ran",
-      "enum": ["UC-AF", "SLAC-AF", "BNL-AF"]
+      "enum": ["UC-AF", "SLAC-AF", "BNL-AF", "NERSC-AF"]
     },
     "submitTime": {
       "type": "integer",

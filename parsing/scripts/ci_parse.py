@@ -57,7 +57,7 @@ def parse_log(
         log_file: Path to log file
         log_type: Type of parser to use (rucio, athena, coffea, eventloop, fastframes)
         job: Job name
-        cluster: Cluster name (UC-AF, SLAC-AF, BNL-AF)
+        cluster: Cluster name (UC-AF, SLAC-AF, BNL-AF, NERSC-AF)
         token: Kibana token for routing
         kind: Kibana kind for routing
         host: Hostname where job executed

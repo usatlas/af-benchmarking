@@ -1,6 +1,7 @@
 """Test suite for benchmark log parsers."""
 
 import pytest
+import jsonschema
 
 from parsing.base_parser import parse_atlas_log, parse_benchmark_block
 from parsing.scripts.ci_parse import parse_log, validate_payload
@@ -255,3 +256,36 @@ class TestParseAtlasLog:
         assert result["cpuPercent"] == 97.0
         assert result["maxRssKb"] == 512000
         validate_payload(result)
+
+
+class TestPayloadClusterValues:
+    @staticmethod
+    def _payload(tmp_path, cluster):
+        log_file = tmp_path / "log.Derivation"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "=================\n"
+        )
+        return parse_log(
+            log_file=log_file,
+            log_type="truth3",
+            job="truth3",
+            cluster=cluster,
+            token="test-token",
+            kind="test-kind",
+            host="nid001234",
+            payload_file="",
+            os="alma9",
+            mode="batch",
+            containerized=True,
+        )
+
+    @pytest.mark.parametrize("cluster", ["UC-AF", "SLAC-AF", "BNL-AF", "NERSC-AF"])
+    def test_known_cluster_validates(self, tmp_path, cluster):
+        validate_payload(self._payload(tmp_path, cluster))
+
+    def test_unknown_cluster_rejected(self, tmp_path):
+        with pytest.raises(jsonschema.ValidationError):
+            validate_payload(self._payload(tmp_path, "NOT-A-CLUSTER"))
