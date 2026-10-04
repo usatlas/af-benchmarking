@@ -15,6 +15,7 @@ DATASET = "user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root"
 
 ALRB_STUB = """#!/bin/bash
 printf '%s\\n' "$@" > "$FAKE_LOG/alrb_args"
+return "${FAKE_ALRB_STATUS:-0}"
 """
 
 
@@ -130,3 +131,12 @@ class TestSetupQleiDatasetDownload:
         assert "-m\n/global:/global\n" in args
         assert f"rucio download --dir {cfs} user.bhodkins:{DATASET}" in args
         assert "secret" not in args
+
+    def test_reports_failed_download(self, sandbox):
+        cfs = sandbox["tmp"] / "cfs"
+        (cfs / "benchmarks").mkdir(parents=True)
+        (cfs / "benchmarks" / "pass.txt").write_text("secret\n")
+        result = run_setup(sandbox, {"FAKE_ALRB_STATUS": "3"})
+        assert result.returncode == 3
+        assert "download failed (exit 3)" in result.stderr
+        assert "Manual steps" in result.stdout

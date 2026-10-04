@@ -2,8 +2,8 @@
 # One-time setup of the qlei account on Perlmutter for the NERSC benchmarks.
 # Creates the directories the jobs cd into and write to, stages the job
 # inputs that live in this repo, and downloads the ntuple dataset with Rucio.
-# Safe to re-run: existing copies are kept, and rucio download skips files
-# it already has.
+# Safe to re-run: existing EVNT job-option copies are kept, repo inputs are
+# refreshed, and rucio download skips files it already has.
 #
 # What it cannot do is printed at the end (credentials, FastFrames build).
 
@@ -59,14 +59,24 @@ for name in mc20e_example_config.yml mc20e_filelist.txt mc20e_sumweights.txt; do
 done
 
 echo "== ntuple dataset"
+download_status=0
 if [ ! -r "${PASS_FILE}" ]; then
   echo "SKIP: ${PASS_FILE} not found -- create it (see below) and re-run to download ${DATASET}"
 else
+  # Same ALRB config as the Rucio job (Rucio/rucio_script.sh).
+  export ALRB_localConfigDir="${HOME}/localConfig"
+  # ALRB is not nounset-safe, so keep set -u out of it.
+  set +u
   # shellcheck disable=SC1091
   source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /global:/global -r "export RUCIO_ACCOUNT=qlei && \
     lsetup rucio && \
     cat ${PASS_FILE} | voms-proxy-init -voms atlas && \
     rucio download --dir ${CFS_DIR} ${DATASET_SCOPE}:${DATASET}"
+  download_status=$?
+  set -u
+  if [ "${download_status}" -ne 0 ]; then
+    echo "ERROR: dataset download failed (exit ${download_status})" >&2
+  fi
 fi
 
 cat <<EOF
@@ -77,3 +87,5 @@ cat <<EOF
  - ~/localConfig for ALRB (FastFrames and Rucio set ALRB_localConfigDir to it).
  - ~/.secrets exporting KIBANA_TOKEN and KIBANA_URI, and pixi installed in ~/.pixi.
 EOF
+
+exit "${download_status}"
