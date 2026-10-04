@@ -18,6 +18,7 @@ JOB_SCRIPTS = [
     "TRUTH3/NERSC/CentOS7/run_truth3_centos7_batch.sh",
     "EVNT/NERSC/EL9/run_evnt_el9_batch.sh",
     "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh",
+    "NTuple_Hist/fastframes/NERSC/run_fastframes.sh",
 ]
 
 
