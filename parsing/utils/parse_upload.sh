@@ -87,7 +87,7 @@ response=$(curl -X POST "${KIBANA_URI}" \
   -H "Content-Type: application/json" \
   -d @"${payload}" \
   -w "%{http_code}" \
-  -s -o "${output_dir}/response.txt")
+  -sS --max-time 60 -o "${output_dir}/response.txt")
 echo "HTTP Response Code: ${response}"
 cat "${output_dir}/response.txt" || true
 if [[ ! "${response}" =~ ^2 ]]; then

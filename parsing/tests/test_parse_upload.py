@@ -133,6 +133,13 @@ class TestParseUploadSuccess:
         assert f"@{sandbox['output_dir'] / 'payload.json'}" in args
         assert "Upload successful!" in result.stdout
 
+    def test_post_is_bounded_and_shows_errors(self, sandbox):
+        # A hung POST would otherwise hold the wrapper (and the next run).
+        run_script(sandbox)
+        args = recorded(sandbox, "curl_args")
+        assert "-sS" in args
+        assert args[args.index("--max-time") + 1] == "60"
+
     def test_payload_is_private_to_the_owner(self, sandbox):
         # The payload carries the Kibana token and CFS output dirs are
         # group-readable.
