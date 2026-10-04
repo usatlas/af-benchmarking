@@ -58,7 +58,7 @@ fi
 # Anything newer than this marker was written by the job submitted below. It
 # stops a run that crashed before creating its output directory from
 # re-uploading the previous run's result.
-marker=$(mktemp)
+marker=$(mktemp) || { echo "ERROR: mktemp failed" >&2; exit 1; }
 trap 'rm -f "${marker}"' EXIT
 
 # append_benchmark reads SUBMIT_TIME inside the job (sbatch passes the
