@@ -11,6 +11,9 @@
 # "/path/to/benchmarks/*/TRUTH3_el9_container"; quote it
 # so the calling shell passes the pattern through. Of the directories created
 # after submission, the newest is this run's output.
+#
+# A job that exits non-zero is still uploaded if it wrote an output directory;
+# only a rejected submission (no job id) or a missing directory is an error.
 
 set -uo pipefail
 
@@ -73,11 +76,18 @@ done
 echo "Submitting ${sub_file}"
 job_id=$(sbatch --wait --parsable "${sub_file}")
 sbatch_status=$?
-if [ "${sbatch_status}" -ne 0 ]; then
-  echo "ERROR: sbatch --wait failed (job ${job_id:-unknown}, exit ${sbatch_status})" >&2
+# sbatch --wait returns the job's own exit code, so a non-zero status with a
+# job id means the job ran. It may still have written a full benchmark block
+# (e.g. a trailing cleanup step failed), so keep going and upload it.
+if [ -z "${job_id}" ]; then
+  echo "ERROR: sbatch submission failed (exit ${sbatch_status})" >&2
   exit 1
 fi
-echo "Job ${job_id} completed."
+if [ "${sbatch_status}" -ne 0 ]; then
+  echo "WARNING: job ${job_id} exited ${sbatch_status}; uploading whatever it wrote" >&2
+else
+  echo "Job ${job_id} completed."
+fi
 
 shopt -s nullglob
 # shellcheck disable=SC2206 # the pattern must glob-expand here

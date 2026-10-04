@@ -28,7 +28,9 @@ if [ -n "${FAKE_JOB_OUTPUT:-}" ]; then
   mkdir -p "$FAKE_JOB_OUTPUT"
   echo log > "$FAKE_JOB_OUTPUT/log.Derivation"
 fi
-echo 4242
+if [ -z "${FAKE_SBATCH_NO_ID:-}" ]; then
+  echo 4242
+fi
 exit "${FAKE_SBATCH_STATUS:-0}"
 """
 
@@ -184,9 +186,29 @@ class TestSubmitAndUploadOutputSelection:
 
 
 class TestSubmitAndUploadFailures:
-    def test_sbatch_failure_skips_upload(self, sandbox):
+    def test_rejected_submission_skips_upload(self, sandbox):
+        result = run_wrapper(
+            sandbox, extra_env={"FAKE_SBATCH_STATUS": "1", "FAKE_SBATCH_NO_ID": "1"}
+        )
+        assert result.returncode == 1
+        assert "submission failed" in result.stderr
+        assert not (sandbox["fake_log"] / "parse_upload_args").exists()
+
+    def test_nonzero_job_exit_still_uploads_its_output(self, sandbox):
+        new = new_run_dir(sandbox)
+        result = run_wrapper(
+            sandbox,
+            extra_env={"FAKE_SBATCH_STATUS": "1", "FAKE_JOB_OUTPUT": str(new)},
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert "exited 1" in result.stderr
+        args = recorded(sandbox, "parse_upload_args")
+        assert args[args.index("--output-dir") + 1] == str(new)
+
+    def test_nonzero_job_exit_without_output_fails(self, sandbox):
         result = run_wrapper(sandbox, extra_env={"FAKE_SBATCH_STATUS": "1"})
         assert result.returncode == 1
+        assert "no new output directory" in result.stderr
         assert not (sandbox["fake_log"] / "parse_upload_args").exists()
 
     def test_upload_failure_is_reported(self, sandbox):
