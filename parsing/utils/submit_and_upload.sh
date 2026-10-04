@@ -8,7 +8,7 @@
 #          --cluster C --job J --log-type T --os OS --mode M --containerized B
 #
 # --output-glob matches the per-run output directories the job writes, e.g.
-# "/global/cfs/cdirs/m2616/qlei/benchmarks/*/TRUTH3_el9_container"; quote it
+# "/path/to/benchmarks/*/TRUTH3_el9_container"; quote it
 # so the calling shell passes the pattern through. Of the directories created
 # after submission, the newest is this run's output.
 
@@ -94,6 +94,7 @@ if [ "${#new_dirs[@]}" -eq 0 ]; then
   echo "ERROR: no new output directory matches ${output_glob}" >&2
   exit 1
 fi
+# shellcheck disable=SC2012 # output dirs are named by UTC timestamps, so ls is safe here
 latest_dir=$(ls -dt "${new_dirs[@]}" | head -1)
 latest_dir="${latest_dir%/}"
 echo "Latest output directory: ${latest_dir}"
