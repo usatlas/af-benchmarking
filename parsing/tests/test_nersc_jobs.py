@@ -78,3 +78,12 @@ class TestRucioContainerFunction:
         text = (REPO / "Rucio" / "rucio_script.sh").read_text()
         body = text.split("container_el9 (){", 1)[1].split("\n}\n", 1)[0]
         assert 'hostname > "${3}/hostname.txt"' in body
+
+    def test_nersc_branch_sources_benchmark_utils(self):
+        # append_benchmark runs inside container_el9, so the case branch must
+        # source it before the call. $HOME because the sub file cds into Rucio/.
+        text = (REPO / "Rucio" / "rucio_script.sh").read_text()
+        branch = text.split("\n    nersc)", 1)[1].split(";;", 1)[0]
+        assert (
+            'source "$HOME"/AF-Benchmarking/parsing/utils/benchmark_utils.sh' in branch
+        )
