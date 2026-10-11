@@ -175,3 +175,113 @@ class TestUcOdfFastFramesBuildScript:
     def test_no_uc_specific_paths(self):
         text = (REPO_ROOT / self.SCRIPT).read_text()
         assert "/data/selbor" not in text
+
+
+FASTFRAMES_DIR = REPO_ROOT / "NTuple_Hist" / "fastframes"
+FASTFRAMES_ODF_DIR = FASTFRAMES_DIR / "UC-ODF"
+UC_FILELIST = FASTFRAMES_DIR / "UC" / "mc20e_filelist.txt"
+# Config keys that hold paths and so legitimately differ between sites
+CONFIG_PATH_KEYS = (
+    "input_filelist_path",
+    "input_sumweights_path",
+    "output_path_histograms",
+)
+
+
+class TestUcOdfFastFramesRun:
+    SCRIPT = "NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh"
+    MAKE_FILELIST = "NTuple_Hist/fastframes/UC-ODF/make_filelist.sh"
+
+    @pytest.mark.parametrize("script", [SCRIPT, MAKE_FILELIST])
+    def test_script_is_executable_and_valid_bash(self, script):
+        path = REPO_ROOT / script
+        assert path.is_file()
+        assert os.access(path, os.X_OK)
+        subprocess.run(["bash", "-n", str(path)], check=True)
+
+    @pytest.mark.parametrize(
+        ("env_vars", "missing"),
+        [
+            ({}, "NTUPLE_DIR"),
+            ({"NTUPLE_DIR": "/somewhere"}, "FF_DIR"),
+        ],
+    )
+    def test_run_script_requires_its_directories(self, env_vars, missing):
+        # Must stop at the check, before any ATLAS setup
+        env = {k: v for k, v in os.environ.items() if k not in ("NTUPLE_DIR", "FF_DIR")}
+        result = subprocess.run(
+            ["bash", self.SCRIPT],
+            cwd=REPO_ROOT,
+            env={**env, **env_vars},
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+        assert result.returncode != 0
+        assert missing in result.stdout + result.stderr
+
+    def test_make_filelist_reproduces_uc_list_for_a_local_directory(self, tmp_path):
+        uc_lines = UC_FILELIST.read_text().splitlines()
+        for line in uc_lines:
+            (tmp_path / Path(line.rsplit(" ", 1)[1]).name).touch()
+        # Unrelated files must not leak into the list
+        (tmp_path / "notes.txt").touch()
+
+        result = subprocess.run(
+            ["bash", self.MAKE_FILELIST, str(tmp_path)],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=True,
+        )
+
+        expected = [
+            f"{line.rsplit(' ', 1)[0]} {tmp_path / Path(line.rsplit(' ', 1)[1]).name}"
+            for line in uc_lines
+        ]
+        assert result.stdout.splitlines() == expected
+
+    def test_make_filelist_fails_on_directory_without_ntuples(self, tmp_path):
+        result = subprocess.run(
+            ["bash", self.MAKE_FILELIST, str(tmp_path)],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+        assert result.returncode != 0
+        assert "no .root files" in result.stdout + result.stderr
+
+    def test_config_differs_from_uc_only_in_path_keys(self):
+        def without_path_keys(path):
+            # Comments are ignored: only the settings must not drift
+            return [
+                line
+                for line in path.read_text().splitlines()
+                if not line.strip().startswith("#")
+                and line.strip().split(":")[0] not in CONFIG_PATH_KEYS
+            ]
+
+        assert without_path_keys(
+            FASTFRAMES_ODF_DIR / "mc20e_example_config.yml"
+        ) == without_path_keys(FASTFRAMES_DIR / "UC" / "mc20e_example_config.yml")
+
+    def test_config_inputs_resolve_inside_the_repo(self):
+        text = (FASTFRAMES_ODF_DIR / "mc20e_example_config.yml").read_text()
+        sumweights = next(
+            line.split('"')[1]
+            for line in text.splitlines()
+            if line.strip().startswith("input_sumweights_path")
+        )
+        assert (REPO_ROOT / sumweights).is_file()
+
+    @pytest.mark.parametrize(
+        "name", ["run_fastframes.sh", "make_filelist.sh", "mc20e_example_config.yml"]
+    )
+    def test_no_uc_specific_paths(self, name):
+        text = (FASTFRAMES_ODF_DIR / name).read_text()
+        for uc_path in ("/data/kratsg", "/data/selbor", "/home/selbor"):
+            assert uc_path not in text
