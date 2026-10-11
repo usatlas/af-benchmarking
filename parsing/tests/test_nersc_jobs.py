@@ -34,10 +34,16 @@ JOB_SCRIPTS = [
 CONTAINER_FILES = {
     "TRUTH3/NERSC/EL9/run_truth3_el9_batch.sh": "TRUTH3/NERSC/EL9/truth3_el9_container.sh",
     "TRUTH3/NERSC/CentOS7/run_truth3_centos7_batch.sh": "TRUTH3/NERSC/CentOS7/truth3_centos7_container.sh",
+    "EVNT/NERSC/EL9/run_evnt_el9_batch.sh": "EVNT/NERSC/EL9/evnt_el9_container.sh",
+    "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh": "EVNT/NERSC/CentOS7/evnt_centos7_container.sh",
 }
 
 # Host-expanded values a host script passes to its container file.
-SOURCE_ARGS = {}
+EVNT_ARGS = " ${config_dir} ${seed}"
+SOURCE_ARGS = {
+    "EVNT/NERSC/EL9/run_evnt_el9_batch.sh": EVNT_ARGS,
+    "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh": EVNT_ARGS,
+}
 
 # Every NERSC job is submitted through sbatch; each payload needs a sub file.
 SUB_FILES = {
@@ -64,9 +70,15 @@ def container_text(request):
 
 
 def run_option(script_text):
-    """Body of the double-quoted, possibly backslash-continued -r argument."""
+    """Body of the double-quoted, possibly backslash-continued -r argument.
+
+    Anchored to the atlasLocalSetup.sh line so other `-r` options (cp -r) are
+    not mistaken for it.
+    """
     # re.S so `\.` also consumes the newline of a backslash continuation.
-    match = re.search(r'-r "((?:[^"\\]|\\.)*)"', script_text, re.S)
+    match = re.search(
+        r'atlasLocalSetup\.sh[^\n]* -r "((?:[^"\\]|\\.)*)"', script_text, re.S
+    )
     assert match, "no -r argument found"
     return match.group(1)
 
