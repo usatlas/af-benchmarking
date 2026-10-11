@@ -15,15 +15,15 @@ weight_pileup_array = array("f", [0.0])
 def photon_eventloop(f_name, h_baseline_pt, metadata):
     """Process one ROOT file and fill the given histogram."""
     fp = r.TFile.Open(f_name, "READ")
+    # An unreadable ntuple must fail the job: skipping it would report fewer
+    # events with a successful exit status
     if not fp or fp.IsZombie():
-        print(f"Could not open file: {f_name}")
-        return
+        raise RuntimeError(f"Could not open file: {f_name}")
 
     tree = fp.Get("analysis")
     if not tree:
-        print(f"No tree named 'analysis' in {f_name}")
         fp.Close()
-        return
+        raise RuntimeError(f"No tree named 'analysis' in {f_name}")
 
     tree.SetBranchAddress("ph_pt_NOSYS", ph_pt_array)
     tree.SetBranchAddress("ph_select_tightID_NOSYS", ph_select_tightID_array)
