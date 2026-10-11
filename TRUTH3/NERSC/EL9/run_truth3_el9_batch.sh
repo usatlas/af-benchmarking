@@ -31,12 +31,7 @@ setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 # setup_end and the time -v mode can only be known inside the container, so
 # they are written to split.log there and read back after it exits.
 # shellcheck disable=SC1091
-source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c "${OScontainer}" -m /global/cfs/cdirs/m2616/qlei -r "asetup Athena,24.0.53,here && \
-  echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log && \
-  if [ -x /usr/bin/time ]; then TIME_CMD='/usr/bin/time -v'; BENCH_MODE=time_v; else TIME_CMD=''; BENCH_MODE=none; fi && \
-  echo \"BENCH_MODE=\${BENCH_MODE}\" >> split.log && \
-  \${TIME_CMD} Derivation_tf.py --CA True --inputEVNTFile EVNT.root --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log && \
-  cat pipe_file.log >> log.Derivation"
+source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c "${OScontainer}" -m /global/cfs/cdirs/m2616/qlei -r "source ${HOME}/AF-Benchmarking/TRUTH3/NERSC/EL9/truth3_el9_container.sh"
 
 setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 bench_mode=$(grep "^BENCH_MODE=" split.log 2>/dev/null | tail -1 | sed 's/^BENCH_MODE=//')
