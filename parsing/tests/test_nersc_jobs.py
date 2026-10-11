@@ -37,6 +37,7 @@ CONTAINER_FILES = {
     "EVNT/NERSC/EL9/run_evnt_el9_batch.sh": "EVNT/NERSC/EL9/evnt_el9_container.sh",
     "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh": "EVNT/NERSC/CentOS7/evnt_centos7_container.sh",
     "NTuple_Hist/fastframes/NERSC/run_fastframes.sh": "NTuple_Hist/fastframes/NERSC/fastframes_container.sh",
+    "NTuple_Hist/coffea/NERSC/run_example.sh": "NTuple_Hist/coffea/NERSC/coffea_container.sh",
 }
 
 # Host-expanded values a host script passes to its container file.

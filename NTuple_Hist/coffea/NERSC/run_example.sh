@@ -17,15 +17,7 @@ setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 # setup_end and the time -v mode can only be known inside the container, so
 # they are written to split.log there and read back after it exits.
 # shellcheck disable=SC1091
-source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /global:/global -r "lsetup 'python 3.9.22-x86_64-el9' &&\
-  python3 -m venv venv &&\
-  ./venv/bin/python -m pip install -U pip &&\
-  ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' &&\
-  echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
-  date >> split.log &&\
-  if [ -x /usr/bin/time ]; then TIME_CMD='/usr/bin/time -v'; BENCH_MODE=time_v; else TIME_CMD=''; BENCH_MODE=none; fi &&\
-  echo \"BENCH_MODE=\${BENCH_MODE}\" >> split.log &&\
-  \${TIME_CMD} ./venv/bin/python ~/AF-Benchmarking/NTuple_Hist/coffea/NERSC/example.py 2>&1 | tee coffea_hist.log"
+source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /global:/global -r "source ${HOME}/AF-Benchmarking/NTuple_Hist/coffea/NERSC/coffea_container.sh"
 
 setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 bench_mode=$(grep "^BENCH_MODE=" split.log 2>/dev/null | tail -1 | sed 's/^BENCH_MODE=//')
