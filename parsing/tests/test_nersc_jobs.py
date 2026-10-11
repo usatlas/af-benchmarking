@@ -38,6 +38,8 @@ CONTAINER_FILES = {
     "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh": "EVNT/NERSC/CentOS7/evnt_centos7_container.sh",
     "NTuple_Hist/fastframes/NERSC/run_fastframes.sh": "NTuple_Hist/fastframes/NERSC/fastframes_container.sh",
     "NTuple_Hist/coffea/NERSC/run_example.sh": "NTuple_Hist/coffea/NERSC/coffea_container.sh",
+    "NTuple_Hist/event_loop/NERSC/columnar/run_eventloop_arrays.sh": "NTuple_Hist/event_loop/NERSC/columnar/eventloop_arrays_container.sh",
+    "NTuple_Hist/event_loop/NERSC/standard/run_eventloop_noarrays.sh": "NTuple_Hist/event_loop/NERSC/standard/eventloop_noarrays_container.sh",
 }
 
 # Host-expanded values a host script passes to its container file.
@@ -111,6 +113,9 @@ class TestNerscJobScriptBenchmarkConventions:
 
 
 class TestNerscContainerFiles:
+    def test_every_job_script_has_a_container_file(self):
+        assert set(CONTAINER_FILES) == set(JOB_SCRIPTS)
+
     def test_host_sources_container_file(self, host_and_container):
         host, container, host_text = host_and_container
         expected = (
