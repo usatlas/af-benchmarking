@@ -29,8 +29,7 @@ JOB_SCRIPTS = [
     "NTuple_Hist/event_loop/NERSC/standard/run_eventloop_noarrays.sh",
 ]
 
-# Host script -> the file it sources inside the ALRB container. Each family is
-# listed once its steps have moved out of the `-r` string.
+# Host script -> the file it sources inside the ALRB container.
 CONTAINER_FILES = {
     "TRUTH3/NERSC/EL9/run_truth3_el9_batch.sh": "TRUTH3/NERSC/EL9/truth3_el9_container.sh",
     "TRUTH3/NERSC/CentOS7/run_truth3_centos7_batch.sh": "TRUTH3/NERSC/CentOS7/truth3_centos7_container.sh",
