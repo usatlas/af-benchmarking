@@ -17,12 +17,7 @@ setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 # setup_end and the time -v mode can only be known inside the container, so
 # they are written to split.log there and read back after it exits.
 # shellcheck disable=SC1091
-source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -m /global/cfs/cdirs/m2616/qlei/ -c el9 -r "asetup StatAnalysis,0.6.2 &&\
-  source /srv/FastFramesTutorial/TutorialClass/build/setup.sh &&\
-  echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
-  if [ -x /usr/bin/time ]; then TIME_CMD='/usr/bin/time -v'; BENCH_MODE=time_v; else TIME_CMD=''; BENCH_MODE=none; fi &&\
-  echo \"BENCH_MODE=\${BENCH_MODE}\" >> split.log &&\
-  \${TIME_CMD} python3 /srv/FastFramesTutorial/FastFrames/python/FastFrames.py -c /srv/fastframes_input/mc20e_example_config.yml 2>&1 | tee fastframes.log"
+source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -m /global/cfs/cdirs/m2616/qlei/ -c el9 -r "source ${HOME}/AF-Benchmarking/NTuple_Hist/fastframes/NERSC/fastframes_container.sh"
 
 setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 bench_mode=$(grep "^BENCH_MODE=" split.log 2>/dev/null | tail -1 | sed 's/^BENCH_MODE=//')
