@@ -32,6 +32,8 @@ setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 # no runtime $: date prints the SETUP_COMPLETE label itself rather than being
 # wrapped in $(date). setup_end is written to split.log inside the container
 # and read back after it exits.
+# time -v's report lands in the tee'd pipe, not in the transform's own log,
+# so the chain folds pipe_file.log into it for append_benchmark to read.
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c ${OS_container} -m /global/cfs/cdirs/m2616/qlei -r "asetup AthGeneration,23.6.34,here && \
   date -u +SETUP_COMPLETE=%Y-%m-%dT%H:%M:%SZ >> split.log && \
@@ -57,7 +59,13 @@ du EVNT.root >> split.log
 # login node; record the compute node that ran the job.
 hostname > "${output_dir}/hostname.txt"
 
-append_benchmark log.generate "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" time_v
+# A failed release setup never reaches the payload, so there is no time -v
+# report to read; record the failure explicitly instead.
+bench_mode=time_v
+# shellcheck disable=SC2034 # read by append_benchmark
+[ -n "${setup_end}" ] || { bench_mode=none; BENCH_EXIT_STATUS=1; }
+
+append_benchmark log.generate "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" "${bench_mode}"
 
 # Moves the log file to the output directory
 mv log.generate "${output_dir}"

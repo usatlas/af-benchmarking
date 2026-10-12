@@ -29,6 +29,8 @@ JOB_SCRIPTS = [
     "NTuple_Hist/event_loop/NERSC/standard/run_eventloop_noarrays.sh",
 ]
 
+ATHENA_JOB_SCRIPTS = JOB_SCRIPTS[:4]
+
 # Every NERSC job is submitted through sbatch; each payload needs a sub file.
 SUB_FILES = {
     "NTuple_Hist/coffea/NERSC/coffea_el9_sub.sh": "NTuple_Hist/coffea/NERSC/run_example.sh",
@@ -66,10 +68,22 @@ class TestNerscJobScriptBenchmarkConventions:
     def test_reads_setup_end_back(self, script_text):
         assert 'grep "^SETUP_COMPLETE=" split.log' in script_text
 
-    def test_has_no_bench_mode(self, script_text):
-        # /usr/bin/time -v is called unguarded, so the mode is always time_v.
+    def test_has_no_bench_mode_variable_from_container(self, script_text):
+        # The mode is decided on the host from setup_end, not read back from
+        # the container.
         assert "BENCH_MODE" not in script_text
-        assert "bench_mode" not in script_text
+        assert 'grep "^BENCH_MODE=' not in script_text
+
+    def test_failed_setup_is_recorded_as_failed_run(self, script_text):
+        assert (
+            "bench_mode=time_v\n"
+            "# shellcheck disable=SC2034 # read by append_benchmark\n"
+            '[ -n "${setup_end}" ] || { bench_mode=none; BENCH_EXIT_STATUS=1; }\n'
+        ) in script_text
+        # Must be set before append_benchmark reads them.
+        assert script_text.index("BENCH_EXIT_STATUS=1") < script_text.index(
+            "\nappend_benchmark "
+        )
 
     def test_records_compute_node_hostname(self, script_text):
         assert re.search(r'^hostname > "\$\{\w+\}/hostname\.txt"$', script_text, re.M)
@@ -81,12 +95,21 @@ class TestNerscJobScriptBenchmarkConventions:
         assert append.start() < first_mv.start()
         assert re.match(
             r'append_benchmark \S+ "\$\{start_time\}" "\$\{end_time\}" '
-            r'"\$\{setup_start\}" "\$\{setup_end\}" time_v\n',
+            r'"\$\{setup_start\}" "\$\{setup_end\}" "\$\{bench_mode\}"\n',
             script_text[append.start() :],
         )
 
     def test_payload_stderr_reaches_log(self, script_text):
         assert "2>1|" not in script_text
+
+
+class TestNerscAthenaJobScripts:
+    @pytest.mark.parametrize("script", ATHENA_JOB_SCRIPTS)
+    def test_explains_why_pipe_log_is_folded_in(self, script):
+        assert (
+            "# time -v's report lands in the tee'd pipe, not in the transform's own log,\n"
+            "# so the chain folds pipe_file.log into it for append_benchmark to read.\n"
+        ) in (REPO / script).read_text()
 
 
 class TestNerscRunOption:

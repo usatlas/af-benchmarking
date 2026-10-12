@@ -60,6 +60,8 @@ extract_rucio_metrics() {
 # Append standardized benchmark block to a log file
 # Usage: append_benchmark <log_file> <start_time> <end_time> [setup_start] [setup_end] [mode]
 # Reads SUBMIT_TIME from environment if set (injected by cron/submit scripts via HTCondor).
+# Reads BENCH_EXIT_STATUS from environment if set (meant for mode "none", where there is
+# no time -v report to take the exit status from, e.g. a run that failed before its payload).
 append_benchmark() {
   local log_file=$1
   local start_time=$2
@@ -83,6 +85,7 @@ append_benchmark() {
     [[ -n "${setup_start}" ]] && echo "setup_start_time_utc=${setup_start}"
     [[ -n "${setup_end}" ]] && echo "setup_end_time_utc=${setup_end}"
     [[ -n "${extra_metrics}" ]] && printf '%s\n' "${extra_metrics}"
+    [[ -n "${BENCH_EXIT_STATUS:-}" ]] && echo "exit_status=${BENCH_EXIT_STATUS}"
     echo "================="
   } >> "${log_file}"
 }

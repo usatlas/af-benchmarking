@@ -44,7 +44,13 @@ mkdir -p "${log_file_dir}"
 # login node; record the compute node that ran the job.
 hostname > "${log_file_dir}/hostname.txt"
 
-append_benchmark coffea_hist.log "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" time_v
+# A failed release setup never reaches the payload, so there is no time -v
+# report to read; record the failure explicitly instead.
+bench_mode=time_v
+# shellcheck disable=SC2034 # read by append_benchmark
+[ -n "${setup_end}" ] || { bench_mode=none; BENCH_EXIT_STATUS=1; }
+
+append_benchmark coffea_hist.log "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" "${bench_mode}"
 
 mv coffea_hist.log "${log_file_dir}"
 mv split.log "${log_file_dir}"
