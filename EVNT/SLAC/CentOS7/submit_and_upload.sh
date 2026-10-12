@@ -19,10 +19,6 @@ readonly pixi_os="centos7"
 readonly pixi_mode="batch"
 readonly pixi_containerized="true"
 
-export PATH="$HOME/.pixi/bin:$PATH"
-# shellcheck disable=SC1091
-[ -r "$HOME/.secrets" ] && . "$HOME/.secrets"
-
 # Prevent a second cron-triggered run from racing this one: sbatch --wait
 # blocks for the job's full walltime, so if a run is still active past the
 # next 6-hour cron firing, an unguarded rm -rf below would delete the
@@ -53,38 +49,12 @@ if [ -z "${latest_dir}" ]; then
 fi
 echo "Latest output directory: ${latest_dir}"
 
-cd "${AF_BENCH_DIR}" || exit 1
-
-pixi run --manifest-path "${AF_BENCH_DIR}/pixi.toml" -e kibana python -m parsing.scripts.ci_parse \
+"${AF_BENCH_DIR}/parsing/utils/parse_upload.sh" \
+  --cluster "SLAC-AF" \
   --job "${pixi_job}" \
   --log-type "${pixi_log_type}" \
   --log-file "${latest_dir}/${log_output}" \
-  --cluster "SLAC-AF" \
-  --token="${KIBANA_TOKEN}" \
-  --kind="benchmark" \
-  --host="$(cat "${latest_dir}/hostname.txt" 2>/dev/null || hostname)" \
-  --os="${pixi_os}" \
-  --mode="${pixi_mode}" \
-  --containerized="${pixi_containerized}" \
-  --output="${latest_dir}/payload.json"
-
-# Without this, a failed/crashed ci_parse leaves no payload.json, and curl
-# below would silently POST an empty body that still returns HTTP 200 -- a
-# false "Upload successful!" with nothing actually in Kibana.
-if [ ! -s "${latest_dir}/payload.json" ]; then
-  echo "ERROR: ci_parse did not produce a payload -- see output above"
-  exit 1
-fi
-
-response=$(curl -X POST "${KIBANA_URI}" \
-  -H "Content-Type: application/json" \
-  -d @"${latest_dir}/payload.json" \
-  -w "%{http_code}" \
-  -s -o "${latest_dir}/response.txt")
-echo "HTTP Response Code: ${response}"
-cat "${latest_dir}/response.txt" || true
-if [[ ! "${response}" =~ ^2 ]]; then
-  echo "Upload failed with HTTP status: ${response}"
-  exit 1
-fi
-echo "Upload successful!"
+  --os "${pixi_os}" \
+  --mode "${pixi_mode}" \
+  --containerized "${pixi_containerized}" \
+  --output-dir "${latest_dir}"

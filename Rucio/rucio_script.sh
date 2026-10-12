@@ -105,54 +105,20 @@ case "$site" in
 
         # Unlike the other SLAC jobs, this one runs directly on iana (no
         # sbatch/compute node involved) via container_el9's synchronous -r
-        # launch, so $(hostname) below already reflects where it ran --
-        # no hostname.txt indirection needed. Parse+upload only ever ran
-        # here for SLAC before via the now-retired external
-        # parsing_jobs/cron_parsing.sh; wire it in directly instead.
-        export PATH="$HOME/.pixi/bin:$PATH"
-        # shellcheck disable=SC1091
-        [ -r "$HOME/.secrets" ] && . "$HOME/.secrets"
-
-        # ci_parse imports the repo's own `parsing` package via `-m`, which
-        # resolves relative to CWD -- and container_el9 above already cd'd
-        # into job_dir, not the repo root. Without this, ci_parse fails with
-        # ModuleNotFoundError and payload.json is never written.
-        cd "${AF_BENCH_DIR}" || exit 1
-
-        pixi run --manifest-path "${AF_BENCH_DIR}/pixi.toml" -e kibana python -m parsing.scripts.ci_parse \
+        # launch, so parse_upload.sh's fallback to $(hostname) (it only
+        # prefers hostname.txt, which nothing here writes) already reflects
+        # where it ran. Parse+upload only ever ran here for SLAC before via
+        # the now-retired external parsing_jobs/cron_parsing.sh; wire it in
+        # directly instead.
+        "${AF_BENCH_DIR}/parsing/utils/parse_upload.sh" \
+          --cluster "SLAC-AF" \
           --job rucio \
           --log-type rucio \
           --log-file "${output_dir}/rucio.log" \
-          --cluster "SLAC-AF" \
-          --token="${KIBANA_TOKEN}" \
-          --kind="benchmark" \
-          --host="$(hostname)" \
-          --os="alma9" \
-          --mode="batch" \
-          --containerized="true" \
-          --output="${output_dir}/payload.json"
-
-        # Without this, a failed/crashed ci_parse leaves no payload.json,
-        # and curl below would silently POST an empty body that still
-        # returns HTTP 200 -- a false "Upload successful!" with nothing
-        # actually in Kibana. `-s` here is "file exists and is non-empty".
-        if [ ! -s "${output_dir}/payload.json" ]; then
-          echo "ERROR: ci_parse did not produce a payload -- see output above"
-          exit 1
-        fi
-
-        response=$(curl -X POST "${KIBANA_URI}" \
-          -H "Content-Type: application/json" \
-          -d @"${output_dir}/payload.json" \
-          -w "%{http_code}" \
-          -s -o "${output_dir}/response.txt")
-        echo "HTTP Response Code: ${response}"
-        cat "${output_dir}/response.txt" || true
-        if [[ ! "${response}" =~ ^2 ]]; then
-          echo "Upload failed with HTTP status: ${response}"
-          exit 1
-        fi
-        echo "Upload successful!"
+          --os alma9 \
+          --mode batch \
+          --containerized true \
+          --output-dir "${output_dir}"
         ;;
     uchicago)
         output_dir="${PWD}"
