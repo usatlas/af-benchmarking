@@ -7,6 +7,9 @@
 set -uo pipefail
 
 readonly AF_BENCH_DIR="/sdf/home/q/qlei/AF-Benchmarking"
+# shellcheck disable=SC1091
+source "${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh"
+
 # The Slurm CWD becomes /srv inside the container (mc20e_example_config.yml
 # reads /srv/input_ff/...), so input_ff/ and FastFramesTutorial/ must sit
 # directly beneath this directory.
@@ -22,6 +25,17 @@ readonly pixi_os="alma9"
 readonly pixi_mode="batch"
 readonly pixi_containerized="true"
 
+# Prevent a second cron-triggered run from racing this one: sbatch --wait
+# blocks for the job's full walltime, so if a run is still active past the
+# next 6-hour cron firing, two overlapping sbatch jobs would both write into
+# this shared job_dir at once.
+readonly lock_file="${job_dir}.lock"
+exec 200>"${lock_file}"
+if ! flock -n 200; then
+  echo "ERROR: another instance of this job is already running (lock: ${lock_file}) -- exiting without touching ${job_dir}"
+  exit 1
+fi
+
 # Guarded, unlike the old fire-and-forget wrapper: on a fresh account this
 # directory may not exist yet, and a bare cd failing here must not let
 # sbatch run from the wrong working directory.
@@ -36,15 +50,7 @@ if [ "${sbatch_status}" -ne 0 ]; then
 fi
 echo "Job ${job_id} completed."
 
-# Find the output directory the payload script just wrote, by mtime
-# (mirrors cron_el_batch.sh:52, adapted: Slurm gives us no direct
-# equivalent of HTCondor's per-cluster log path).
-latest_dir=$(find "${log_base}" -mindepth 2 -maxdepth 2 -type d -name "${job_output_name}" -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | awk '{print $2}')
-if [ -z "${latest_dir}" ]; then
-  echo "ERROR: no ${job_output_name} directory found under ${log_base}"
-  exit 1
-fi
-echo "Latest output directory: ${latest_dir}"
+latest_dir=$(find_latest_output_dir "${log_base}" "${job_output_name}")
 
 "${AF_BENCH_DIR}/parsing/utils/parse_upload.sh" \
   --cluster "SLAC-AF" \
