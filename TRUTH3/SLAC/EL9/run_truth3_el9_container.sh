@@ -14,16 +14,7 @@ setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 asetup Athena,24.0.53,here
 setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
-# /usr/bin/time -v may not exist in every ALRB container -- guard rather
-# than assume, so append_benchmark is never asked to extract metrics from
-# output that was never produced.
-if [ -x /usr/bin/time ]; then
-  TIME_CMD=(/usr/bin/time -v)
-  bench_mode=time_v
-else
-  TIME_CMD=()
-  bench_mode=none
-fi
+set_time_cmd
 
 "${TIME_CMD[@]}" Derivation_tf.py --CA True --inputEVNTFile /sdf/data/atlas/u/qlei/TRUTH3Files/el/EVNT.root --outputDAODFile=TRUTH3.root --formats TRUTH3 2>&1 | tee pipe_file.log
 
@@ -50,6 +41,7 @@ du DAOD_TRUTH3.TRUTH3.root >> split.log
 # the ampere node. Record the real one here instead.
 hostname > "${output_dir}/hostname.txt"
 
+# shellcheck disable=SC2154 # set by set_time_cmd (benchmark_utils.sh)
 append_benchmark log.Derivation "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" "${bench_mode}"
 
 # Moves the log file to the output directory defined above

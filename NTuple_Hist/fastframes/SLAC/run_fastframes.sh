@@ -17,13 +17,7 @@ source setup.sh
 cd - || exit
 setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
-if [ -x /usr/bin/time ]; then
-  TIME_CMD=(/usr/bin/time -v)
-  bench_mode=time_v
-else
-  TIME_CMD=()
-  bench_mode=none
-fi
+set_time_cmd
 
 # No cat needed here: the log IS the tee'd pipe output, so time -v's
 # report is already in it.
@@ -45,6 +39,7 @@ mkdir -p "${file_dir}"
 # the ampere node. Record the real one here instead.
 hostname > "${file_dir}/hostname.txt"
 
+# shellcheck disable=SC2154 # set by set_time_cmd (benchmark_utils.sh)
 append_benchmark fastframes.log "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" "${bench_mode}"
 
 mv fastframes.log "${file_dir}"

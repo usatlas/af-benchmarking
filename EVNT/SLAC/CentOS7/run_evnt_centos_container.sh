@@ -28,16 +28,7 @@ export LHAPDF_DATA_PATH=/cvmfs/sft.cern.ch/lcg/external/lhapdfsets/current:/cvmf
 
 setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
-# /usr/bin/time -v may not exist in every ALRB container -- guard rather
-# than assume, so append_benchmark is never asked to extract metrics from
-# output that was never produced.
-if [ -x /usr/bin/time ]; then
-  TIME_CMD=(/usr/bin/time -v)
-  bench_mode=time_v
-else
-  TIME_CMD=()
-  bench_mode=none
-fi
+set_time_cmd
 
 "${TIME_CMD[@]}" Gen_tf.py --ecmEnergy=13000.0 --jobConfig="${config_dir}" --outputEVNTFile=EVNT.root --maxEvents=1000 --randomSeed=1001 2>&1 | tee pipe_file.log
 
@@ -62,6 +53,7 @@ du EVNT.root >> split.log
 # the ampere node. Record the real one here instead.
 hostname > "${output_dir}/hostname.txt"
 
+# shellcheck disable=SC2154 # set by set_time_cmd (benchmark_utils.sh)
 append_benchmark log.generate "${start_time}" "${end_time}" "${setup_start}" "${setup_end}" "${bench_mode}"
 
 # Moves the log file and date_name file to the output directory

@@ -7,6 +7,9 @@
 set -uo pipefail
 
 readonly AF_BENCH_DIR="/sdf/home/q/qlei/AF-Benchmarking"
+# shellcheck disable=SC1091
+source "${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh"
+
 readonly job_dir="/sdf/home/q/qlei/TRUTH3Job/container_centos"
 readonly sub_file="${AF_BENCH_DIR}/TRUTH3/SLAC/CentOS7/truth3_centos7_sub.sh"
 readonly log_base="/sdf/data/atlas/u/qlei/benchmarks"
@@ -42,12 +45,7 @@ if [ "${sbatch_status}" -ne 0 ]; then
 fi
 echo "Job ${job_id} completed."
 
-latest_dir=$(find "${log_base}" -mindepth 2 -maxdepth 2 -type d -name "${job_output_name}" -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | awk '{print $2}')
-if [ -z "${latest_dir}" ]; then
-  echo "ERROR: no ${job_output_name} directory found under ${log_base}"
-  exit 1
-fi
-echo "Latest output directory: ${latest_dir}"
+latest_dir=$(find_latest_output_dir "${log_base}" "${job_output_name}")
 
 "${AF_BENCH_DIR}/parsing/utils/parse_upload.sh" \
   --cluster "SLAC-AF" \

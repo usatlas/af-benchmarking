@@ -11,13 +11,7 @@ cp /sdf/home/q/qlei/AF-Benchmarking/NTuple_Hist/coffea/SLAC/example.py .
 
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
-if [ -x /usr/bin/time ]; then
-  TIME_CMD=(/usr/bin/time -v)
-  bench_mode=time_v
-else
-  TIME_CMD=()
-  bench_mode=none
-fi
+set_time_cmd
 
 # The default ALRB el9 container has no science Python stack -- awkward,
 # coffea, dask, etc. are installed once via `installPip` into a persistent,
@@ -50,6 +44,7 @@ hostname > "${log_file_dir}/hostname.txt"
 # No separate setup phase to time here (the installPip source above is
 # fast -- it's just PYTHONPATH/PATH exports, not a real install step on
 # every run) -- setupTime comes out as 0.
+# shellcheck disable=SC2154 # set by set_time_cmd (benchmark_utils.sh)
 append_benchmark coffea_hist.log "${start_time}" "${end_time}" "${curr_time}" "${curr_time}" "${bench_mode}"
 
 mv coffea_hist.log "${log_file_dir}"

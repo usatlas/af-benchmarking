@@ -2,6 +2,42 @@
 # benchmark_utils.sh
 # Shared utilities for ATLAS benchmark scripts
 
+# Sets TIME_CMD (array) and bench_mode in the caller's scope depending on
+# whether /usr/bin/time -v is available in this container -- so
+# append_benchmark is never asked to extract metrics from output that was
+# never produced.
+# Usage: set_time_cmd (sets TIME_CMD, bench_mode in the caller's scope)
+set_time_cmd() {
+  if [ -x /usr/bin/time ]; then
+    # shellcheck disable=SC2034 # consumed by the caller, not this file
+    TIME_CMD=(/usr/bin/time -v)
+    bench_mode=time_v
+  else
+    # shellcheck disable=SC2034 # consumed by the caller, not this file
+    TIME_CMD=()
+    # shellcheck disable=SC2034 # consumed by the caller, not this file
+    bench_mode=none
+  fi
+}
+
+# Finds the most recently modified directory named <job_output_name> under
+# <log_base> (mirrors TRUTH3/BNL/EL9/cron_el_batch.sh:52, adapted: Slurm
+# gives us no direct equivalent of HTCondor's per-cluster log path). Exits
+# the caller if none is found.
+# Usage: latest_dir=$(find_latest_output_dir <log_base> <job_output_name>)
+find_latest_output_dir() {
+  local log_base=$1
+  local job_output_name=$2
+  local dir
+  dir=$(find "${log_base}" -mindepth 2 -maxdepth 2 -type d -name "${job_output_name}" -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | awk '{print $2}')
+  if [ -z "${dir}" ]; then
+    echo "ERROR: no ${job_output_name} directory found under ${log_base}" >&2
+    exit 1
+  fi
+  echo "Latest output directory: ${dir}" >&2
+  echo "${dir}"
+}
+
 # Parse /usr/bin/time -v output from a log file and extract key metrics
 # Usage: extract_time_metrics <log_file>
 extract_time_metrics() {

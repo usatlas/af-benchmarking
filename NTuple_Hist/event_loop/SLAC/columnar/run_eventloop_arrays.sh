@@ -13,13 +13,7 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 cp /sdf/home/q/qlei/AF-Benchmarking/NTuple_Hist/event_loop/SLAC/columnar/event_loop_arrays.py .
 
-if [ -x /usr/bin/time ]; then
-  TIME_CMD=(/usr/bin/time -v)
-  bench_mode=time_v
-else
-  TIME_CMD=()
-  bench_mode=none
-fi
+set_time_cmd
 
 # No cat needed here: the log IS the tee'd pipe output, so time -v's
 # report is already in it.
@@ -47,6 +41,7 @@ hostname > "${output_dir}/hostname.txt"
 # No asetup timing captured here (asetup runs before start_time; there's
 # no separate setup phase distinct from job start in the original script),
 # so setupTime comes out as 0.
+# shellcheck disable=SC2154 # set by set_time_cmd (benchmark_utils.sh)
 append_benchmark event_loop_arrays.log "${start_time}" "${end_time}" "${curr_time}" "${curr_time}" "${bench_mode}"
 
 mv event_loop_arrays.log "${output_dir}"
