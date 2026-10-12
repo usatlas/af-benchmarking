@@ -15,7 +15,7 @@ def append_benchmark(tmp_path, mode, env=None):
     log.write_text("")
     subprocess.run(
         [
-            "bash",
+            "/bin/bash",
             "-c",
             f'source "{BENCHMARK_UTILS}" && append_benchmark job.log '
             f"2026-01-01T00:00:00Z 2026-01-01T00:01:00Z "

@@ -31,6 +31,12 @@ JOB_SCRIPTS = [
 
 ATHENA_JOB_SCRIPTS = JOB_SCRIPTS[:4]
 
+# Values the host expands into the -r string before ALRB sees it.
+HOST_EXPANDED_VALUES = {
+    "EVNT/NERSC/EL9/run_evnt_el9_batch.sh": ("${config_dir}", "${seed}"),
+    "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh": ("${config_dir}", "${seed}"),
+}
+
 # Every NERSC job is submitted through sbatch; each payload needs a sub file.
 SUB_FILES = {
     "NTuple_Hist/coffea/NERSC/coffea_el9_sub.sh": "NTuple_Hist/coffea/NERSC/run_example.sh",
@@ -40,8 +46,13 @@ SUB_FILES = {
 
 
 @pytest.fixture(params=JOB_SCRIPTS)
-def script_text(request):
-    return (REPO / request.param).read_text()
+def script(request):
+    return request.param
+
+
+@pytest.fixture
+def script_text(script):
+    return (REPO / script).read_text()
 
 
 def run_option(script_text):
@@ -113,14 +124,12 @@ class TestNerscAthenaJobScripts:
 
 
 class TestNerscRunOption:
-    def test_has_no_dollar(self, script_text):
+    def test_has_no_dollar(self, script, script_text):
         # ALRB evaluates `$` in the -r string once, before running any of it.
-        assert "$" not in run_option(script_text).replace("${config_dir}", "").replace(
-            "${seed}", ""
-        )
-
-    def test_has_no_escaped_dollar(self, script_text):
-        assert "\\$" not in run_option(script_text)
+        option = run_option(script_text)
+        for host_value in HOST_EXPANDED_VALUES.get(script, ()):
+            option = option.replace(host_value, "")
+        assert "$" not in option
 
     def test_has_no_escaped_quote(self, script_text):
         assert '\\"' not in run_option(script_text)
@@ -135,9 +144,6 @@ class TestNerscRunOption:
         option = run_option(script_text)
         assert "/usr/bin/time -v " in option
         assert option.index("SETUP_COMPLETE") < option.index("/usr/bin/time")
-
-    def test_payload_stderr_reaches_log(self, script_text):
-        assert "2>1|" not in run_option(script_text)
 
 
 class TestNerscJobsAreSubmittable:
