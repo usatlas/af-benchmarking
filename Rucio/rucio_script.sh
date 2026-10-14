@@ -109,7 +109,7 @@ case "$site" in
         ;;
     nersc)
         job_dir="$HOME/af_benchmarking/rucio/"
-        dir_mount="/global/cfs/cdirs/m2616/qlei/benchmarks/"
+        dir_mount="/global:/global"
         output_dir="${job_dir}/logs/${curr_time}/"
         # shellcheck disable=SC1091
         source "$HOME"/AF-Benchmarking/parsing/utils/benchmark_utils.sh

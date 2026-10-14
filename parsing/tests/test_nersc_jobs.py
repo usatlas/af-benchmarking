@@ -168,3 +168,10 @@ class TestRucioContainerFunction:
         assert (
             'source "$HOME"/AF-Benchmarking/parsing/utils/benchmark_utils.sh' in branch
         )
+
+    def test_nersc_branch_mounts_global(self):
+        # voms-proxy-init reads ~/.globus and the log is moved under $HOME;
+        # both live on /global, which the container cannot see unless mounted.
+        text = (REPO / "Rucio" / "rucio_script.sh").read_text()
+        branch = text.split("\n    nersc)", 1)[1].split(";;", 1)[0]
+        assert 'dir_mount="/global:/global"' in branch
