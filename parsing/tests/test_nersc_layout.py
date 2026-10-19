@@ -140,11 +140,21 @@ class TestNerscCrontab:
     def test_has_nine_jobs(self):
         assert len(crontab_entries()) == 9
 
+    def test_every_job_runs_every_twelve_hours(self):
+        schedules = [
+            line.split(None, 5)[:5]
+            for line in CRONTAB.read_text().splitlines()
+            if line.strip() and not line.startswith("#")
+        ]
+        assert schedules == [["0", "*/12", "*", "*", "*"]] * 9
+
     @pytest.mark.parametrize("entry", crontab_entries(), ids=lambda e: e[1][2])
     def test_entry_runs_wrapper_on_login_node(self, entry):
         options, args = entry
         assert args[0] == "$HOME/AF-Benchmarking/parsing/utils/submit_and_upload.sh"
-        assert "#SCRON -q workflow" in options
+        # m4956 has no workflow QOS; cron allows 24 h and 40 jobs per user.
+        assert "#SCRON -q cron" in options
+        assert "#SCRON -A m4956" in options
         assert "#SCRON --dependency=singleton" in options
         assert any(option.startswith("#SCRON -J ") for option in options)
 
