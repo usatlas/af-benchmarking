@@ -59,7 +59,7 @@ def main():
         {
             "name": "Wmunugamma",
             "path": Path(
-                "/sdf/data/atlas/u/selbor/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
+                "/sdf/data/atlas/u/qlei/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
             ),
             "metadata": {
                 "genFiltEff": 1.0,

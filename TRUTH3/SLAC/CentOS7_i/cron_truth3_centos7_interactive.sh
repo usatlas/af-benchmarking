@@ -1,7 +1,7 @@
 #!/bin/bash
 
-ssh iana "
-cd /sdf/home/s/selbor/TRUTH3_int/centos || exit
+ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=20 iana "
+cd /sdf/home/q/qlei/TRUTH3_int/centos || exit
 
 rm -r ./*
 

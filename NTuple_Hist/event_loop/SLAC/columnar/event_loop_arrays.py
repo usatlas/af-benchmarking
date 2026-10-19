@@ -73,7 +73,7 @@ def main():
         {
             "name": "Wmunugamma",
             "path": Path(
-                "/sdf/data/atlas/u/selbor/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
+                "/sdf/data/atlas/u/qlei/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
             ),
             "metadata": {
                 "genFiltEff": 1.0,
@@ -114,10 +114,10 @@ def main():
     event_rate_khz = (total_events_processed / dt) / 1000.0 if dt > 0 else 0.0
 
     # Save combined histogram
-    output_file = r.TFile("event_loop_noarrays_output_hist.root", "RECREATE")
+    output_file = r.TFile("event_loop_arrays_output_hist.root", "RECREATE")
     h_baseline_pt.Write()
     output_file.Close()
-    print("\nCombined histogram written to event_loop_output_hist.root")
+    print("\nCombined histogram written to event_loop_arrays_output_hist.root")
     print("\n=== BENCHMARK ===")
     print(f"start_time_utc={start_time_utc}")
     print(f"end_time_utc={end_time_utc}")
