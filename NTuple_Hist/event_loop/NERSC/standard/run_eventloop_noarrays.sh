@@ -22,7 +22,7 @@ setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /global:/global -r "lsetup 'python 3.9.22-x86_64-el9' && \
   asetup StatAnalysis,0.6.2 && \
   date -u +SETUP_COMPLETE=%Y-%m-%dT%H:%M:%SZ >> split.log && \
-  /usr/bin/time -v python3 ~/AF-Benchmarking/NTuple_Hist/event_loop/NERSC/standard/event_loop_noarrays.py 2>&1 | tee eventloop_noarrays.log"
+  /usr/bin/time -v python3 ${HOME}/AF-Benchmarking/NTuple_Hist/event_loop/NERSC/standard/event_loop_noarrays.py 2>&1 | tee eventloop_noarrays.log"
 
 setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")

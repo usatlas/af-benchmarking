@@ -25,7 +25,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /global:/glo
   ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' && \
   date -u +SETUP_COMPLETE=%Y-%m-%dT%H:%M:%SZ >> split.log && \
   date >> split.log && \
-  /usr/bin/time -v ./venv/bin/python ~/AF-Benchmarking/NTuple_Hist/coffea/NERSC/example.py 2>&1 | tee coffea_hist.log"
+  /usr/bin/time -v ./venv/bin/python ${HOME}/AF-Benchmarking/NTuple_Hist/coffea/NERSC/example.py 2>&1 | tee coffea_hist.log"
 
 setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")

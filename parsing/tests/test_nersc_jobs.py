@@ -35,6 +35,9 @@ ATHENA_JOB_SCRIPTS = JOB_SCRIPTS[:4]
 HOST_EXPANDED_VALUES = {
     "EVNT/NERSC/EL9/run_evnt_el9_batch.sh": ("${config_dir}", "${seed}"),
     "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh": ("${config_dir}", "${seed}"),
+    "NTuple_Hist/coffea/NERSC/run_example.sh": ("${HOME}",),
+    "NTuple_Hist/event_loop/NERSC/columnar/run_eventloop_arrays.sh": ("${HOME}",),
+    "NTuple_Hist/event_loop/NERSC/standard/run_eventloop_noarrays.sh": ("${HOME}",),
 }
 
 # Every NERSC job is submitted through sbatch; each payload needs a sub file.
@@ -130,6 +133,12 @@ class TestNerscRunOption:
         for host_value in HOST_EXPANDED_VALUES.get(script, ()):
             option = option.replace(host_value, "")
         assert "$" not in option
+
+    def test_has_no_tilde(self, script_text):
+        # Inside the double quotes the host leaves ~ alone, so the container
+        # shell expands it against its own HOME, which under scrontab can be
+        # /alrb; paths into the repo must be host-expanded ${HOME} instead.
+        assert "~" not in run_option(script_text)
 
     def test_has_no_escaped_quote(self, script_text):
         assert '\\"' not in run_option(script_text)
