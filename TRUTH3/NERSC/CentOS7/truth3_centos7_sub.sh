@@ -4,7 +4,8 @@
 
 #SBATCH -N 1
 #SBATCH -C cpu
-#SBATCH -q regular
+#SBATCH -q shared
+#SBATCH -A m4956
 #SBATCH -J truth3_centos7
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=1

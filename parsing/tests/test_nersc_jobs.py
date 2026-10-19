@@ -150,8 +150,45 @@ class TestNerscJobsAreSubmittable:
     @pytest.mark.parametrize("sub_file,payload", SUB_FILES.items())
     def test_sub_file_runs_payload(self, sub_file, payload):
         text = (REPO / sub_file).read_text()
-        assert "#SBATCH -q regular" in text
         assert f'"$HOME"/AF-Benchmarking/{payload}' in text
+
+
+# Every sub file the NERSC crontab submits. scrontab runs sbatch with no
+# command-line overrides, so these #SBATCH lines are what cron actually uses.
+CRON_SUB_FILES = [
+    "TRUTH3/NERSC/EL9/truth3_el9_sub.sh",
+    "TRUTH3/NERSC/CentOS7/truth3_centos7_sub.sh",
+    "EVNT/NERSC/EL9/evnt_el9_sub.sh",
+    "EVNT/NERSC/CentOS7/evnt_centos7_sub.sh",
+    "NTuple_Hist/fastframes/NERSC/fastframes_el9_sub.sh",
+    "NTuple_Hist/coffea/NERSC/coffea_el9_sub.sh",
+    "NTuple_Hist/event_loop/NERSC/columnar/eventloop_arrays_sub.sh",
+    "NTuple_Hist/event_loop/NERSC/standard/eventloop_noarrays_sub.sh",
+    "Rucio/rucio_nersc_sub.sh",
+]
+
+
+class TestNerscSubFileAllocation:
+    @pytest.mark.parametrize("sub_file", CRON_SUB_FILES)
+    def test_bills_m4956_on_shared_qos(self, sub_file):
+        # m2616 has no CPU hours; shared bills only the requested fraction of
+        # a node instead of the whole node that regular reserves.
+        lines = (REPO / sub_file).read_text().splitlines()
+        assert "#SBATCH -A m4956" in lines
+        assert "#SBATCH -q shared" in lines
+        assert "#SBATCH -q regular" not in lines
+
+    @pytest.mark.parametrize(
+        "sub_file",
+        [
+            "NTuple_Hist/coffea/NERSC/coffea_el9_sub.sh",
+            "NTuple_Hist/event_loop/NERSC/standard/eventloop_noarrays_sub.sh",
+        ],
+    )
+    def test_long_ntuple_jobs_have_headroom(self, sub_file):
+        # Validation runs took 43 (coffea) and 48 (standard eventloop) minutes.
+        lines = (REPO / sub_file).read_text().splitlines()
+        assert "#SBATCH -t 1:30:00" in lines
 
 
 class TestRucioContainerFunction:

@@ -1,7 +1,8 @@
 #!/bin/bash -l
 #SBATCH -N 1
 #SBATCH -C cpu
-#SBATCH -q regular
+#SBATCH -q shared
+#SBATCH -A m4956
 #SBATCH -J rucio
 #SBATCH --mail-type=ALL
 #SBATCH -t 00:30:00
