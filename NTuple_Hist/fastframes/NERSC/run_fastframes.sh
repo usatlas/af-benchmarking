@@ -29,7 +29,7 @@ end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 hostname >> fastframes.log
 
-du example_FS.root >> fastframes.log
+du output/example_FS.root >> fastframes.log
 
 # output directory
 output_dir="/global/cfs/cdirs/m2616/qlei/benchmarks/$curr_date/FastFrames_NTuple"

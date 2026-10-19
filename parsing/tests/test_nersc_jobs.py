@@ -175,3 +175,11 @@ class TestRucioContainerFunction:
         text = (REPO / "Rucio" / "rucio_script.sh").read_text()
         branch = text.split("\n    nersc)", 1)[1].split(";;", 1)[0]
         assert 'dir_mount="/global:/global"' in branch
+
+
+class TestFastFramesOutputSize:
+    def test_du_reads_histogram_from_config_output_path(self):
+        # mc20e_example_config.yml writes histograms to /srv/output/, which is
+        # output/ under the CFS directory the script runs from.
+        text = (REPO / "NTuple_Hist/fastframes/NERSC/run_fastframes.sh").read_text()
+        assert "du output/example_FS.root >> fastframes.log" in text
