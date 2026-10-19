@@ -7,7 +7,7 @@ curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir="$HOME"/localConfig
 # shellcheck disable=SC1091
-source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /sdf/data/usatlas/u/selbor/ -r "export ALRB_rootVersion=6.34.04-x86_64-el9-gcc13-opt && \
+source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /sdf/data/usatlas/u/qlei/ -r "export ALRB_rootVersion=6.34.04-x86_64-el9-gcc13-opt && \
   lsetup root && \
   date -u "+%Y-%m-%dT%H:%M:%SZ" >> photon_eventloop.log && \
   python3 ~/AF-Benchmarking/event_loop/SLAC/photon_ABCD_eventloop.py 2>&1 | tee photon_eventloop.log  && \
@@ -15,7 +15,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /sdf/data/us
   hostname >> photon_eventloop.log"
 
 # Output directory
-output_dir="/sdf/home/s/selbor/benchmarks/${curr_time}/photon_eventloop/"
+output_dir="/sdf/home/q/qlei/benchmarks/${curr_time}/photon_eventloop/"
 
 mkdir -p "${output_dir}"
 

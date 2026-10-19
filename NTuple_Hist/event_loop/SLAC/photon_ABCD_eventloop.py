@@ -168,7 +168,9 @@ def photon_ABCD_eventloop(f_name):
     print(f"D: !truth, !tight,  isolated: {h_notruth_nt_ii_pt.GetSumOfWeights()}")
 
 
-file_dir = r"/sdf/data/atlas/u/selbor/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
+file_dir = (
+    r"/sdf/data/atlas/u/qlei/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
+)
 
 files_full_path = [os.path.join(file_dir, i) for i in sorted(os.listdir(file_dir))]
 

@@ -1,17 +1,28 @@
-0 */6 * * * /sdf/home/s/selbor/AF-Benchmarking/TRUTH3/SLAC/cron_truth3_el9_batch.sh
+# Rucio Script
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/Rucio/cron_rucio_slac.sh
 
-0 */6 * * * /sdf/home/s/selbor/AF-Benchmarking/TRUTH3/SLAC/cron_truth3_el9_interactive.sh
+# EVNT Scripts
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/EVNT/SLAC/EL9/cron_evnt_el9.sh
 
-0 */6 * * * /sdf/home/s/selbor/AF-Benchmarking/TRUTH3/SLAC/cron_truth3_centos7_interactive.sh
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/EVNT/SLAC/CentOS7/cron_evnt_centos7.sh
 
-0 */6 * * * /sdf/home/s/selbor/AF-Benchmarking/TRUTH3/SLAC/cron_truth3_centos7_batch.sh
+# TRUTH3 Scripts
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/TRUTH3/SLAC/EL9/cron_truth3_el9_batch.sh
 
-0 */6 * * * /sdf/home/s/selbor/AF-Benchmarking/EVNT/SLAC/cron_evnt_el9.sh
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/TRUTH3/SLAC/EL9_i/cron_truth3_el9_interactive.sh
 
-0 */6 * * * /sdf/home/s/selbor/AF-Benchmarking/EVNT/SLAC/cron_evnt_centos7.sh
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/TRUTH3/SLAC/CentOS7/cron_truth3_centos7_batch.sh
 
-0 */6 * * * /sdf/home/s/selbor/AF-Benchmarking/Rucio/cron_rucio_slac.sh
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/TRUTH3/SLAC/CentOS7_i/cron_truth3_centos7_interactive.sh
 
-0 */6 * * * /sdf/home/s/selbor/AF-Benchmarking/NTuple_Hist/coffea/SLAC/cron_coffea_slac.sh
+# Coffea Metrics
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/NTuple_Hist/coffea/SLAC/cron_coffea_slac.sh
 
-59 */6 * * * /sdf/home/s/selbor/parsing_jobs/cron_parsing.sh
+# FastFrames Script
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/NTuple_Hist/fastframes/SLAC/cron_fastframes.sh
+
+# EventLoop Arrays Script
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/NTuple_Hist/event_loop/SLAC/columnar/cron_eventloop_arrays.sh
+
+# EventLoop No Arrays Script
+0 */6 * * * /sdf/home/q/qlei/AF-Benchmarking/NTuple_Hist/event_loop/SLAC/standard/cron_eventloop_noarrays.sh

@@ -1,5 +1,12 @@
 #! /usr/bin/env bash
 
+# Resolved relative to this script rather than hardcoded per-site, so it
+# works no matter which site or account this repo is checked out under.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+AF_BENCH_DIR="${SCRIPT_DIR}/.."
+# shellcheck disable=SC1091
+source "${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh"
+
 # Gets the current time
 curr_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
@@ -88,21 +95,33 @@ case "$site" in
         job_dir="/usatlas/u/qlei/test/Rucio/"
         dir_mount="/atlasgpfs01/usatlas/data/"
         output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Rucio/${curr_time}/"
-        AF_BENCH_DIR="/usatlas/u/qlei/AF-Benchmarking"
-        # shellcheck disable=SC1091
-        source ${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh
         container_el9 "$job_dir" "$dir_mount" "$output_dir" "$download_ID"
         ;;
     slac)
         job_dir="$HOME/af_benchmarking/rucio/"
-        dir_mount="/sdf/data/atlas/u/selbor/benchmarks/"
+        dir_mount="/sdf/data/atlas/u/qlei/benchmarks/"
         output_dir="${job_dir}/logs/${curr_time}/"
         container_el9 "$job_dir" "$dir_mount" "$output_dir" "$download_ID"
+
+        # Unlike the other SLAC jobs, this one runs directly on iana (no
+        # sbatch/compute node involved) via container_el9's synchronous -r
+        # launch, so parse_upload.sh's fallback to $(hostname) (it only
+        # prefers hostname.txt, which nothing here writes) already reflects
+        # where it ran. Parse+upload only ever ran here for SLAC before via
+        # the now-retired external parsing_jobs/cron_parsing.sh; wire it in
+        # directly instead.
+        "${AF_BENCH_DIR}/parsing/utils/parse_upload.sh" \
+          --cluster "SLAC-AF" \
+          --job rucio \
+          --log-type rucio \
+          --log-file "${output_dir}/rucio.log" \
+          --os alma9 \
+          --mode batch \
+          --containerized true \
+          --output-dir "${output_dir}"
         ;;
     uchicago)
         output_dir="${PWD}"
-        # shellcheck disable=SC1091
-        source ./parsing/utils/benchmark_utils.sh
         native_el9 "${PWD}" "${PWD}" "$download_ID"
         ;;
     nersc)
@@ -115,9 +134,6 @@ case "$site" in
         job_dir="$HOME/af_benchmarking/rucio/"
         dir_mount="$HOME"
         output_dir="${job_dir}/logs/${curr_time}/"
-        # Sourced before container_el9 changes into job_dir, so run from the repo root
-        # shellcheck disable=SC1091
-        source ./parsing/utils/benchmark_utils.sh
         container_el9 "${job_dir}" "${dir_mount}" "${output_dir}" "${download_ID}"
         ;;
     *)
