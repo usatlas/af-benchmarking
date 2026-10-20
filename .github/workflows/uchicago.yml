@@ -1,8 +1,5 @@
 name: uchicago
 on:
-  pull_request:
-    branches:
-      - main
   # Run every 6 hours
   schedule:
     - cron: "0 */6 * * *"
