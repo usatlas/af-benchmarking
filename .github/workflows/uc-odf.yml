@@ -1,0 +1,480 @@
+name: uc-odf
+on:
+  # Manual only until the UC-ODF runner exists. Then add the pull_request and
+  # schedule triggers that uchicago.yml has.
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# PLACEHOLDER: arc-runner-set-uc-odf is not a registered runner yet. Replace it
+# in every job once the UC-ODF runner label exists.
+jobs:
+  rucio:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-uc-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+
+      - uses: $/.github/actions/setup-globus
+        with:
+          voms-usercert: ${{ secrets.VOMS_USERCERT }}
+          voms-userkey: ${{ secrets.VOMS_USERKEY }}
+
+      # The odf case of rucio_script.sh reads the VOMS password from a file in
+      # its job directory, not from the environment
+      - name: write VOMS password file
+        run: |
+          mkdir -p ~/af_benchmarking/rucio
+          printf '%s' "$VOMS_PASSWORD" > ~/af_benchmarking/rucio/pass.txt
+          chmod 600 ~/af_benchmarking/rucio/pass.txt
+        shell: bash
+        env:
+          VOMS_PASSWORD: ${{ secrets.VOMS_PASSWORD }}
+
+      - name: execute
+        run: ./Rucio/rucio_script.sh odf
+        shell: bash
+
+      # The odf case writes its log into a timestamped directory
+      - name: locate rucio log
+        if: always()
+        run:
+          cp "$(ls -td ~/af_benchmarking/rucio/logs/*/ | head -1)rucio.log"
+          rucio.log
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: rucio
+          log-file: rucio.log
+          log-type: rucio
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            rucio.log
+
+  evnt-el9:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-uc-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./EVNT/UC-ODF/EL9_i/run_evnt_el9_interactive.sh
+        working-directory: .
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: evnt
+          log-file: log.generate
+          log-type: evnt
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            log.generate
+
+  evnt-centos7:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-uc-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./EVNT/UC-ODF/CentOS7_i/run_evnt_centos7_interactive.sh
+        working-directory: .
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: evnt
+          log-file: log.generate
+          log-type: evnt
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: centos7
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            log.generate
+
+  truth3-el9:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-uc-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./TRUTH3/UC-ODF/EL9_i/run_truth3_el9_interactive.sh
+        working-directory: .
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: truth3
+          log-file: log.Derivation
+          log-type: truth3
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            log.Derivation
+
+  truth3-centos7:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-uc-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./TRUTH3/UC-ODF/CentOS7_i/run_truth3_centos7_interactive.sh
+        working-directory: .
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: truth3
+          log-file: log.EVNTtoDAOD
+          log-type: truth3
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: centos7
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            log.EVNTtoDAOD
+
+  coffea:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-uc-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./NTuple_Hist/coffea/UC-ODF/run_example.sh
+        working-directory: .
+        shell: bash
+        env:
+          NTUPLE_DIR: ${{ vars.UC_ODF_NTUPLE_DIR }}
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: coffea
+          log-file: coffea_hist.log
+          log-type: coffea
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          payload-file: coffea.root
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            coffea_hist.log
+
+  eventloop-columnar:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-uc-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./NTuple_Hist/event_loop/UC-ODF/columnar/run_eventloop_arrays.sh
+        working-directory: .
+        shell: bash
+        env:
+          NTUPLE_DIR: ${{ vars.UC_ODF_NTUPLE_DIR }}
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: eventloop-columnar
+          log-file: eventloop_arrays.log
+          log-type: eventloop
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            eventloop_arrays.log
+
+  eventloop-standard:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-uc-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./NTuple_Hist/event_loop/UC-ODF/standard/run_eventloop_noarrays.sh
+        working-directory: .
+        shell: bash
+        env:
+          NTUPLE_DIR: ${{ vars.UC_ODF_NTUPLE_DIR }}
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: eventloop-standard
+          log-file: eventloop_noarrays.log
+          log-type: eventloop
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            eventloop_noarrays.log
+
+  fastframes:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-uc-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh
+        shell: bash
+        env:
+          NTUPLE_DIR: ${{ vars.UC_ODF_NTUPLE_DIR }}
+          FF_DIR: ${{ vars.UC_ODF_FF_DIR }}
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: fastframes
+          log-file: fastframes.log
+          log-type: fastframes
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          payload-file: ./fastframes_run/example_FS.root
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            fastframes.log
