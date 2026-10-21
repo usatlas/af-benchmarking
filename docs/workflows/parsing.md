@@ -49,7 +49,7 @@ single, simple integration point for GitHub Actions workflows.
 | `job`           | Job name                                  | Yes      | `rucio`, `evnt`, `truth3`, `coffea`, `eventloop-columnar`, `eventloop-standard`, `fastframes`                                                          |
 | `log-file`      | Path to log file                          | Yes      | `rucio.log`, `log.generate`, `log.Derivation`, `log.EVNTtoDAOD`, `coffea_hist.log`, `eventloop_arrays.log`, `eventloop_noarrays.log`, `fastframes.log` |
 | `log-type`      | Type of log parser to use                 | Yes      | `rucio`, `evnt`, `truth3`, `coffea`, `eventloop`, `fastframes`                                                                                         |
-| `cluster`       | Cluster name                              | Yes      | `UC-AF`, `SLAC-AF`, `BNL-AF`                                                                                                                           |
+| `cluster`       | Cluster name                              | Yes      | `UC-AF`, `UC-ODF`, `SLAC-AF`, `BNL-AF`                                                                                                                 |
 | `kibana-token`  | Token for benchmark ID                    | Yes      | From secrets                                                                                                                                           |
 | `kibana-kind`   | Kind for benchmark ID                     | Yes      | `"benchmark"` (literal value)                                                                                                                          |
 | `host`          | Hostname to identify the machine          | Yes      | `${NODE_NAME}`                                                                                                                                         |
@@ -145,7 +145,7 @@ Required structure:
 | Field           | Type    | Description                                       | Source                                                                                                    |
 | --------------- | ------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `job`           | String  | Job name (e.g., `rucio`, `evnt`, `truth3`)        | Passed from workflow as a literal value                                                                   |
-| `cluster`       | String  | AF cluster name (UC-AF, SLAC-AF, BNL-AF)          | Passed from workflow                                                                                      |
+| `cluster`       | String  | AF cluster name (UC-AF, UC-ODF, SLAC-AF, BNL-AF)  | Passed from workflow                                                                                      |
 | `submitTime`    | Integer | UTC timestamp (ms since epoch)                    | Parsed from log                                                                                           |
 | `queueTime`     | Integer | Queue time (seconds)                              | Parsed from log                                                                                           |
 | `runTime`       | Integer | Execution time (seconds)                          | Parsed from log                                                                                           |

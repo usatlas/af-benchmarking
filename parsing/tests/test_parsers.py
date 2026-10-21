@@ -1,5 +1,6 @@
 """Test suite for benchmark log parsers."""
 
+import jsonschema
 import pytest
 
 from parsing.base_parser import parse_atlas_log, parse_benchmark_block
@@ -255,3 +256,38 @@ class TestParseAtlasLog:
         assert result["cpuPercent"] == 97.0
         assert result["maxRssKb"] == 512000
         validate_payload(result)
+
+
+class TestUcOdfClusterPayload:
+    @pytest.fixture
+    def truth3_log(self, tmp_path):
+        log_file = tmp_path / "log.Derivation"
+        log_file.write_text(
+            "=== BENCHMARK ===\n"
+            "start_time_utc=2025-12-08T18:00:00Z\n"
+            "end_time_utc=2025-12-08T18:00:30Z\n"
+            "=================\n"
+        )
+        return log_file
+
+    def _parse(self, log_file, cluster):
+        return parse_log(
+            log_file=log_file,
+            log_type="truth3",
+            job="truth3",
+            cluster=cluster,
+            token="test-token",
+            kind="test-kind",
+            host="test.example.org",
+            payload_file="",
+            os="alma9",
+            mode="interactive",
+            containerized=True,
+        )
+
+    def test_uc_odf_cluster_passes_schema_validation(self, truth3_log):
+        validate_payload(self._parse(truth3_log, cluster="UC-ODF"))
+
+    def test_unlisted_cluster_fails_schema_validation(self, truth3_log):
+        with pytest.raises(jsonschema.ValidationError):
+            validate_payload(self._parse(truth3_log, cluster="NOT-A-SITE"))
