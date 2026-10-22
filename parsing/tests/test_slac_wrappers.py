@@ -122,9 +122,12 @@ class TestSlacWrapperStructure:
 
 FLOCK_STUB = """#!/bin/bash
 printf '%s\\n' "$@" > "$FAKE_LOG/flock_args"
+exit "$FAKE_FLOCK_STATUS"
 """
 
 SHARED_STUB = """#!/bin/bash
+# fd 200 still open here means exec carried the lock into this process.
+[ -e /dev/fd/200 ] && touch "$FAKE_LOG/lock_fd_open"
 pwd > "$FAKE_LOG/shared_cwd"
 printf '%s\\n' "$@" > "$FAKE_LOG/shared_args"
 """
@@ -149,21 +152,20 @@ def sandbox(tmp_path):
     return tmp_path
 
 
-def run_wrapper(sandbox, wrapper):
+def run_wrapper(sandbox, wrapper, flock_status=0):
     """Run a copy of the wrapper with its repo and job_dir moved into sandbox."""
     text = wrapper_text(wrapper)
-    text = re.sub(
-        r"^readonly AF_BENCH_DIR=.*$",
-        f'readonly AF_BENCH_DIR="{sandbox / "repo"}"',
-        text,
-        flags=re.M,
-    )
-    text = re.sub(
-        r"^readonly job_dir=.*$",
-        f'readonly job_dir="{sandbox / "job"}"',
-        text,
-        flags=re.M,
-    )
+    # Both must be redirected: several job_dirs are absolute /sdf paths that
+    # the TRUTH3/EVNT wrappers empty with rm -rf, so a silent miss here would
+    # delete a real job directory if the suite ran on a SLAC host.
+    for name, value in [
+        ("AF_BENCH_DIR", sandbox / "repo"),
+        ("job_dir", sandbox / "job"),
+    ]:
+        text, count = re.subn(
+            rf"^readonly {name}=.*$", f'readonly {name}="{value}"', text, flags=re.M
+        )
+        assert count == 1, f"{wrapper}: expected one readonly {name} line"
     copy = sandbox / "wrapper.sh"
     copy.write_text(text)
     return subprocess.run(
@@ -176,6 +178,7 @@ def run_wrapper(sandbox, wrapper):
             "HOME": str(sandbox),
             "USER": "qlei",
             "FAKE_LOG": str(sandbox / "log"),
+            "FAKE_FLOCK_STATUS": str(flock_status),
         },
     )
 
@@ -207,8 +210,17 @@ class TestSlacWrapperRun:
         result = run_wrapper(sandbox, wrapper)
         assert result.returncode == 0, result.stderr
         assert (sandbox / "log" / "flock_args").read_text().split() == ["-n", "200"]
+        assert (sandbox / "log" / "lock_fd_open").exists()
         cwd = (sandbox / "log" / "shared_cwd").read_text().strip()
         assert Path(cwd).resolve() == (sandbox / "job").resolve()
+
+    @pytest.mark.parametrize("wrapper", WRAPPERS)
+    def test_busy_lock_exits_without_touching_job_dir(self, sandbox, wrapper):
+        result = run_wrapper(sandbox, wrapper, flock_status=1)
+        assert result.returncode == 1
+        assert "already running" in result.stdout
+        assert not (sandbox / "log" / "shared_args").exists()
+        assert (sandbox / "job" / "previous_run.txt").exists()
 
     @pytest.mark.parametrize("wrapper", WRAPPERS)
     def test_cleans_job_dir_only_where_configured(self, sandbox, wrapper):
