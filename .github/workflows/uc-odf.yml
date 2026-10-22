@@ -11,6 +11,12 @@ concurrency:
 permissions:
   contents: read
 
+# Locations on the runner's persistent /data/af-benchmarking volume: the ntuples
+# are staged there and FastFrames is built there
+env:
+  NTUPLE_DIR: /data/af-benchmarking/mc20e_ntuples
+  FF_DIR: /data/af-benchmarking/FastFramesTutorial
+
 jobs:
   rucio:
     if:
@@ -292,8 +298,6 @@ jobs:
         run: ./NTuple_Hist/coffea/UC-ODF/run_example.sh
         working-directory: .
         shell: bash
-        env:
-          NTUPLE_DIR: ${{ vars.UC_ODF_NTUPLE_DIR }}
 
       - name: parse benchmark log
         if: always()
@@ -343,8 +347,6 @@ jobs:
         run: ./NTuple_Hist/event_loop/UC-ODF/columnar/run_eventloop_arrays.sh
         working-directory: .
         shell: bash
-        env:
-          NTUPLE_DIR: ${{ vars.UC_ODF_NTUPLE_DIR }}
 
       - name: parse benchmark log
         if: always()
@@ -393,8 +395,6 @@ jobs:
         run: ./NTuple_Hist/event_loop/UC-ODF/standard/run_eventloop_noarrays.sh
         working-directory: .
         shell: bash
-        env:
-          NTUPLE_DIR: ${{ vars.UC_ODF_NTUPLE_DIR }}
 
       - name: parse benchmark log
         if: always()
@@ -445,15 +445,10 @@ jobs:
       - name: build FastFrames
         run: ./NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh
         shell: bash
-        env:
-          FF_DIR: ${{ vars.UC_ODF_FF_DIR }}
 
       - name: execute
         run: ./NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh
         shell: bash
-        env:
-          NTUPLE_DIR: ${{ vars.UC_ODF_NTUPLE_DIR }}
-          FF_DIR: ${{ vars.UC_ODF_FF_DIR }}
 
       - name: parse benchmark log
         if: always()

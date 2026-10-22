@@ -44,7 +44,6 @@ REQUIRED_PARSE_INPUTS = {
     "containerized",
 }
 LOG_TYPES = {"rucio", "evnt", "truth3", "coffea", "eventloop", "fastframes"}
-NTUPLE_JOBS = ["coffea", "eventloop-columnar", "eventloop-standard", "fastframes"]
 # UC steps that UC-ODF deliberately does not have
 STEPS_ALLOWED_TO_BE_MISSING = {"fastframes": {"$/.github/actions/setup-globus"}}
 
@@ -208,14 +207,24 @@ class TestScripts:
     def test_rucio_runs_the_odf_site(self, odf_jobs):
         assert execute_command(odf_jobs["rucio"]) == ["./Rucio/rucio_script.sh", "odf"]
 
-    @pytest.mark.parametrize("job", NTUPLE_JOBS)
-    def test_ntuple_jobs_receive_their_directories(self, job, odf_jobs):
-        execute_step = next(
-            t for label, t in split_steps(odf_jobs[job]) if label == "execute"
-        )
-        assert "NTUPLE_DIR: ${{ vars.UC_ODF_NTUPLE_DIR }}" in execute_step
-        if job == "fastframes":
-            assert "FF_DIR: ${{ vars.UC_ODF_FF_DIR }}" in execute_step
+
+class TestDataDirectories:
+    # The runner mounts a persistent volume at /data/af-benchmarking, which is
+    # where the ntuples are staged and FastFrames is built
+    HEADER = ODF_TEXT.split("\njobs:\n", 1)[0]
+
+    def test_directories_are_set_once_for_the_whole_workflow(self):
+        assert "\nenv:\n" in self.HEADER
+        assert "  NTUPLE_DIR: /data/af-benchmarking/mc20e_ntuples\n" in self.HEADER
+        assert "  FF_DIR: /data/af-benchmarking/FastFramesTutorial\n" in self.HEADER
+
+    def test_jobs_do_not_override_them(self, odf_jobs):
+        for text in odf_jobs.values():
+            assert "NTUPLE_DIR" not in text
+            assert "FF_DIR" not in text
+
+    def test_no_repository_variables_are_needed(self):
+        assert "vars." not in ODF_TEXT
 
 
 class TestFastframesBuildStep:
@@ -227,7 +236,6 @@ class TestFastframesBuildStep:
         assert labels.index("build FastFrames") < labels.index("execute")
         build_step = steps["build FastFrames"]
         assert "run: ./NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh" in build_step
-        assert "FF_DIR: ${{ vars.UC_ODF_FF_DIR }}" in build_step
 
     def test_only_the_fastframes_job_builds(self, odf_jobs):
         for job, text in odf_jobs.items():
