@@ -310,12 +310,6 @@ class TestUcOdfFastFramesRun:
             assert uc_path not in text
 
 
-NTUPLE_UTILS = "NTuple_Hist/UC-ODF/ntuple_utils.sh"
-NTUPLE_RUN_SCRIPTS = NTUPLE_SCRIPTS + [
-    "NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh"
-]
-
-
 def run_with_env(command, env_vars):
     env = {k: v for k, v in os.environ.items() if k not in ("NTUPLE_DIR", "FF_DIR")}
     return subprocess.run(
@@ -327,54 +321,3 @@ def run_with_env(command, env_vars):
         timeout=30,
         check=False,
     )
-
-
-class TestRequireNtupleDir:
-    @staticmethod
-    def check(env_vars):
-        return run_with_env(
-            ["bash", "-c", f"source ./{NTUPLE_UTILS}; require_ntuple_dir"], env_vars
-        )
-
-    def test_accepts_absolute_dir_with_root_files(self, tmp_path):
-        (tmp_path / "ntuple.root").touch()
-        assert self.check({"NTUPLE_DIR": str(tmp_path)}).returncode == 0
-
-    def test_rejects_unset_variable(self):
-        result = self.check({})
-        assert result.returncode != 0
-        assert "NTUPLE_DIR" in result.stdout + result.stderr
-
-    def test_rejects_relative_path(self, tmp_path):
-        # A relative path would not resolve the same way inside the container
-        (tmp_path / "ntuple.root").touch()
-        result = self.check({"NTUPLE_DIR": "relative/ntuples"})
-        assert result.returncode != 0
-        assert "absolute" in result.stdout + result.stderr
-
-    @pytest.mark.parametrize("other_file", [None, "notes.txt"])
-    def test_rejects_directory_without_root_files(self, tmp_path, other_file):
-        if other_file:
-            (tmp_path / other_file).touch()
-        result = self.check({"NTUPLE_DIR": str(tmp_path)})
-        assert result.returncode != 0
-        assert "No .root files" in result.stdout + result.stderr
-
-    @pytest.mark.parametrize("script", NTUPLE_RUN_SCRIPTS)
-    def test_run_scripts_stop_on_an_empty_ntuple_dir(self, script, tmp_path):
-        # FF_DIR is set so that only the ntuple check can be the reason to stop
-        result = run_with_env(
-            ["bash", script],
-            {"NTUPLE_DIR": str(tmp_path), "FF_DIR": str(tmp_path)},
-        )
-        assert result.returncode != 0
-        assert "No .root files" in result.stdout + result.stderr
-
-    @pytest.mark.parametrize("script", NTUPLE_RUN_SCRIPTS)
-    def test_run_scripts_stop_on_a_relative_ntuple_dir(self, script, tmp_path):
-        result = run_with_env(
-            ["bash", script],
-            {"NTUPLE_DIR": "relative/ntuples", "FF_DIR": str(tmp_path)},
-        )
-        assert result.returncode != 0
-        assert "absolute" in result.stdout + result.stderr

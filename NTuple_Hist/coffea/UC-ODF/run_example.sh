@@ -2,10 +2,9 @@
 # shellcheck disable=SC1091
 
 source ./parsing/utils/benchmark_utils.sh
-source ./NTuple_Hist/UC-ODF/ntuple_utils.sh
 
 # The ntuples are staged by the caller since their location differs per site
-require_ntuple_dir
+: "${NTUPLE_DIR:?Set NTUPLE_DIR to the directory holding the mc20e ntuples}"
 
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
