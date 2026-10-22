@@ -18,12 +18,14 @@ WORKFLOWS = REPO_ROOT / ".github" / "workflows"
 ODF_TEXT = (WORKFLOWS / "uc-odf.yml").read_text()
 UC_TEXT = (WORKFLOWS / "uchicago.yml").read_text()
 
-# UC has the same jobs plus evnt-native and truth3-native, which cannot run on
-# the Ubuntu UC-ODF hosts
+# The same jobs, in the same order, as uchicago.yml. The runner image is
+# AlmaLinux 9, so the native jobs run there as they do at UC.
 ODF_JOBS = [
     "rucio",
+    "evnt-native",
     "evnt-el9",
     "evnt-centos7",
+    "truth3-native",
     "truth3-el9",
     "truth3-centos7",
     "coffea",
@@ -31,6 +33,12 @@ ODF_JOBS = [
     "eventloop-standard",
     "fastframes",
 ]
+# Scripts the UC-ODF workflow runs that are not UC-ODF copies
+SHARED_SCRIPTS = {
+    "./Rucio/rucio_script.sh",
+    "./EVNT/UC/Native/run_evnt_native_batch.sh",
+    "./TRUTH3/UC/Native/run_truth3_native_batch.sh",
+}
 REQUIRED_PARSE_INPUTS = {
     "job",
     "log-file",
@@ -135,9 +143,9 @@ class TestTriggersAndRunner:
     def test_no_placeholder_note_is_left(self):
         assert "PLACEHOLDER" not in ODF_TEXT
 
-    def test_job_set_is_ucs_minus_the_native_jobs(self, odf_jobs, uc_jobs):
+    def test_job_set_is_the_same_as_ucs(self, odf_jobs, uc_jobs):
         assert list(odf_jobs) == ODF_JOBS
-        assert set(uc_jobs) - set(odf_jobs) == {"evnt-native", "truth3-native"}
+        assert list(odf_jobs) == list(uc_jobs)
 
 
 class TestParityWithUcWorkflow:
@@ -191,7 +199,10 @@ class TestParseInputs:
         inputs = parse_inputs(odf_jobs[job])
         assert REQUIRED_PARSE_INPUTS <= inputs.keys()
         assert inputs["cluster"] == "UC-ODF"
-        assert inputs["containerized"] == "true"
+        # Only the native jobs run outside a container
+        assert inputs["containerized"] == (
+            "false" if job.endswith("-native") else "true"
+        )
         assert inputs["os"] in {"alma9", "centos7"}
         assert inputs["log-type"] in LOG_TYPES
         assert re.fullmatch(r"[a-z0-9_-]+", inputs["job"])
@@ -211,7 +222,7 @@ class TestScripts:
         path = REPO_ROOT / script
         assert path.is_file()
         assert os.access(path, os.X_OK)
-        assert "UC-ODF" in script or script == "./Rucio/rucio_script.sh"
+        assert "UC-ODF" in script or script in SHARED_SCRIPTS
 
     def test_rucio_runs_the_odf_site(self, odf_jobs):
         assert execute_command(odf_jobs["rucio"]) == ["./Rucio/rucio_script.sh", "odf"]
@@ -257,11 +268,36 @@ class TestFastframesIsPrebuilt:
         assert "execute" in labels
 
 
+class TestNativeJobsAreUcs:
+    # The native scripts use only relative paths and CVMFS, so the UC ones run
+    # unchanged on the AlmaLinux 9 runner: no UC-ODF copy is needed
+    @pytest.mark.parametrize("job", ["evnt-native", "truth3-native"])
+    def test_job_is_ucs_apart_from_runner_and_cluster(self, job, odf_jobs, uc_jobs):
+        def normalised(text):
+            return (
+                text.replace("arc-runner-set-uchicago", "RUNNER")
+                .replace("arc-runner-set-odf", "RUNNER")
+                .replace("UC-AF", "CLUSTER")
+                .replace("UC-ODF", "CLUSTER")
+            )
+
+        assert normalised(odf_jobs[job]) == normalised(uc_jobs[job])
+
+    @pytest.mark.parametrize("job", ["evnt-native", "truth3-native"])
+    def test_job_runs_ucs_native_script_and_is_not_containerized(self, job, odf_jobs):
+        assert execute_command(odf_jobs[job])[0] in SHARED_SCRIPTS
+        assert parse_inputs(odf_jobs[job])["containerized"] == "false"
+
+
 class TestNoUcLeftovers:
     def test_no_uc_cluster_or_uc_scripts(self):
         assert "UC-AF" not in ODF_TEXT
         assert "arc-runner-set-uchicago" not in ODF_TEXT
-        assert not re.findall(r"\./(?:EVNT|TRUTH3|NTuple_Hist/\w+)/UC/", ODF_TEXT)
+        uc_scripts = set(
+            re.findall(r"\./(?:EVNT|TRUTH3|NTuple_Hist/\w+)/UC/\S+", ODF_TEXT)
+        )
+        # Only the native scripts are shared with UC
+        assert uc_scripts <= SHARED_SCRIPTS
 
     def test_local_actions_exist(self):
         for action in set(re.findall(r"uses: \$/\.github/actions/(\S+)", ODF_TEXT)):

@@ -93,6 +93,54 @@ jobs:
           path: |
             rucio.log
 
+  evnt-native:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./EVNT/UC/Native/run_evnt_native_batch.sh
+        working-directory: .
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: evnt
+          log-file: log.generate
+          log-type: evnt
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: alma9
+          mode: batch
+          containerized: "false"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            log.generate
+
   evnt-el9:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
@@ -188,6 +236,54 @@ jobs:
           name: ${{ github.job }}-logs
           path: |
             log.generate
+
+  truth3-native:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./TRUTH3/UC/Native/run_truth3_native_batch.sh
+        working-directory: .
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: truth3
+          log-file: log.Derivation
+          log-type: truth3
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: alma9
+          mode: batch
+          containerized: "false"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            log.Derivation
 
   truth3-el9:
     if:
