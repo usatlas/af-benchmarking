@@ -1,10 +1,16 @@
 """Tests for fetching the FastFrames sources before the UC-ODF build."""
 
+import fcntl
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
 import pytest
+
+requires_flock = pytest.mark.skipif(
+    shutil.which("flock") is None, reason="needs flock from util-linux (Linux)"
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FASTFRAMES_DIR = REPO_ROOT / "NTuple_Hist" / "fastframes"
@@ -123,6 +129,18 @@ class TestFetchFastframesSources:
             ODF_DIR / "TutorialClass" / "CMakeLists.txt"
         ).read_text()
 
+    def test_unchanged_sources_keep_their_timestamps(self, tmp_path, upstream):
+        # A fresh timestamp would make the build recompile and relink the
+        # library on every run, rewriting a file another run may be loading
+        url, (first, _) = upstream
+        ff_dir = tmp_path / "ff"
+        assert run_fetch(ff_dir, url, first).returncode == 0
+        copied = ff_dir / "TutorialClass" / "CMakeLists.txt"
+        os.utime(copied, (1_000_000_000, 1_000_000_000))
+
+        assert run_fetch(ff_dir, url, first).returncode == 0
+        assert copied.stat().st_mtime == 1_000_000_000
+
     def test_fails_when_an_existing_clone_is_at_another_commit(
         self, tmp_path, upstream
     ):
@@ -158,3 +176,99 @@ class TestBuildScriptFetchesSources:
         text = BUILD.read_text()
         assert "fetch_fastframes_sources.sh" in text
         assert text.index("fetch_fastframes_sources.sh") < text.index("atlasLocalSetup")
+
+
+@pytest.fixture
+def fake_atlas(tmp_path):
+    """A stand-in for ALRB whose setup script only records how it was called."""
+    root = tmp_path / "alrb"
+    (root / "user").mkdir(parents=True)
+    log = tmp_path / "setup.log"
+    (root / "user" / "atlasLocalSetup.sh").write_text(
+        f'echo "start $(date +%s.%N) $$" >> {log}\n'
+        f'echo "args $*" >> {log}\n'
+        f'echo "fastframes_present $([ -d "$FF_DIR/FastFrames/.git" ] && echo yes || echo no)" >> {log}\n'
+        "sleep ${FAKE_SETUP_SECONDS:-0}\n"
+        f'echo "end $(date +%s.%N) $$" >> {log}\n'
+    )
+    return root, log
+
+
+def start_build(ff_dir, atlas_root, url, commit, **extra_env):
+    return subprocess.Popen(
+        ["bash", str(BUILD)],
+        cwd=REPO_ROOT,
+        env={
+            **os.environ,
+            "FF_DIR": str(ff_dir),
+            "ATLAS_LOCAL_ROOT_BASE": str(atlas_root),
+            "FASTFRAMES_URL": str(url),
+            "FASTFRAMES_COMMIT": commit,
+            **extra_env,
+        },
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+
+
+@requires_flock
+class TestBuildScriptRun:
+    def test_fetches_before_starting_the_container(
+        self, tmp_path, upstream, fake_atlas
+    ):
+        url, (first, _) = upstream
+        root, log = fake_atlas
+        ff_dir = tmp_path / "ff"
+
+        process = start_build(ff_dir, root, url, first)
+        _, stderr = process.communicate(timeout=60)
+
+        assert process.returncode == 0, stderr
+        recorded = log.read_text()
+        assert "fastframes_present yes" in recorded
+        assert "-c el9" in recorded
+        assert f"-m {ff_dir}" in recorded
+        assert "asetup StatAnalysis,0.6.3" in recorded
+
+    def test_concurrent_builds_take_turns(self, tmp_path, upstream, fake_atlas):
+        # Runs share the volume, so two builds must not write the tree at once
+        url, (first, _) = upstream
+        root, log = fake_atlas
+        ff_dir = tmp_path / "ff"
+        processes = [
+            start_build(ff_dir, root, url, first, FAKE_SETUP_SECONDS="1")
+            for _ in range(2)
+        ]
+        for process in processes:
+            _, stderr = process.communicate(timeout=60)
+            assert process.returncode == 0, stderr
+
+        events = [line.split() for line in log.read_text().splitlines()]
+        spans = sorted(
+            (float(start[1]), float(end[1]))
+            for start, end in zip(
+                [e for e in events if e[0] == "start"],
+                [e for e in events if e[0] == "end"],
+                strict=True,
+            )
+        )
+        assert len(spans) == 2
+        # The second build starts only after the first has finished
+        assert spans[1][0] >= spans[0][1]
+
+    def test_gives_up_if_another_build_holds_the_lock_too_long(
+        self, tmp_path, upstream, fake_atlas
+    ):
+        url, (first, _) = upstream
+        root, log = fake_atlas
+        ff_dir = tmp_path / "ff"
+        ff_dir.mkdir()
+        with (ff_dir / ".build.lock").open("w") as held:
+            fcntl.flock(held, fcntl.LOCK_EX)
+            process = start_build(ff_dir, root, url, first, BUILD_LOCK_TIMEOUT="1")
+            _, stderr = process.communicate(timeout=60)
+
+        assert process.returncode != 0
+        assert "Timed out" in stderr
+        assert not log.exists()

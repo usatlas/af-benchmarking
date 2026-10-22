@@ -30,7 +30,15 @@ if [[ "${current}" != "${fastframes_commit}" ]]; then
   exit 1
 fi
 
-# Copied on every run so that edits in the repo reach the build. The copy has
-# new timestamps, so only this small library is recompiled, not FastFrames.
+# Edits in the repo reach the build, but only files whose content changed are
+# copied. A plain copy gives every file a new timestamp, which would recompile
+# and relink the library on every run, rewriting a file that another run on
+# this shared volume may be loading.
 mkdir -p "${FF_DIR}/TutorialClass"
-cp -R "${script_dir}/TutorialClass/." "${FF_DIR}/TutorialClass/"
+(cd "${script_dir}/TutorialClass" && find . -type f -print0) |
+  while IFS= read -r -d '' file; do
+    if ! cmp -s "${script_dir}/TutorialClass/${file}" "${FF_DIR}/TutorialClass/${file}"; then
+      mkdir -p "$(dirname -- "${FF_DIR}/TutorialClass/${file}")"
+      cp "${script_dir}/TutorialClass/${file}" "${FF_DIR}/TutorialClass/${file}"
+    fi
+  done

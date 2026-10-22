@@ -13,14 +13,28 @@
 # tree, only what changed is rebuilt.
 # JOBS sets the compile parallelism (default 1): the C++ templates in
 # RDataFrame code can need several GB per compiler process.
+# BUILD_LOCK_TIMEOUT is how many seconds to wait for another build (default 3600).
 
 : "${FF_DIR:?Set FF_DIR to the directory to build the FastFramesTutorial tree in}"
 jobs="${JOBS:-1}"
+lock_timeout="${BUILD_LOCK_TIMEOUT:-3600}"
+
+command -v flock > /dev/null || { echo "flock (util-linux) is required" >&2; exit 1; }
+
+# Runs share this volume, so only one may fetch and build at a time; the others
+# wait here and then find the tree already built. The lock is released when
+# this script exits, even if it is killed.
+mkdir -p "${FF_DIR}"
+exec 9>> "${FF_DIR}/.build.lock"
+if ! flock -w "${lock_timeout}" 9; then
+  echo "Timed out after ${lock_timeout}s waiting for another FastFrames build in ${FF_DIR}" >&2
+  exit 1
+fi
 
 # Fetched on the host, which is where the network access is
 "$(dirname -- "${BASH_SOURCE[0]}")"/fetch_fastframes_sources.sh || exit 1
 
-export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
+export ATLAS_LOCAL_ROOT_BASE="${ATLAS_LOCAL_ROOT_BASE:-/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase}"
 
 # Sets up the container:
 ## -c : used to make a container followed by the OS we want to use
