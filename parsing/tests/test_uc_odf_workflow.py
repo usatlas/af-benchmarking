@@ -119,20 +119,22 @@ def execute_command(job_text):
 
 
 class TestTriggersAndRunner:
-    def test_triggers_are_manual_and_pull_requests_to_main(self):
-        # Pull requests are how the workflow is tested before it is on main, and
-        # their runs skip the Kibana upload. No schedule yet.
+    def test_triggers_are_ucs_and_nothing_else(self):
+        # Pull requests also test the workflow before it is on main, and their
+        # runs skip the Kibana upload
         triggers = ODF_TEXT.split("\njobs:\n", 1)[0].split("\nconcurrency:", 1)[0]
-        assert "workflow_dispatch:" in triggers
-        assert "  pull_request:\n    branches:\n      - main\n" in triggers
-        for unwanted in ("schedule:", "push:"):
-            assert unwanted not in triggers
+        names = set(re.findall(r"^  ([a-z_]+):", triggers, re.M))
+        assert names == {"pull_request", "schedule", "workflow_dispatch"}
 
-    def test_pull_request_trigger_matches_uc(self):
-        def pull_request_block(text):
-            return re.search(r"^  pull_request:\n(?:    .+\n)+", text, re.M).group(0)
+    @pytest.mark.parametrize("trigger", ["pull_request", "schedule"])
+    def test_trigger_is_identical_to_uc(self, trigger):
+        def block(text):
+            return re.search(rf"^  {trigger}:\n(?:    .+\n)+", text, re.M).group(0)
 
-        assert pull_request_block(ODF_TEXT) == pull_request_block(UC_TEXT)
+        assert block(ODF_TEXT) == block(UC_TEXT)
+
+    def test_schedule_runs_every_six_hours(self):
+        assert '    - cron: "0 */6 * * *"\n' in ODF_TEXT
 
     def test_all_jobs_use_the_uc_odf_runner(self, odf_jobs):
         runners = {
