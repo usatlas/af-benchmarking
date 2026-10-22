@@ -108,7 +108,7 @@ jobs:
         run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
-        run: ./EVNT/UC/Native/run_evnt_native_batch.sh
+        run: ./EVNT/UC-ODF/Native_i/run_evnt_native_interactive.sh
         working-directory: .
         shell: bash
 
@@ -252,7 +252,7 @@ jobs:
         run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
-        run: ./TRUTH3/UC/Native/run_truth3_native_batch.sh
+        run: ./TRUTH3/UC-ODF/Native_i/run_truth3_native_interactive.sh
         working-directory: .
         shell: bash
 

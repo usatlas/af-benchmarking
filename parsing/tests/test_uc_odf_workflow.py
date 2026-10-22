@@ -33,12 +33,6 @@ ODF_JOBS = [
     "eventloop-standard",
     "fastframes",
 ]
-# Scripts the UC-ODF workflow runs that are not UC-ODF copies
-SHARED_SCRIPTS = {
-    "./Rucio/rucio_script.sh",
-    "./EVNT/UC/Native/run_evnt_native_batch.sh",
-    "./TRUTH3/UC/Native/run_truth3_native_batch.sh",
-}
 REQUIRED_PARSE_INPUTS = {
     "job",
     "log-file",
@@ -224,7 +218,7 @@ class TestScripts:
         path = REPO_ROOT / script
         assert path.is_file()
         assert os.access(path, os.X_OK)
-        assert "UC-ODF" in script or script in SHARED_SCRIPTS
+        assert "UC-ODF" in script or script == "./Rucio/rucio_script.sh"
 
     def test_rucio_runs_the_odf_site(self, odf_jobs):
         assert execute_command(odf_jobs["rucio"]) == ["./Rucio/rucio_script.sh", "odf"]
@@ -269,14 +263,33 @@ class TestFastframesIsPrebuilt:
         assert "execute" in labels
 
 
-class TestNativeJobsAreUcs:
-    # The native scripts use only relative paths and CVMFS, so the UC ones run
-    # unchanged on the AlmaLinux 9 runner: no UC-ODF copy is needed
-    @pytest.mark.parametrize("job", ["evnt-native", "truth3-native"])
-    def test_job_is_ucs_apart_from_runner_and_cluster(self, job, odf_jobs, uc_jobs):
+NATIVE_SCRIPTS = {
+    "evnt-native": (
+        "./EVNT/UC-ODF/Native_i/run_evnt_native_interactive.sh",
+        "./EVNT/UC/Native/run_evnt_native_batch.sh",
+    ),
+    "truth3-native": (
+        "./TRUTH3/UC-ODF/Native_i/run_truth3_native_interactive.sh",
+        "./TRUTH3/UC/Native/run_truth3_native_batch.sh",
+    ),
+}
+
+
+class TestNativeJobsMatchUc:
+    # The runner image is AlmaLinux 9, so the native jobs run there as at UC.
+    # They run UC-ODF copies of UC's native scripts.
+    @pytest.mark.parametrize("job", NATIVE_SCRIPTS)
+    def test_job_is_ucs_apart_from_runner_cluster_and_script_path(
+        self, job, odf_jobs, uc_jobs
+    ):
+        odf_script, uc_script = NATIVE_SCRIPTS[job]
+
         def normalised(text):
+            # The script paths go first: they contain "UC-ODF"
             return (
-                text.replace("arc-runner-set-uchicago", "RUNNER")
+                text.replace(odf_script, "SCRIPT")
+                .replace(uc_script, "SCRIPT")
+                .replace("arc-runner-set-uchicago", "RUNNER")
                 .replace("arc-runner-set-odf", "RUNNER")
                 .replace("UC-AF", "CLUSTER")
                 .replace("UC-ODF", "CLUSTER")
@@ -284,9 +297,9 @@ class TestNativeJobsAreUcs:
 
         assert normalised(odf_jobs[job]) == normalised(uc_jobs[job])
 
-    @pytest.mark.parametrize("job", ["evnt-native", "truth3-native"])
-    def test_job_runs_ucs_native_script_and_is_not_containerized(self, job, odf_jobs):
-        assert execute_command(odf_jobs[job])[0] in SHARED_SCRIPTS
+    @pytest.mark.parametrize("job", NATIVE_SCRIPTS)
+    def test_job_runs_the_odf_copy_and_is_not_containerized(self, job, odf_jobs):
+        assert execute_command(odf_jobs[job])[0] == NATIVE_SCRIPTS[job][0]
         assert parse_inputs(odf_jobs[job])["containerized"] == "false"
 
 
@@ -294,11 +307,7 @@ class TestNoUcLeftovers:
     def test_no_uc_cluster_or_uc_scripts(self):
         assert "UC-AF" not in ODF_TEXT
         assert "arc-runner-set-uchicago" not in ODF_TEXT
-        uc_scripts = set(
-            re.findall(r"\./(?:EVNT|TRUTH3|NTuple_Hist/\w+)/UC/\S+", ODF_TEXT)
-        )
-        # Only the native scripts are shared with UC
-        assert uc_scripts <= SHARED_SCRIPTS
+        assert not re.findall(r"\./(?:EVNT|TRUTH3|NTuple_Hist/\w+)/UC/", ODF_TEXT)
 
     def test_local_actions_exist(self):
         for action in set(re.findall(r"uses: \$/\.github/actions/(\S+)", ODF_TEXT)):

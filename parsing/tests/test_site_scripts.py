@@ -57,6 +57,8 @@ class TestUcOdfEvntScripts:
         [
             "EVNT/UC-ODF/EL9_i/run_evnt_el9_interactive.sh",
             "EVNT/UC-ODF/CentOS7_i/run_evnt_centos7_interactive.sh",
+            "EVNT/UC-ODF/Native_i/run_evnt_native_interactive.sh",
+            "TRUTH3/UC-ODF/Native_i/run_truth3_native_interactive.sh",
         ],
     )
     def test_script_is_executable_and_valid_bash(self, script):
@@ -65,6 +67,33 @@ class TestUcOdfEvntScripts:
         assert os.access(path, os.X_OK)
         # -n parses the script without running it
         subprocess.run(["bash", "-n", str(path)], check=True)
+
+
+class TestUcOdfNativeScripts:
+    @pytest.mark.parametrize(
+        ("odf_script", "uc_script"),
+        [
+            (
+                "EVNT/UC-ODF/Native_i/run_evnt_native_interactive.sh",
+                "EVNT/UC/Native/run_evnt_native_batch.sh",
+            ),
+            (
+                "TRUTH3/UC-ODF/Native_i/run_truth3_native_interactive.sh",
+                "TRUTH3/UC/Native/run_truth3_native_batch.sh",
+            ),
+        ],
+    )
+    def test_copy_matches_ucs_script(self, odf_script, uc_script):
+        # The two copies must not drift apart. Only shellcheck directives, which
+        # the hooks need in the copy, may differ.
+        def code(path):
+            return [
+                line
+                for line in (REPO_ROOT / path).read_text().splitlines()
+                if not line.startswith("# shellcheck")
+            ]
+
+        assert code(odf_script) == code(uc_script)
 
 
 class TestUcOdfNtupleScripts:
