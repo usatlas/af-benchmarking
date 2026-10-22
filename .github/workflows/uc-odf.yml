@@ -1,7 +1,7 @@
 name: uc-odf
 on:
-  # Manual only until the UC-ODF runner exists. Then add the pull_request and
-  # schedule triggers that uchicago.yml has.
+  # Manual only for now. The pull_request and schedule triggers that
+  # uchicago.yml has can be added here once a manual run has passed.
   workflow_dispatch:
 
 concurrency:
@@ -11,14 +11,12 @@ concurrency:
 permissions:
   contents: read
 
-# PLACEHOLDER: arc-runner-set-uc-odf is not a registered runner yet. Replace it
-# in every job once the UC-ODF runner label exists.
 jobs:
   rucio:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
       || github.event.pull_request.head.repo.fork == false)
-    runs-on: arc-runner-set-uc-odf
+    runs-on: arc-runner-set-odf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -89,7 +87,7 @@ jobs:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
       || github.event.pull_request.head.repo.fork == false)
-    runs-on: arc-runner-set-uc-odf
+    runs-on: arc-runner-set-odf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -137,7 +135,7 @@ jobs:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
       || github.event.pull_request.head.repo.fork == false)
-    runs-on: arc-runner-set-uc-odf
+    runs-on: arc-runner-set-odf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -185,7 +183,7 @@ jobs:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
       || github.event.pull_request.head.repo.fork == false)
-    runs-on: arc-runner-set-uc-odf
+    runs-on: arc-runner-set-odf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -233,7 +231,7 @@ jobs:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
       || github.event.pull_request.head.repo.fork == false)
-    runs-on: arc-runner-set-uc-odf
+    runs-on: arc-runner-set-odf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -281,7 +279,7 @@ jobs:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
       || github.event.pull_request.head.repo.fork == false)
-    runs-on: arc-runner-set-uc-odf
+    runs-on: arc-runner-set-odf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -332,7 +330,7 @@ jobs:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
       || github.event.pull_request.head.repo.fork == false)
-    runs-on: arc-runner-set-uc-odf
+    runs-on: arc-runner-set-odf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -382,7 +380,7 @@ jobs:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
       || github.event.pull_request.head.repo.fork == false)
-    runs-on: arc-runner-set-uc-odf
+    runs-on: arc-runner-set-odf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -432,7 +430,7 @@ jobs:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
       || github.event.pull_request.head.repo.fork == false)
-    runs-on: arc-runner-set-uc-odf
+    runs-on: arc-runner-set-odf
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

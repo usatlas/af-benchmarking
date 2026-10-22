@@ -108,12 +108,14 @@ class TestTriggersAndRunner:
         for unwanted in ("pull_request:", "schedule:", "push:"):
             assert unwanted not in triggers
 
-    def test_all_jobs_use_the_same_runner_that_is_not_ucs(self, odf_jobs):
+    def test_all_jobs_use_the_uc_odf_runner(self, odf_jobs):
         runners = {
             re.search(r"runs-on: (\S+)", text).group(1) for text in odf_jobs.values()
         }
-        assert len(runners) == 1
-        assert runners != {"arc-runner-set-uchicago"}
+        assert runners == {"arc-runner-set-odf"}
+
+    def test_no_placeholder_note_is_left(self):
+        assert "PLACEHOLDER" not in ODF_TEXT
 
     def test_job_set_is_ucs_minus_the_native_jobs(self, odf_jobs, uc_jobs):
         assert list(odf_jobs) == ODF_JOBS
