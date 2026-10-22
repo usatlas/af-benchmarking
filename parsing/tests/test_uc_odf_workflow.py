@@ -215,7 +215,11 @@ class TestDataDirectories:
 
     def test_directories_are_set_once_for_the_whole_workflow(self):
         assert "\nenv:\n" in self.HEADER
-        assert "  NTUPLE_DIR: /data/af-benchmarking/mc20e_ntuples\n" in self.HEADER
+        ntuple_dir = (
+            "/data/af-benchmarking/"
+            "user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root"
+        )
+        assert f"  NTUPLE_DIR: {ntuple_dir}\n" in self.HEADER
         assert "  FF_DIR: /data/af-benchmarking/FastFramesTutorial\n" in self.HEADER
 
     def test_jobs_do_not_override_them(self, odf_jobs):

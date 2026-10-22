@@ -15,7 +15,7 @@ permissions:
 # are staged there and FastFrames is prebuilt there by an administrator with
 # NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh; the jobs only read them.
 env:
-  NTUPLE_DIR: /data/af-benchmarking/mc20e_ntuples
+  NTUPLE_DIR: /data/af-benchmarking/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root
   FF_DIR: /data/af-benchmarking/FastFramesTutorial
 
 jobs:
