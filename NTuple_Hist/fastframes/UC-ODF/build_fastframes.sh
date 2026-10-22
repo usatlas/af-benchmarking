@@ -7,13 +7,18 @@
 # records absolute paths in the build tree and in the RPATH.
 #
 # Usage: FF_DIR=/path/to/FastFramesTutorial ./build_fastframes.sh
-# FF_DIR holds the FastFrames/ and TutorialClass/ source trees. The libraries
-# are installed under FF_DIR/install and FF_DIR/TutorialClass/install.
+# FF_DIR receives the FastFrames and TutorialClass sources (see
+# fetch_fastframes_sources.sh). The libraries are installed under
+# FF_DIR/install and FF_DIR/TutorialClass/install. Run again on an existing
+# tree, only what changed is rebuilt.
 # JOBS sets the compile parallelism (default 1): the C++ templates in
 # RDataFrame code can need several GB per compiler process.
 
-: "${FF_DIR:?Set FF_DIR to the FastFramesTutorial directory holding FastFrames/ and TutorialClass/}"
+: "${FF_DIR:?Set FF_DIR to the directory to build the FastFramesTutorial tree in}"
 jobs="${JOBS:-1}"
+
+# Fetched on the host, which is where the network access is
+"$(dirname -- "${BASH_SOURCE[0]}")"/fetch_fastframes_sources.sh || exit 1
 
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 

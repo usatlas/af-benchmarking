@@ -62,8 +62,18 @@ def split_steps(job_text):
     steps = []
     for chunk in chunks:
         match = re.match(r"(?:name: (.+)|uses: (\S+))", chunk)
-        steps.append((match.group(1) or match.group(2), chunk))
+        steps.append(
+            (match.group(1) or match.group(2), without_trailing_comments(chunk))
+        )
     return steps
+
+
+def without_trailing_comments(step_text):
+    """Drop the blank and comment lines after a step: they belong to the next."""
+    lines = step_text.split("\n")
+    while lines and (not lines[-1].strip() or lines[-1].startswith("      #")):
+        lines.pop()
+    return "\n".join(lines) + "\n"
 
 
 def step_with_inputs(step_text):
@@ -206,6 +216,22 @@ class TestScripts:
         assert "NTUPLE_DIR: ${{ vars.UC_ODF_NTUPLE_DIR }}" in execute_step
         if job == "fastframes":
             assert "FF_DIR: ${{ vars.UC_ODF_FF_DIR }}" in execute_step
+
+
+class TestFastframesBuildStep:
+    def test_fastframes_is_built_in_its_own_step_before_the_timed_run(self, odf_jobs):
+        # Building in a separate step keeps compile time out of the benchmark,
+        # whose start and end times are taken inside run_fastframes.sh
+        steps = dict(split_steps(odf_jobs["fastframes"]))
+        labels = list(steps)
+        assert labels.index("build FastFrames") < labels.index("execute")
+        build_step = steps["build FastFrames"]
+        assert "run: ./NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh" in build_step
+        assert "FF_DIR: ${{ vars.UC_ODF_FF_DIR }}" in build_step
+
+    def test_only_the_fastframes_job_builds(self, odf_jobs):
+        for job, text in odf_jobs.items():
+            assert ("build_fastframes.sh" in text) == (job == "fastframes")
 
 
 class TestNoUcLeftovers:

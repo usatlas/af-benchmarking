@@ -439,6 +439,15 @@ jobs:
       - name: Export node name
         run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
+      # Built in its own step so compile time stays out of the benchmark. The
+      # first run compiles into the persistent /data volume; later runs only
+      # rebuild what changed.
+      - name: build FastFrames
+        run: ./NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh
+        shell: bash
+        env:
+          FF_DIR: ${{ vars.UC_ODF_FF_DIR }}
+
       - name: execute
         run: ./NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh
         shell: bash
