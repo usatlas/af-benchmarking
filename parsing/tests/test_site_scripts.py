@@ -225,6 +225,21 @@ class TestUcOdfFastFramesRun:
         assert result.returncode != 0
         assert missing in result.stdout + result.stderr
 
+    def test_run_script_stops_if_fastframes_is_not_built(self, tmp_path):
+        # Otherwise the missing build only shows up deep inside the container
+        ntuples = tmp_path / "ntuples"
+        ntuples.mkdir()
+        (ntuples / "ntuple.root").touch()
+        empty_ff_dir = tmp_path / "ff"
+        empty_ff_dir.mkdir()
+
+        result = run_with_env(
+            ["bash", self.SCRIPT],
+            {"NTUPLE_DIR": str(ntuples), "FF_DIR": str(empty_ff_dir)},
+        )
+        assert result.returncode != 0
+        assert "build_fastframes.sh" in result.stdout + result.stderr
+
     def test_make_filelist_reproduces_uc_list_for_a_local_directory(self, tmp_path):
         uc_lines = UC_FILELIST.read_text().splitlines()
         for line in uc_lines:

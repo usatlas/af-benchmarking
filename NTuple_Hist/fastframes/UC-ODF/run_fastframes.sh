@@ -8,6 +8,14 @@ source ./NTuple_Hist/UC-ODF/ntuple_utils.sh
 require_ntuple_dir
 : "${FF_DIR:?Set FF_DIR to the built FastFramesTutorial directory (see build_fastframes.sh)}"
 
+# FastFrames is built once, by an administrator, and only run here
+for built_file in FastFrames/python/FastFrames.py TutorialClass/build/setup.sh TutorialClass/install/lib/libTutorialClass.so; do
+  if [[ ! -e "${FF_DIR}/${built_file}" ]]; then
+    echo "FastFrames is not built in ${FF_DIR} (missing ${built_file}); build it with NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh" >&2
+    exit 1
+  fi
+done
+
 # Holds the generated file list and the histograms FastFrames writes
 run_dir=./fastframes_run
 mkdir -p "${run_dir}"

@@ -11,8 +11,9 @@ concurrency:
 permissions:
   contents: read
 
-# Locations on the runner's persistent /data/af-benchmarking volume: the ntuples
-# are staged there and FastFrames is built there
+# Locations on the runner's persistent /data/af-benchmarking volume. The ntuples
+# are staged there and FastFrames is prebuilt there by an administrator with
+# NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh; the jobs only read them.
 env:
   NTUPLE_DIR: /data/af-benchmarking/mc20e_ntuples
   FF_DIR: /data/af-benchmarking/FastFramesTutorial
@@ -438,13 +439,6 @@ jobs:
 
       - name: Export node name
         run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
-
-      # Built in its own step so compile time stays out of the benchmark. The
-      # first run compiles into the persistent /data volume; later runs only
-      # rebuild what changed.
-      - name: build FastFrames
-        run: ./NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh
-        shell: bash
 
       - name: execute
         run: ./NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh

@@ -227,19 +227,21 @@ class TestDataDirectories:
         assert "vars." not in ODF_TEXT
 
 
-class TestFastframesBuildStep:
-    def test_fastframes_is_built_in_its_own_step_before_the_timed_run(self, odf_jobs):
-        # Building in a separate step keeps compile time out of the benchmark,
-        # whose start and end times are taken inside run_fastframes.sh
-        steps = dict(split_steps(odf_jobs["fastframes"]))
-        labels = list(steps)
-        assert labels.index("build FastFrames") < labels.index("execute")
-        build_step = steps["build FastFrames"]
-        assert "run: ./NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh" in build_step
+class TestFastframesIsPrebuilt:
+    # FastFrames is built once, by an administrator, in FF_DIR on the runner
+    # volume (see build_fastframes.sh). The workflow only runs it.
+    def test_no_job_builds_fastframes(self):
+        # Comments may point readers at the build script; steps may not run it
+        code = "\n".join(
+            line for line in ODF_TEXT.splitlines() if not line.lstrip().startswith("#")
+        )
+        assert "build_fastframes" not in code
+        assert "fetch_fastframes" not in code
 
-    def test_only_the_fastframes_job_builds(self, odf_jobs):
-        for job, text in odf_jobs.items():
-            assert ("build_fastframes.sh" in text) == (job == "fastframes")
+    def test_fastframes_job_has_no_build_step(self, odf_jobs):
+        labels = [label for label, _ in split_steps(odf_jobs["fastframes"])]
+        assert "build FastFrames" not in labels
+        assert "execute" in labels
 
 
 class TestNoUcLeftovers:
