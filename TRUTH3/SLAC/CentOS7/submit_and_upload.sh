@@ -7,8 +7,6 @@
 set -uo pipefail
 
 readonly AF_BENCH_DIR="/sdf/home/q/qlei/AF-Benchmarking"
-# shellcheck disable=SC1091
-source "${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh"
 
 readonly job_dir="/sdf/home/q/qlei/TRUTH3Job/container_centos"
 readonly sub_file="${AF_BENCH_DIR}/TRUTH3/SLAC/CentOS7/truth3_centos7_sub.sh"
@@ -36,23 +34,15 @@ fi
 cd "${job_dir}" || { echo "ERROR: could not cd into ${job_dir}"; exit 1; }
 rm -rf ./*
 
-echo "Submitting ${sub_file}"
-job_id=$(sbatch --wait --parsable "${sub_file}")
-sbatch_status=$?
-if [ "${sbatch_status}" -ne 0 ]; then
-  echo "ERROR: sbatch --wait failed (job ${job_id:-unknown}, exit ${sbatch_status})"
-  exit 1
-fi
-echo "Job ${job_id} completed."
-
-latest_dir=$(find_latest_output_dir "${log_base}" "${job_output_name}")
-
-"${AF_BENCH_DIR}/parsing/utils/parse_upload.sh" \
+# The shared wrapper submits, waits, picks this run's output directory and
+# uploads it. exec keeps fd 200 open, so the lock is held until it exits.
+exec "${AF_BENCH_DIR}/parsing/utils/submit_and_upload.sh" \
+  --sub-file "${sub_file}" \
+  --output-glob "${log_base}/*/${job_output_name}" \
+  --log-name "${log_output}" \
   --cluster "SLAC-AF" \
   --job "${pixi_job}" \
   --log-type "${pixi_log_type}" \
-  --log-file "${latest_dir}/${log_output}" \
   --os "${pixi_os}" \
   --mode "${pixi_mode}" \
-  --containerized "${pixi_containerized}" \
-  --output-dir "${latest_dir}"
+  --containerized "${pixi_containerized}"
