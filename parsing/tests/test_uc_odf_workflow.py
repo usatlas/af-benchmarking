@@ -255,14 +255,13 @@ class TestDataDirectories:
 
 class TestFastframesIsPrebuilt:
     # FastFrames is built once, by an administrator, in FF_DIR on the runner
-    # volume (see build_fastframes.sh). The workflow only runs it.
-    def test_no_job_builds_fastframes(self):
-        # Comments may point readers at the build script; steps may not run it
+    # volume. The workflow only runs it.
+    def test_no_job_builds_anything(self):
         code = "\n".join(
             line for line in ODF_TEXT.splitlines() if not line.lstrip().startswith("#")
         )
-        assert "build_fastframes" not in code
-        assert "fetch_fastframes" not in code
+        assert "cmake" not in code
+        assert "git clone" not in code
 
     def test_fastframes_job_has_no_build_step(self, odf_jobs):
         labels = [label for label, _ in split_steps(odf_jobs["fastframes"])]

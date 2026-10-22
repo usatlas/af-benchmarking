@@ -148,35 +148,6 @@ class TestRelocateFileset:
             module.relocate_fileset(dataset, tmp_path)
 
 
-class TestUcOdfFastFramesBuildScript:
-    SCRIPT = "NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh"
-
-    def test_script_is_executable_and_valid_bash(self):
-        path = REPO_ROOT / self.SCRIPT
-        assert path.is_file()
-        assert os.access(path, os.X_OK)
-        subprocess.run(["bash", "-n", str(path)], check=True)
-
-    def test_script_requires_ff_dir(self):
-        # Must stop at the FF_DIR check, before any ATLAS setup or compilation
-        env = {k: v for k, v in os.environ.items() if k != "FF_DIR"}
-        result = subprocess.run(
-            ["bash", self.SCRIPT],
-            cwd=REPO_ROOT,
-            env=env,
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )
-        assert result.returncode != 0
-        assert "FF_DIR" in result.stdout + result.stderr
-
-    def test_no_uc_specific_paths(self):
-        text = (REPO_ROOT / self.SCRIPT).read_text()
-        assert "/data/selbor" not in text
-
-
 FASTFRAMES_DIR = REPO_ROOT / "NTuple_Hist" / "fastframes"
 FASTFRAMES_ODF_DIR = FASTFRAMES_DIR / "UC-ODF"
 UC_FILELIST = FASTFRAMES_DIR / "UC" / "mc20e_filelist.txt"
@@ -237,8 +208,12 @@ class TestUcOdfFastFramesRun:
             ["bash", self.SCRIPT],
             {"NTUPLE_DIR": str(ntuples), "FF_DIR": str(empty_ff_dir)},
         )
+        output = result.stdout + result.stderr
         assert result.returncode != 0
-        assert "build_fastframes.sh" in result.stdout + result.stderr
+        assert "FastFrames is not built" in output
+        assert str(empty_ff_dir) in output
+        # The build recipe is not part of this repository any more
+        assert "build_fastframes.sh" not in output
 
     def test_make_filelist_reproduces_uc_list_for_a_local_directory(self, tmp_path):
         uc_lines = UC_FILELIST.read_text().splitlines()
