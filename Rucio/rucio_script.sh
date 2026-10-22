@@ -107,9 +107,9 @@ case "$site" in
 
         # Unlike the other SLAC jobs, this one runs directly on iana (no
         # sbatch/compute node involved) via container_el9's synchronous -r
-        # launch, so parse_upload.sh's fallback to $(hostname) (it only
-        # prefers hostname.txt, which nothing here writes) already reflects
-        # where it ran. Parse+upload only ever ran here for SLAC before via
+        # launch, so the hostname.txt container_el9 writes and
+        # parse_upload.sh's fallback to $(hostname) both name iana, where it
+        # ran. Parse+upload only ever ran here for SLAC before via
         # the now-retired external parsing_jobs/cron_parsing.sh; wire it in
         # directly instead.
         "${AF_BENCH_DIR}/parsing/utils/parse_upload.sh" \
