@@ -111,11 +111,20 @@ def execute_command(job_text):
 
 
 class TestTriggersAndRunner:
-    def test_manual_trigger_only(self):
+    def test_triggers_are_manual_and_pull_requests_to_main(self):
+        # Pull requests are how the workflow is tested before it is on main, and
+        # their runs skip the Kibana upload. No schedule yet.
         triggers = ODF_TEXT.split("\njobs:\n", 1)[0].split("\nconcurrency:", 1)[0]
         assert "workflow_dispatch:" in triggers
-        for unwanted in ("pull_request:", "schedule:", "push:"):
+        assert "  pull_request:\n    branches:\n      - main\n" in triggers
+        for unwanted in ("schedule:", "push:"):
             assert unwanted not in triggers
+
+    def test_pull_request_trigger_matches_uc(self):
+        def pull_request_block(text):
+            return re.search(r"^  pull_request:\n(?:    .+\n)+", text, re.M).group(0)
+
+        assert pull_request_block(ODF_TEXT) == pull_request_block(UC_TEXT)
 
     def test_all_jobs_use_the_uc_odf_runner(self, odf_jobs):
         runners = {

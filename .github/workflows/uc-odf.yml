@@ -1,7 +1,10 @@
 name: uc-odf
 on:
-  # Manual only for now. The pull_request and schedule triggers that
-  # uchicago.yml has can be added here once a manual run has passed.
+  pull_request:
+    branches:
+      - main
+  # The schedule trigger that uchicago.yml has can be added here once the runs
+  # are stable.
   workflow_dispatch:
 
 concurrency:
