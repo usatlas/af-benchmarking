@@ -77,6 +77,7 @@ pixi run -e kibana python parsing/scripts/...
 - [Flowchart](flowchart.md)
 - [UChicago Benchmarks](../uchicago/benchmarks.md)
 - [BNL Benchmarks](../bnl/benchmarks.md)
+- [SLAC Benchmarks](../slac/benchmarks.md)
 - [Parsing & Upload](parsing.md)
 - [CI Validation](ci.md)
 - [Documentation](documentation.md)
