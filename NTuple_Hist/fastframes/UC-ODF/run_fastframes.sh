@@ -3,17 +3,10 @@
 
 source ./parsing/utils/benchmark_utils.sh
 
-# Both are staged by the caller since their locations differ per site
+# Both are staged by the caller since their locations differ per site. FastFrames
+# is built once, by an administrator, and only run here.
 : "${NTUPLE_DIR:?Set NTUPLE_DIR to the directory holding the mc20e ntuples}"
 : "${FF_DIR:?Set FF_DIR to the directory holding the prebuilt FastFramesTutorial tree}"
-
-# FastFrames is built once, by an administrator, and only run here
-for built_file in FastFrames/python/FastFrames.py TutorialClass/build/setup.sh TutorialClass/install/lib/libTutorialClass.so; do
-  if [[ ! -e "${FF_DIR}/${built_file}" ]]; then
-    echo "FastFrames is not built in ${FF_DIR} (missing ${built_file}); it must be built there before this job runs" >&2
-    exit 1
-  fi
-done
 
 # Holds the generated file list and the histograms FastFrames writes
 run_dir=./fastframes_run
