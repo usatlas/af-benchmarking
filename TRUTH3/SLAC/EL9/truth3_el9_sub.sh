@@ -20,7 +20,7 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 export ALRB_CONT_CMDOPTS="-B /sdf"
 
-export ALRB_CONT_RUNPAYLOAD="source /sdf/home/s/selbor/AF-Benchmarking/TRUTH3/SLAC/EL9/run_truth3_el9_container.sh"
+export ALRB_CONT_RUNPAYLOAD="source /sdf/home/q/qlei/AF-Benchmarking/TRUTH3/SLAC/EL9/run_truth3_el9_container.sh"
 
 # shellcheck disable=SC1091
 source $ATLAS_LOCAL_ROOT_BASE/user/atlasLocalSetup.sh -c el9

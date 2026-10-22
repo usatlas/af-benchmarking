@@ -206,14 +206,13 @@ class TestRucioContainerFunction:
         body = text.split("container_el9 (){", 1)[1].split("\n}\n", 1)[0]
         assert 'hostname > "${3}/hostname.txt"' in body
 
-    def test_nersc_branch_sources_benchmark_utils(self):
-        # append_benchmark runs inside container_el9, so the case branch must
-        # source it before the call. $HOME because the sub file cds into Rucio/.
+    def test_sources_benchmark_utils_before_any_site_branch(self):
+        # append_benchmark runs inside container_el9, so every site needs
+        # benchmark_utils.sh loaded before its case branch calls it.
         text = (REPO / "Rucio" / "rucio_script.sh").read_text()
-        branch = text.split("\n    nersc)", 1)[1].split(";;", 1)[0]
-        assert (
-            'source "$HOME"/AF-Benchmarking/parsing/utils/benchmark_utils.sh' in branch
-        )
+        source = 'source "${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh"'
+        assert source in text
+        assert text.index(source) < text.index('case "$site" in')
 
     def test_nersc_branch_mounts_global(self):
         # voms-proxy-init reads ~/.globus and the log is moved under $HOME;

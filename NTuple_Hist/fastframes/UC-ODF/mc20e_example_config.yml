@@ -1,0 +1,55 @@
+general:
+  debug_level: DEBUG
+
+  # Paths
+  # The file list is generated from NTUPLE_DIR by run_fastframes.sh
+  input_filelist_path: "./fastframes_run/mc20e_filelist.txt"
+  input_sumweights_path: "./NTuple_Hist/fastframes/mc20e_sumweights.txt"
+  output_path_histograms: "./fastframes_run/"
+
+  # Weights
+  default_sumweights: "NOSYS"
+  default_event_weights: "weight_mc_NOSYS * weight_pileup_NOSYS"
+
+  default_reco_tree_name: "analysis"
+
+  # path to the file with cross-sections
+  xsection_files:
+    - files:
+        [
+          "/cvmfs/atlas.cern.ch/repo/sw/database/GroupData/dev/PMGTools/PMGxsecDB_mc16.txt",
+        ]
+      campaigns: ["mc20e"]
+
+  # name of the custom class
+  custom_frame_name: "TutorialClass"
+
+  # automatic systematics?
+  automatic_systematics: True
+  nominal_only: False
+
+  # Which objects to create lorentz vectors for
+  create_tlorentz_vectors_for: ["ph"]
+
+  number_of_cpus: 1
+
+# Define regions
+regions:
+  - name: "Muon"
+    selection: "true"
+    variables:
+      - name: "ph_pt"
+        title: "p_{T}; p_{T} [GeV];Events"
+        definition: "ph1_pt1_NOSYS"
+        type: "double"
+        binning:
+          min: 0
+          max: 1000
+          number_of_bins: 100
+
+# define samples
+samples:
+  - name: "example_FS"
+    dsids: [700402]
+    campaigns: ["mc20e"]
+    simulation_type: "fullsim"
