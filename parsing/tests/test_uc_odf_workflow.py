@@ -131,6 +131,16 @@ class TestParityWithUcWorkflow:
         assert condition(odf_jobs[job]) == condition(uc_jobs[job])
 
     @pytest.mark.parametrize("job", ODF_JOBS)
+    def test_export_node_name_step_is_identical_to_uc(self, job, odf_jobs, uc_jobs):
+        # The UC-ODF runner sets NODE_NAME from the node name, like UC's runner
+        def export_step(text):
+            return next(
+                step for label, step in split_steps(text) if label == "Export node name"
+            )
+
+        assert export_step(odf_jobs[job]) == export_step(uc_jobs[job])
+
+    @pytest.mark.parametrize("job", ODF_JOBS)
     def test_every_uc_step_is_kept_in_order(self, job, odf_jobs, uc_jobs):
         odf_labels = [label for label, _ in split_steps(odf_jobs[job])]
         uc_labels = [

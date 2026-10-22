@@ -23,7 +23,7 @@ jobs:
           persist-credentials: false
 
       - name: Export node name
-        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - uses: $/.github/actions/setup-globus
         with:
@@ -94,7 +94,7 @@ jobs:
           persist-credentials: false
 
       - name: Export node name
-        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./EVNT/UC-ODF/EL9_i/run_evnt_el9_interactive.sh
@@ -142,7 +142,7 @@ jobs:
           persist-credentials: false
 
       - name: Export node name
-        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./EVNT/UC-ODF/CentOS7_i/run_evnt_centos7_interactive.sh
@@ -190,7 +190,7 @@ jobs:
           persist-credentials: false
 
       - name: Export node name
-        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./TRUTH3/UC-ODF/EL9_i/run_truth3_el9_interactive.sh
@@ -238,7 +238,7 @@ jobs:
           persist-credentials: false
 
       - name: Export node name
-        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./TRUTH3/UC-ODF/CentOS7_i/run_truth3_centos7_interactive.sh
@@ -286,7 +286,7 @@ jobs:
           persist-credentials: false
 
       - name: Export node name
-        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./NTuple_Hist/coffea/UC-ODF/run_example.sh
@@ -337,7 +337,7 @@ jobs:
           persist-credentials: false
 
       - name: Export node name
-        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./NTuple_Hist/event_loop/UC-ODF/columnar/run_eventloop_arrays.sh
@@ -387,7 +387,7 @@ jobs:
           persist-credentials: false
 
       - name: Export node name
-        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./NTuple_Hist/event_loop/UC-ODF/standard/run_eventloop_noarrays.sh
@@ -437,7 +437,7 @@ jobs:
           persist-credentials: false
 
       - name: Export node name
-        run: echo "NODE_NAME=${NODE_NAME:-$(hostname)}" >> "$GITHUB_ENV"
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
 
       - name: execute
         run: ./NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh
