@@ -3,6 +3,7 @@
 Contains benchmarking scripts used at the Tier 3 Analysis Facilities:
 
 - [UChicago](https://github.com/usatlas/af-benchmarking?tab=readme-ov-file#uchicago)
+- [UC-ODF](https://usatlas.github.io/af-benchmarking/uc-odf/benchmarks/)
 - [SLAC](https://github.com/usatlas/af-benchmarking#slac)
 - [BNL](https://github.com/usatlas/af-benchmarking#bnl)
 
