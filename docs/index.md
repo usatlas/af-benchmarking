@@ -2,7 +2,7 @@
 
 Series of jobs that run at NERSC and the
 [Tier 3 Analysis Facilities](https://usatlas.github.io/af-docs/): UChicago,
-SLAC, BNL. The jobs used to benchmark are:
+UC-ODF, SLAC, BNL. The jobs used to benchmark are:
 
 ## Rucio Download:
 
@@ -24,6 +24,8 @@ SLAC, BNL. The jobs used to benchmark are:
 
 [Script used at the SLAC AF](https://github.com/usatlas/af-benchmarking/blob/main/EVNT/SLAC/EL9/run_evnt_el_container.sh)
 
+[Script used at the UC-ODF AF](https://github.com/usatlas/af-benchmarking/blob/main/EVNT/UC-ODF/EL9_i/run_evnt_el9_interactive.sh)
+
 ## TRUTH3:
 
 [Documentation for TRUTH3 Derivation](https://atlas-software.docs.cern.ch/analysis/analysis_tutorial/AnalysisSWTutorial/mc_truth_derivation/)
@@ -34,6 +36,8 @@ SLAC, BNL. The jobs used to benchmark are:
 
 [Script used at the SLAC AF](https://github.com/usatlas/af-benchmarking/blob/main/TRUTH3/SLAC/EL9/run_truth3_el9_container.sh)
 
+[Script used at the UC-ODF AF](https://github.com/usatlas/af-benchmarking/blob/main/TRUTH3/UC-ODF/EL9_i/run_truth3_el9_interactive.sh)
+
 ## Ntuple -> Histogram:
 
 [Coffea](https://coffea-hep.readthedocs.io/en/latest/index.html) |
@@ -42,6 +46,8 @@ SLAC, BNL. The jobs used to benchmark are:
 [Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/coffea/BNL/run_example.sh)
 |
 [Script used at the SLAC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/coffea/SLAC/run_example.sh)
+|
+[Script used at the UC-ODF AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/coffea/UC-ODF/run_example.sh)
 
 [FastFrames](https://atlas-project-topreconstruction.web.cern.ch/fastframesdocumentation/latest/)
 |
@@ -50,6 +56,8 @@ SLAC, BNL. The jobs used to benchmark are:
 [Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/fastframes/BNL/run_fastframes.sh)
 |
 [Script used at the SLAC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/fastframes/SLAC/run_fastframes.sh)
+|
+[Script used at the UC-ODF AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh)
 
 [EventLoop (columnar)](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/event_loop)
 |
@@ -58,6 +66,8 @@ SLAC, BNL. The jobs used to benchmark are:
 [Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/BNL/columnar/run_eventloop_arrays.sh)
 |
 [Script used at the SLAC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/SLAC/columnar/run_eventloop_arrays.sh)
+|
+[Script used at the UC-ODF AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/UC-ODF/columnar/run_eventloop_arrays.sh)
 
 [EventLoop (standard)](https://github.com/usatlas/af-benchmarking/tree/main/NTuple_Hist/event_loop)
 |
@@ -66,3 +76,5 @@ SLAC, BNL. The jobs used to benchmark are:
 [Script used at the BNL AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/BNL/standard/run_eventloop_noarrays.sh)
 |
 [Script used at the SLAC AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/SLAC/standard/run_eventloop_noarrays.sh)
+|
+[Script used at the UC-ODF AF](https://github.com/usatlas/af-benchmarking/blob/main/NTuple_Hist/event_loop/UC-ODF/standard/run_eventloop_noarrays.sh)

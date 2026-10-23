@@ -67,6 +67,7 @@ nav:
       - Flowchart: workflows/flowchart.md
       - Benchmarks:
           - UChicago: uchicago/benchmarks.md
+          - UC-ODF: uc-odf/benchmarks.md
           - BNL: bnl/benchmarks.md
           - SLAC: slac/benchmarks.md
       - Parsing & Upload: workflows/parsing.md

@@ -9,6 +9,8 @@ The repository contains several automated workflows:
 
 - **[UChicago Benchmarks](../uchicago/benchmarks.md)** - Runs benchmark jobs at
   the UChicago Analysis Facility every 6 hours
+- **[UC-ODF Benchmarks](../uc-odf/benchmarks.md)** - Runs benchmark jobs at the
+  UC-ODF (Open Data Facility) analysis facility every 6 hours
 - **[CI Validation](ci.md)** - Validates the parsing machinery against fixture
   logs on every push and pull request
 - **[Documentation](documentation.md)** - Builds and deploys documentation to
@@ -76,6 +78,7 @@ pixi run -e kibana python parsing/scripts/...
 
 - [Flowchart](flowchart.md)
 - [UChicago Benchmarks](../uchicago/benchmarks.md)
+- [UC-ODF Benchmarks](../uc-odf/benchmarks.md)
 - [BNL Benchmarks](../bnl/benchmarks.md)
 - [SLAC Benchmarks](../slac/benchmarks.md)
 - [Parsing & Upload](parsing.md)
