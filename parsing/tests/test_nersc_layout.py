@@ -26,7 +26,6 @@ NERSC_DIRS = [
     "NTuple_Hist/fastframes/NERSC",
 ]
 NERSC_EXTRA_FILES = [
-    "Rucio/cron_rucio_nersc.sh",
     "Rucio/rucio_nersc_sub.sh",
 ]
 TEXT_SUFFIXES = {".sh", ".py", ".yml", ".json", ".txt"}
