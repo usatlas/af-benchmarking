@@ -84,6 +84,18 @@ WRAPPERS = {
 }
 
 
+SUB_FILES = [
+    "TRUTH3/SLAC/EL9/truth3_el9_sub.sh",
+    "TRUTH3/SLAC/CentOS7/truth3_centos7_sub.sh",
+    "EVNT/SLAC/EL9/evnt_el9_sub.sh",
+    "EVNT/SLAC/CentOS7/evnt_centos7_sub.sh",
+    "NTuple_Hist/coffea/SLAC/coffea_el9_sub.sh",
+    "NTuple_Hist/fastframes/SLAC/fastframes_el9_sub.sh",
+    "NTuple_Hist/event_loop/SLAC/columnar/event_loop_arrays.sh",
+    "NTuple_Hist/event_loop/SLAC/standard/event_loop_noarrays.sh",
+]
+
+
 def wrapper_text(wrapper):
     return (REPO / wrapper).read_text()
 
@@ -228,3 +240,52 @@ class TestSlacWrapperRun:
         result = run_wrapper(sandbox, wrapper)
         assert result.returncode == 0, result.stderr
         assert (sandbox / "job" / "previous_run.txt").exists() is not cleans
+
+
+ALRB_STUB = """#!/bin/bash
+printf '%s' "${APPTAINERENV_SUBMIT_TIME-<unset>}" > "$FAKE_LOG/apptainerenv_submit_time"
+"""
+
+
+def run_sub_file(tmp_path, sub_file, env_extra):
+    """Run a copy of the sub file against a stub atlasLocalSetup.sh."""
+    alrb = tmp_path / "alrb"
+    (alrb / "user").mkdir(parents=True)
+    (alrb / "user" / "atlasLocalSetup.sh").write_text(ALRB_STUB)
+    log = tmp_path / "log"
+    log.mkdir()
+    text, count = re.subn(
+        r"^export ATLAS_LOCAL_ROOT_BASE=.*$",
+        f'export ATLAS_LOCAL_ROOT_BASE="{alrb}"',
+        (REPO / sub_file).read_text(),
+        flags=re.M,
+    )
+    assert count == 1, f"{sub_file}: expected one ATLAS_LOCAL_ROOT_BASE line"
+    copy = tmp_path / "sub.sh"
+    copy.write_text(text)
+    result = subprocess.run(
+        ["bash", str(copy)],
+        capture_output=True,
+        text=True,
+        check=False,
+        env={"PATH": "/usr/bin:/bin", "HOME": str(tmp_path), "FAKE_LOG": str(log)}
+        | env_extra,
+    )
+    assert result.returncode == 0, result.stderr
+    return (log / "apptainerenv_submit_time").read_text()
+
+
+class TestSlacSubFileSubmitTime:
+    # ALRB runs the payload with `apptainer exec -e` (clean environment), so
+    # a plain SUBMIT_TIME never reaches append_benchmark inside the
+    # container; APPTAINERENV_SUBMIT_TIME is set as SUBMIT_TIME inside.
+    @pytest.mark.parametrize("sub_file", SUB_FILES)
+    def test_passes_submit_time_into_container(self, tmp_path, sub_file):
+        submit_time = "2026-10-26T17:14:00Z"
+        env = {"SUBMIT_TIME": submit_time}
+        assert run_sub_file(tmp_path, sub_file, env) == submit_time
+
+    @pytest.mark.parametrize("sub_file", SUB_FILES)
+    def test_manual_submission_passes_empty_submit_time(self, tmp_path, sub_file):
+        # Empty inside the container, so append_benchmark omits the line.
+        assert run_sub_file(tmp_path, sub_file, {}) == ""
