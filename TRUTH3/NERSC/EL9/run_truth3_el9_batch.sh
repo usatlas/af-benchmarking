@@ -14,6 +14,11 @@ OScontainer="el9"
 job_dir="$SCRATCH/TRUTH3/el9/"
 mkdir -p "${job_dir}"
 cd "${job_dir}" || exit
+
+# A run killed before its final mv leaves split.log behind; clear it so a
+# stale SETUP_COMPLETE line cannot mask this run's failed setup.
+rm -f split.log
+
 cp ~/AF-Benchmarking/TRUTH3/EVNT.root .
 # Sets up the working environment
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase

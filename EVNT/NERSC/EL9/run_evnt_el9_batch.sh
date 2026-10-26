@@ -17,6 +17,11 @@ seed=1001
 config_dir="evnt_el9/100xxx/100001"
 
 cd "$SCRATCH"/EVNT/el9/ || exit
+
+# A run killed before its final mv leaves split.log behind; clear it so a
+# stale SETUP_COMPLETE line cannot mask this run's failed setup.
+rm -f split.log
+
 cp -r "$HOME"/evnt_el9/ .
 # Setting up the working environment
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase

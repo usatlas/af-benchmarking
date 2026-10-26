@@ -99,6 +99,13 @@ class TestNerscJobScriptBenchmarkConventions:
             "\nappend_benchmark "
         )
 
+    def test_starts_with_fresh_split_log(self, script_text):
+        # A run killed before its final mv leaves split.log behind; its
+        # SETUP_COMPLETE line would otherwise mask this run's failed setup.
+        cleared = script_text.index("\nrm -f split.log\n")
+        assert script_text.index("\ncd ") < cleared
+        assert cleared < script_text.index(">> split.log")
+
     def test_records_compute_node_hostname(self, script_text):
         assert re.search(r'^hostname > "\$\{\w+\}/hostname\.txt"$', script_text, re.M)
 

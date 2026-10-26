@@ -10,6 +10,10 @@ start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 cd "$SCRATCH"/ntuple/eventloop_noarrays/ || exit
 
+# A run killed before its final mv leaves split.log behind; clear it so a
+# stale SETUP_COMPLETE line cannot mask this run's failed setup.
+rm -f split.log
+
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 
 setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")

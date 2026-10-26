@@ -8,6 +8,10 @@ start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 cd /global/cfs/cdirs/m2616/qlei/ || exit
 
+# A run killed before its final mv leaves split.log behind; clear it so a
+# stale SETUP_COMPLETE line cannot mask this run's failed setup.
+rm -f split.log
+
 # Sets up ATLAS environment
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir="$HOME"/localConfig
