@@ -81,6 +81,7 @@ pixi run -e kibana python parsing/scripts/...
 - [UC-ODF Benchmarks](../uc-odf/benchmarks.md)
 - [BNL Benchmarks](../bnl/benchmarks.md)
 - [SLAC Benchmarks](../slac/benchmarks.md)
+- [NERSC Benchmarks](../nersc/benchmarks.md)
 - [Parsing & Upload](parsing.md)
 - [CI Validation](ci.md)
 - [Documentation](documentation.md)
