@@ -77,7 +77,8 @@ extract_rucio_metrics() {
 
 # Append standardized benchmark block to a log file
 # Usage: append_benchmark <log_file> <start_time> <end_time> [setup_start] [setup_end] [mode]
-# Reads SUBMIT_TIME from environment if set (injected by cron/submit scripts via HTCondor).
+# Reads SUBMIT_TIME from environment if set (exported by the submitting script and passed
+# into the job by HTCondor, or by sbatch from parsing/utils/submit_and_upload.sh).
 # Reads BENCH_EXIT_STATUS from environment if set (meant for mode "none", where there is
 # no time -v report to take the exit status from, e.g. a run that failed before its payload).
 append_benchmark() {

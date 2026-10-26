@@ -23,7 +23,8 @@
 # (cron QOS): it sbatch's the job's sub file, waits for it, then parses
 # and uploads the log. Job resources live in each *_sub.sh.
 
-# Interactive TRUTH3 variants are out of scope for the qlei migration.
+# Interactive TRUTH3 variants are not scheduled; their scripts still point at
+# the selbor account's paths.
 # 0 */6 * * * $HOME/AF-Benchmarking/TRUTH3/NERSC/CentOS7_i/run_truth3_centos7_interactive.sh
 # 0 */6 * * * $HOME/AF-Benchmarking/TRUTH3/NERSC/EL9_i/run_truth3_el9_interactive.sh
 

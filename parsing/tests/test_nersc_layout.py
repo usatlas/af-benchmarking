@@ -1,8 +1,8 @@
 """Static checks on the NERSC job files.
 
-These pin the qlei migration: no file a NERSC job reads may still point at
-the old selbor account, and every repo path a NERSC script or sub file
-references must exist (several pointed at a pre-restructure layout).
+No file a NERSC job reads may point at the selbor account, every repo path
+a NERSC script or sub file references must exist, and the NERSC crontab
+must run each job through the shared submit-and-upload wrapper.
 """
 
 import os
