@@ -166,7 +166,7 @@ Required structure:
 **Static fields** (from workflow configuration):
 
 - `job` - Job name, a literal value per job
-- `cluster` - Set per site (UC-AF, SLAC-AF, etc.)
+- `cluster` - Set per site (UC-AF, UC-ODF, SLAC-AF, etc.)
 - `token` - Benchmark identifier token AND LogStash routing key
 - `kind` - Benchmark kind/category AND LogStash routing kind
 - `host` - Hostname from the `NODE_NAME` environment variable
