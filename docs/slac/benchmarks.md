@@ -39,18 +39,6 @@ The crontab runs 11 jobs, all on the same 6-hour cadence:
 | `eventloop-columnar`         | `./NTuple_Hist/event_loop/SLAC/columnar/submit_and_upload.sh`     | `event_loop_arrays.log`   | Event loop (columnar)                              |
 | `eventloop-standard`         | `./NTuple_Hist/event_loop/SLAC/standard/submit_and_upload.sh`     | `event_loop_noarrays.log` | Event loop (standard)                              |
 
-/// note | The two interactive TRUTH3 jobs have a known, open timing bug
-
-`TRUTH3/SLAC/{EL9_i,CentOS7_i}` launch their ALRB container synchronously via
-`atlasLocalSetup.sh -c <os> -r "<string>"` rather than through `sbatch`. ALRB
-evaluates every `$...` in that `-r` string once at write-time rather than
-sequentially at run-time, so the marker trick these two scripts use to capture
-`setup_end`/`bench_mode` after the container returns likely produces wrong
-values. This is a known, deliberately deferred follow-up, not a defect
-introduced by this page.
-
-///
-
 ## Workflow Steps
 
 Each `sbatch`-based job follows this pattern:

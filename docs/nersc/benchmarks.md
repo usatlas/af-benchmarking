@@ -22,8 +22,7 @@ the loop.
 
 ## Benchmark Jobs
 
-`scrontab` runs 9 jobs, billed to project **m4956** (**m2616** has no CPU
-hours), all on the same 12-hour cadence:
+`scrontab` runs 9 jobs, all on the same 12-hour cadence:
 
 | Job                  | Sub File                                                            | Log File                 | Description                           |
 | -------------------- | ------------------------------------------------------------------- | ------------------------ | ------------------------------------- |
