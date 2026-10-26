@@ -5,9 +5,12 @@
 Like BNL, SLAC has no GitHub Actions workflow behind it — every benchmark job
 runs via a `cron` entry that submits to Slurm instead of HTCondor. SLAC's
 crontab lives on a different host than the Slurm submit host (`iana`), so every
-cron entry is a thin `ssh iana ...` wrapper; the actual submit-wait-parse-upload
-work happens entirely on `iana`, inside a `submit_and_upload.sh` alongside each
-job's Slurm `*_sub.sh`.
+cron entry is a thin `ssh iana ...` wrapper into a per-job
+`submit_and_upload.sh` alongside each job's Slurm `*_sub.sh`. That per-job
+script only handles what's genuinely SLAC-specific (the overlap lock, cleaning
+the scratch directory) and then `exec`s into the same shared, site-neutral
+`parsing/utils/submit_and_upload.sh` that [NERSC](../nersc/benchmarks.md) uses,
+which does the actual submit-wait-locate-parse-upload work.
 
 ## Trigger
 
@@ -54,19 +57,23 @@ Each `sbatch`-based job follows this pattern:
 
 1. **Cron trigger** — `cron` fires the one-line `ssh iana ...` wrapper every 6
    hours
-2. **Submit** — `sbatch --wait --parsable` queues the job on Slurm and blocks
-   the `ssh` session for the job's full walltime
-3. **Execute** — Slurm runs the job inside an ALRB container on a compute node,
+2. **Lock and clean** — the job's own `submit_and_upload.sh` takes the
+   non-blocking `flock` guard and cleans its scratch directory, then `exec`s
+   into the shared `parsing/utils/submit_and_upload.sh`
+3. **Submit** — the shared script calls `sbatch --wait --parsable`, which queues
+   the job on Slurm and blocks until it finishes
+4. **Execute** — Slurm runs the job inside an ALRB container on a compute node,
    which does the actual work and calls `append_benchmark` (the same
    `benchmark_utils.sh` helper every site's scripts use) once at the end
-4. **Locate output** — once `sbatch --wait` returns, `submit_and_upload.sh`
-   finds the job's output directory by modification time (Slurm gives no direct
-   equivalent of HTCondor's per-cluster log path)
-5. **Parse** — `submit_and_upload.sh` calls the shared
-   `parsing/utils/parse_upload.sh`, which runs
-   `python -m parsing.scripts.ci_parse` — the same script the `parse` composite
-   action wraps on UChicago (see [parsing and upload](../workflows/parsing.md))
-6. **Upload to Kibana** — `parse_upload.sh` `curl`s the payload to LogStash —
+5. **Locate output** — once `sbatch --wait` returns, the shared script globs for
+   output directories newer than a marker it set before submitting (Slurm gives
+   no direct equivalent of HTCondor's per-cluster log path, and the marker stops
+   a crashed run from re-uploading the previous run's result)
+6. **Parse** — the shared script calls `parsing/utils/parse_upload.sh`, which
+   runs `python -m parsing.scripts.ci_parse` — the same script the `parse`
+   composite action wraps on UChicago (see
+   [parsing and upload](../workflows/parsing.md))
+7. **Upload to Kibana** — `parse_upload.sh` `curl`s the payload to LogStash —
    the same mechanism the `upload` action wraps
 
 Two things don't fit this pattern:
@@ -99,8 +106,8 @@ ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=20 iana \
   /sdf/home/q/qlei/AF-Benchmarking/TRUTH3/SLAC/EL9/submit_and_upload.sh
 ```
 
-`TRUTH3/SLAC/EL9/submit_and_upload.sh` does the actual submit-wait-parse-upload
-work:
+`TRUTH3/SLAC/EL9/submit_and_upload.sh` handles the SLAC-specific overlap guard
+and cleanup, then hands off to the shared script:
 
 ```bash
 #!/bin/bash
@@ -112,8 +119,6 @@ work:
 set -uo pipefail
 
 readonly AF_BENCH_DIR="/sdf/home/q/qlei/AF-Benchmarking"
-# shellcheck disable=SC1091
-source "${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh"
 
 readonly job_dir="/sdf/home/q/qlei/TRUTH3Job/container_el"
 readonly sub_file="${AF_BENCH_DIR}/TRUTH3/SLAC/EL9/truth3_el9_sub.sh"
@@ -143,31 +148,29 @@ fi
 cd "${job_dir}" || { echo "ERROR: could not cd into ${job_dir}"; exit 1; }
 rm -rf ./*
 
-echo "Submitting ${sub_file}"
-job_id=$(sbatch --wait --parsable "${sub_file}")
-sbatch_status=$?
-if [ "${sbatch_status}" -ne 0 ]; then
-  echo "ERROR: sbatch --wait failed (job ${job_id:-unknown}, exit ${sbatch_status})"
-  exit 1
-fi
-echo "Job ${job_id} completed."
-
-latest_dir=$(find_latest_output_dir "${log_base}" "${job_output_name}")
-
-"${AF_BENCH_DIR}/parsing/utils/parse_upload.sh" \
+# The shared wrapper submits, waits, picks this run's output directory and
+# uploads it. exec keeps fd 200 open, so the lock is held until it exits.
+exec "${AF_BENCH_DIR}/parsing/utils/submit_and_upload.sh" \
+  --sub-file "${sub_file}" \
+  --output-glob "${log_base}/*/${job_output_name}" \
+  --log-name "${log_output}" \
   --cluster "SLAC-AF" \
   --job "${pixi_job}" \
   --log-type "${pixi_log_type}" \
-  --log-file "${latest_dir}/${log_output}" \
   --os "${pixi_os}" \
   --mode "${pixi_mode}" \
-  --containerized "${pixi_containerized}" \
-  --output-dir "${latest_dir}"
+  --containerized "${pixi_containerized}"
 ```
 
-`truth3_el9_sub.sh` is the Slurm submission script `submit_and_upload.sh` calls
-— it launches the ALRB container and points its payload at
-`run_truth3_el9_container.sh`:
+`parsing/utils/submit_and_upload.sh` is the shared, site-neutral script every
+`sbatch`-based job on both SLAC and NERSC `exec`s into — see
+[NERSC's page](../nersc/benchmarks.md#example-job-structure) for its full body.
+In short: it submits `--sub-file` with `sbatch --wait`, globs `--output-glob`
+for directories newer than a marker it set beforehand, and calls
+`parse_upload.sh` with the newest match.
+
+`truth3_el9_sub.sh` is the Slurm submission script it calls — it launches the
+ALRB container and points its payload at `run_truth3_el9_container.sh`:
 
 ```bash
 #!/bin/bash
@@ -244,13 +247,13 @@ mv split.log "${output_dir}"
 mv pipe_file.log "${output_dir}"
 ```
 
-This same shape — a one-line `ssh` wrapper, `submit_and_upload.sh`, a Slurm
-`*_sub.sh`, and a `run_*_container.sh` payload — is used by the other 7
-`sbatch`-based jobs; only the path constants, the four `pixi_*` variables, and
-the workload itself change. `find_latest_output_dir` and `set_time_cmd` are
-shared helpers in `parsing/utils/benchmark_utils.sh`, used by every job to avoid
-duplicating the same mtime lookup and `/usr/bin/time` availability check 8 times
-over.
+This same shape — a one-line `ssh` wrapper, a per-job `submit_and_upload.sh`
+that `exec`s into the shared one, a Slurm `*_sub.sh`, and a `run_*_container.sh`
+payload — is used by the other 7 `sbatch`-based jobs; only the path constants,
+the `--output-glob`/`--log-name` and `--job`/etc. arguments, and the workload
+itself change. `set_time_cmd` is a shared helper in
+`parsing/utils/benchmark_utils.sh`, used by every `run_*_container.sh` to avoid
+duplicating the same `/usr/bin/time` availability check 8 times over.
 
 ## Monitoring Results
 
