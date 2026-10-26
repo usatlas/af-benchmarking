@@ -168,6 +168,34 @@ class TestNerscCrontab:
         args = entry[1]
         assert args[args.index("--cluster") + 1] == "NERSC-AF"
 
+    @pytest.mark.parametrize("entry", crontab_entries(), ids=lambda e: e[1][2])
+    def test_output_glob_and_log_name_match_payload(self, entry):
+        # A mismatch is silent: the wrapper only reports "no new output
+        # directory" and the run never reaches Kibana.
+        args = entry[1]
+        output_glob = args[args.index("--output-glob") + 1]
+        log_name = args[args.index("--log-name") + 1]
+        sub_file = args[args.index("--sub-file") + 1]
+        payload = srun_target(REPO / sub_file.removeprefix("$HOME/AF-Benchmarking/"))
+        text = (REPO / payload).read_text()
+        if payload == "Rucio/rucio_script.sh":
+            branch = text.split("\n    nersc)", 1)[1].split(";;", 1)[0]
+            assert 'job_dir="$HOME/af_benchmarking/rucio/"' in branch
+            assert 'output_dir="${job_dir}/logs/${curr_time}/"' in branch
+            assert output_glob == "$HOME/af_benchmarking/rucio/logs/*"
+            assert f'mv {log_name} \\"${{3}}\\"' in text
+            return
+        # e.g. output_dir="/global/.../benchmarks/${curr_time}/EVNT_el9/"
+        match = re.search(
+            r'^(\w+)="([^"$]+)/\$\{?curr_(?:time|date)\}?/([^/"]+)/?"$', text, re.M
+        )
+        assert match, f"{payload}: no timestamped output directory"
+        variable, parent, leaf = match.groups()
+        assert output_glob == f"{parent}/*/{leaf}"
+        assert re.search(
+            rf'^mv {re.escape(log_name)} "\$\{{{variable}\}}"$', text, re.M
+        )
+
     def test_wrapper_scripts_are_executable(self):
         for name in ["submit_and_upload.sh", "parse_upload.sh"]:
             assert os.access(REPO / "parsing" / "utils" / name, os.X_OK), name
