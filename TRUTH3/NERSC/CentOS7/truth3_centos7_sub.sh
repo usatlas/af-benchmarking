@@ -7,7 +7,6 @@
 #SBATCH -q shared
 #SBATCH -A m4956
 #SBATCH -J truth3_centos7
-#SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=1
 #SBATCH --constraint=cpu
 #SBATCH -t 1:0:0

@@ -4,7 +4,6 @@
 #SBATCH -q shared
 #SBATCH -A m4956
 #SBATCH -J rucio
-#SBATCH --mail-type=ALL
 #SBATCH -t 00:30:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4

@@ -187,6 +187,12 @@ class TestNerscSubFileAllocation:
         assert "#SBATCH -q shared" in lines
         assert "#SBATCH -q regular" not in lines
 
+    @pytest.mark.parametrize("sub_file", CRON_SUB_FILES)
+    def test_sends_no_mail(self, sub_file):
+        # scrontab submits 9 jobs every 12 hours; Slurm's default mail type
+        # is NONE, so any --mail-type line would mail every start and end.
+        assert "--mail-type" not in (REPO / sub_file).read_text()
+
     @pytest.mark.parametrize(
         "sub_file",
         [

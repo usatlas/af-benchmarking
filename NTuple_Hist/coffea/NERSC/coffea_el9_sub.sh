@@ -7,7 +7,6 @@
 #SBATCH -J coffea_el9
 #SBATCH --cpus-per-task=4
 #SBATCH --constraint=cpu
-#SBATCH --mail-type=ALL
 #SBATCH -t 1:30:00
 #SBATCH --mem=16G
 

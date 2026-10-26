@@ -7,7 +7,6 @@
 #SBATCH -J eventloop_noarrays
 #SBATCH --cpus-per-task=2
 #SBATCH --constraint=cpu
-#SBATCH --mail-type=ALL
 #SBATCH -t 1:30:00
 #SBATCH --mem=8G
 

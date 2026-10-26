@@ -7,7 +7,6 @@
 #SBATCH -J fastframes
 #SBATCH --cpus-per-task=1
 #SBATCH --constraint=cpu
-#SBATCH --mail-type=ALL
 #SBATCH -t 1:0:0
 #SBATCH --mem=3GB
 
