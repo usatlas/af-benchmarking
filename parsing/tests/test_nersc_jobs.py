@@ -1,0 +1,243 @@
+"""Static checks that each NERSC payload script follows the benchmark
+conventions: it writes an append_benchmark block before moving its log, and
+records the compute node's hostname for the login-node upload step.
+
+The in-container steps are inline in the ALRB `-r "..."` string and contain
+no runtime `$`: ALRB evaluates every `$` in that string once, before running
+any of it, so container-side variables and `$(date)` calls written there never
+behave as written.
+
+These scripts only run under ALRB on Perlmutter, so their behavior is
+validated there; these checks pin the structure that validation relies on.
+"""
+
+import re
+from pathlib import Path
+
+import pytest
+
+REPO = Path(__file__).resolve().parents[2]
+
+JOB_SCRIPTS = [
+    "TRUTH3/NERSC/EL9/run_truth3_el9_batch.sh",
+    "TRUTH3/NERSC/CentOS7/run_truth3_centos7_batch.sh",
+    "EVNT/NERSC/EL9/run_evnt_el9_batch.sh",
+    "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh",
+    "NTuple_Hist/fastframes/NERSC/run_fastframes.sh",
+    "NTuple_Hist/coffea/NERSC/run_example.sh",
+    "NTuple_Hist/event_loop/NERSC/columnar/run_eventloop_arrays.sh",
+    "NTuple_Hist/event_loop/NERSC/standard/run_eventloop_noarrays.sh",
+]
+
+ATHENA_JOB_SCRIPTS = JOB_SCRIPTS[:4]
+
+# Values the host expands into the -r string before ALRB sees it.
+HOST_EXPANDED_VALUES = {
+    "EVNT/NERSC/EL9/run_evnt_el9_batch.sh": ("${config_dir}", "${seed}"),
+    "EVNT/NERSC/CentOS7/run_evnt_centos7_batch.sh": ("${config_dir}", "${seed}"),
+    "NTuple_Hist/coffea/NERSC/run_example.sh": ("${HOME}",),
+    "NTuple_Hist/event_loop/NERSC/columnar/run_eventloop_arrays.sh": ("${HOME}",),
+    "NTuple_Hist/event_loop/NERSC/standard/run_eventloop_noarrays.sh": ("${HOME}",),
+}
+
+# Every NERSC job is submitted through sbatch; each payload needs a sub file.
+SUB_FILES = {
+    "NTuple_Hist/coffea/NERSC/coffea_el9_sub.sh": "NTuple_Hist/coffea/NERSC/run_example.sh",
+    "NTuple_Hist/event_loop/NERSC/columnar/eventloop_arrays_sub.sh": "NTuple_Hist/event_loop/NERSC/columnar/run_eventloop_arrays.sh",
+    "NTuple_Hist/event_loop/NERSC/standard/eventloop_noarrays_sub.sh": "NTuple_Hist/event_loop/NERSC/standard/run_eventloop_noarrays.sh",
+}
+
+
+@pytest.fixture(params=JOB_SCRIPTS)
+def script(request):
+    return request.param
+
+
+@pytest.fixture
+def script_text(script):
+    return (REPO / script).read_text()
+
+
+def run_option(script_text):
+    """Body of the double-quoted, possibly backslash-continued -r argument.
+
+    Anchored to the atlasLocalSetup.sh line so other `-r` options (cp -r) are
+    not mistaken for it.
+    """
+    # re.S so `\.` also consumes the newline of a backslash continuation.
+    match = re.search(
+        r'atlasLocalSetup\.sh[^\n]* -r "((?:[^"\\]|\\.)*)"', script_text, re.S
+    )
+    assert match, "no -r argument found"
+    return match.group(1)
+
+
+class TestNerscJobScriptBenchmarkConventions:
+    def test_sources_benchmark_utils(self, script_text):
+        assert (
+            'source "$HOME"/AF-Benchmarking/parsing/utils/benchmark_utils.sh'
+            in script_text
+        )
+
+    def test_reads_setup_end_back(self, script_text):
+        assert 'grep "^SETUP_COMPLETE=" split.log' in script_text
+
+    def test_has_no_bench_mode_variable_from_container(self, script_text):
+        # The mode is decided on the host from setup_end, not read back from
+        # the container.
+        assert "BENCH_MODE" not in script_text
+        assert 'grep "^BENCH_MODE=' not in script_text
+
+    def test_failed_setup_is_recorded_as_failed_run(self, script_text):
+        assert (
+            "bench_mode=time_v\n"
+            "# shellcheck disable=SC2034 # read by append_benchmark\n"
+            '[ -n "${setup_end}" ] || { bench_mode=none; BENCH_EXIT_STATUS=1; }\n'
+        ) in script_text
+        # Must be set before append_benchmark reads them.
+        assert script_text.index("BENCH_EXIT_STATUS=1") < script_text.index(
+            "\nappend_benchmark "
+        )
+
+    def test_starts_with_fresh_split_log(self, script_text):
+        # A run killed before its final mv leaves split.log behind; its
+        # SETUP_COMPLETE line would otherwise mask this run's failed setup.
+        cleared = script_text.index("\nrm -f split.log\n")
+        assert script_text.index("\ncd ") < cleared
+        assert cleared < script_text.index(">> split.log")
+
+    def test_records_compute_node_hostname(self, script_text):
+        assert re.search(r'^hostname > "\$\{\w+\}/hostname\.txt"$', script_text, re.M)
+
+    def test_appends_benchmark_before_moving_log(self, script_text):
+        append = re.search(r"^append_benchmark ", script_text, re.M)
+        first_mv = re.search(r"^mv ", script_text, re.M)
+        assert append and first_mv
+        assert append.start() < first_mv.start()
+        assert re.match(
+            r'append_benchmark \S+ "\$\{start_time\}" "\$\{end_time\}" '
+            r'"\$\{setup_start\}" "\$\{setup_end\}" "\$\{bench_mode\}"\n',
+            script_text[append.start() :],
+        )
+
+    def test_payload_stderr_reaches_log(self, script_text):
+        assert "2>1|" not in script_text
+
+
+class TestNerscAthenaJobScripts:
+    @pytest.mark.parametrize("script", ATHENA_JOB_SCRIPTS)
+    def test_explains_why_pipe_log_is_folded_in(self, script):
+        assert (
+            "# time -v's report lands in the tee'd pipe, not in the transform's own log,\n"
+            "# so the chain folds pipe_file.log into it for append_benchmark to read.\n"
+        ) in (REPO / script).read_text()
+
+
+class TestNerscRunOption:
+    def test_has_no_dollar(self, script, script_text):
+        # ALRB evaluates `$` in the -r string once, before running any of it.
+        option = run_option(script_text)
+        for host_value in HOST_EXPANDED_VALUES.get(script, ()):
+            option = option.replace(host_value, "")
+        assert "$" not in option
+
+    def test_has_no_tilde(self, script_text):
+        # Inside the double quotes the host leaves ~ alone, so the container
+        # shell expands it against its own HOME, which under scrontab can be
+        # /alrb; paths into the repo must be host-expanded ${HOME} instead.
+        assert "~" not in run_option(script_text)
+
+    def test_has_no_escaped_quote(self, script_text):
+        assert '\\"' not in run_option(script_text)
+
+    def test_records_setup_complete_label_via_date(self, script_text):
+        # date prints the label itself so no $(date) is needed in the string.
+        assert "date -u +SETUP_COMPLETE=%Y-%m-%dT%H:%M:%SZ >> split.log" in run_option(
+            script_text
+        )
+
+    def test_times_payload_with_time_v_after_setup_complete(self, script_text):
+        option = run_option(script_text)
+        assert "/usr/bin/time -v " in option
+        assert option.index("SETUP_COMPLETE") < option.index("/usr/bin/time")
+
+
+class TestNerscJobsAreSubmittable:
+    @pytest.mark.parametrize("sub_file,payload", SUB_FILES.items())
+    def test_sub_file_runs_payload(self, sub_file, payload):
+        text = (REPO / sub_file).read_text()
+        assert f'"$HOME"/AF-Benchmarking/{payload}' in text
+
+
+# Every sub file the NERSC crontab submits. scrontab runs sbatch with no
+# command-line overrides, so these #SBATCH lines are what cron actually uses.
+CRON_SUB_FILES = [
+    "TRUTH3/NERSC/EL9/truth3_el9_sub.sh",
+    "TRUTH3/NERSC/CentOS7/truth3_centos7_sub.sh",
+    "EVNT/NERSC/EL9/evnt_el9_sub.sh",
+    "EVNT/NERSC/CentOS7/evnt_centos7_sub.sh",
+    "NTuple_Hist/fastframes/NERSC/fastframes_el9_sub.sh",
+    "NTuple_Hist/coffea/NERSC/coffea_el9_sub.sh",
+    "NTuple_Hist/event_loop/NERSC/columnar/eventloop_arrays_sub.sh",
+    "NTuple_Hist/event_loop/NERSC/standard/eventloop_noarrays_sub.sh",
+    "Rucio/rucio_nersc_sub.sh",
+]
+
+
+class TestNerscSubFileAllocation:
+    @pytest.mark.parametrize("sub_file", CRON_SUB_FILES)
+    def test_bills_m4956_on_shared_qos(self, sub_file):
+        # m2616 has no CPU hours; shared bills only the requested fraction of
+        # a node instead of the whole node that regular reserves.
+        lines = (REPO / sub_file).read_text().splitlines()
+        assert "#SBATCH -A m4956" in lines
+        assert "#SBATCH -q shared" in lines
+        assert "#SBATCH -q regular" not in lines
+
+    @pytest.mark.parametrize("sub_file", CRON_SUB_FILES)
+    def test_sends_no_mail(self, sub_file):
+        # scrontab submits 9 jobs every 12 hours; Slurm's default mail type
+        # is NONE, so any --mail-type line would mail every start and end.
+        assert "--mail-type" not in (REPO / sub_file).read_text()
+
+    @pytest.mark.parametrize(
+        "sub_file",
+        [
+            "NTuple_Hist/coffea/NERSC/coffea_el9_sub.sh",
+            "NTuple_Hist/event_loop/NERSC/standard/eventloop_noarrays_sub.sh",
+        ],
+    )
+    def test_long_ntuple_jobs_have_headroom(self, sub_file):
+        # Validation runs took 43 (coffea) and 48 (standard eventloop) minutes.
+        lines = (REPO / sub_file).read_text().splitlines()
+        assert "#SBATCH -t 1:30:00" in lines
+
+
+class TestRucioContainerFunction:
+    def test_container_el9_records_hostname(self):
+        text = (REPO / "Rucio" / "rucio_script.sh").read_text()
+        body = text.split("container_el9 (){", 1)[1].split("\n}\n", 1)[0]
+        assert 'hostname > "${3}/hostname.txt"' in body
+
+    def test_sources_benchmark_utils_before_any_site_branch(self):
+        # append_benchmark runs inside container_el9, so every site needs
+        # benchmark_utils.sh loaded before its case branch calls it.
+        text = (REPO / "Rucio" / "rucio_script.sh").read_text()
+        source = 'source "${AF_BENCH_DIR}/parsing/utils/benchmark_utils.sh"'
+        assert source in text
+        assert text.index(source) < text.index('case "$site" in')
+
+    def test_nersc_branch_mounts_global(self):
+        # voms-proxy-init reads ~/.globus and the log is moved under $HOME;
+        # both live on /global, which the container cannot see unless mounted.
+        text = (REPO / "Rucio" / "rucio_script.sh").read_text()
+        branch = text.split("\n    nersc)", 1)[1].split(";;", 1)[0]
+        assert 'dir_mount="/global:/global"' in branch
+
+
+class TestFastFramesOutputSize:
+    def test_du_reads_histogram_from_config_output_path(self):
+        # mc20e_example_config.yml writes histograms to /srv/output/, which is
+        # output/ under the CFS directory the script runs from.
+        text = (REPO / "NTuple_Hist/fastframes/NERSC/run_fastframes.sh").read_text()
+        assert "du output/example_FS.root >> fastframes.log" in text

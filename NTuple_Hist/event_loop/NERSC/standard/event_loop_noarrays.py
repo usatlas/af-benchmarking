@@ -59,7 +59,7 @@ def main():
         {
             "name": "Wmunugamma",
             "path": Path(
-                "/global/homes/s/selbor/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
+                "/global/cfs/cdirs/m2616/qlei/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
             ),
             "metadata": {
                 "genFiltEff": 1.0,
