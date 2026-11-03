@@ -20,24 +20,6 @@ set_time_cmd() {
   fi
 }
 
-# Finds the most recently modified directory named <job_output_name> under
-# <log_base> (mirrors TRUTH3/BNL/EL9/cron_el_batch.sh:52, adapted: Slurm
-# gives us no direct equivalent of HTCondor's per-cluster log path). Exits
-# the caller if none is found.
-# Usage: latest_dir=$(find_latest_output_dir <log_base> <job_output_name>)
-find_latest_output_dir() {
-  local log_base=$1
-  local job_output_name=$2
-  local dir
-  dir=$(find "${log_base}" -mindepth 2 -maxdepth 2 -type d -name "${job_output_name}" -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | awk '{print $2}')
-  if [ -z "${dir}" ]; then
-    echo "ERROR: no ${job_output_name} directory found under ${log_base}" >&2
-    exit 1
-  fi
-  echo "Latest output directory: ${dir}" >&2
-  echo "${dir}"
-}
-
 # Parse /usr/bin/time -v output from a log file and extract key metrics
 # Usage: extract_time_metrics <log_file>
 extract_time_metrics() {
@@ -95,7 +77,10 @@ extract_rucio_metrics() {
 
 # Append standardized benchmark block to a log file
 # Usage: append_benchmark <log_file> <start_time> <end_time> [setup_start] [setup_end] [mode]
-# Reads SUBMIT_TIME from environment if set (injected by cron/submit scripts via HTCondor).
+# Reads SUBMIT_TIME from environment if set (exported by the submitting script and passed
+# into the job by HTCondor, or by sbatch from parsing/utils/submit_and_upload.sh).
+# Reads BENCH_EXIT_STATUS from environment if set (meant for mode "none", where there is
+# no time -v report to take the exit status from, e.g. a run that failed before its payload).
 append_benchmark() {
   local log_file=$1
   local start_time=$2
@@ -119,6 +104,7 @@ append_benchmark() {
     [[ -n "${setup_start}" ]] && echo "setup_start_time_utc=${setup_start}"
     [[ -n "${setup_end}" ]] && echo "setup_end_time_utc=${setup_end}"
     [[ -n "${extra_metrics}" ]] && printf '%s\n' "${extra_metrics}"
+    [[ -n "${BENCH_EXIT_STATUS:-}" ]] && echo "exit_status=${BENCH_EXIT_STATUS}"
     echo "================="
   } >> "${log_file}"
 }

@@ -21,5 +21,11 @@ export ALRB_CONT_CMDOPTS="-B /sdf"
 
 export ALRB_CONT_RUNPAYLOAD="source $HOME/AF-Benchmarking/EVNT/SLAC/EL9/run_evnt_el_container.sh"
 
+# ALRB runs the payload in a clean environment (apptainer exec -e), so the
+# SUBMIT_TIME that submit_and_upload.sh exports would not reach
+# append_benchmark; apptainer sets APPTAINERENV_<NAME> as <NAME> inside.
+# Empty when the job is submitted without the wrapper.
+export APPTAINERENV_SUBMIT_TIME="${SUBMIT_TIME:-}"
+
 # shellcheck disable=SC1091
 source $ATLAS_LOCAL_ROOT_BASE/user/atlasLocalSetup.sh -c el9 -m /sdf/data/atlas/

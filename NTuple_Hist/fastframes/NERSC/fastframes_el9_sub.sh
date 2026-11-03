@@ -2,11 +2,11 @@
 #
 #SBATCH -N 1
 #SBATCH -C cpu
-#SBATCH -q regular
+#SBATCH -q shared
+#SBATCH -A m4956
 #SBATCH -J fastframes
 #SBATCH --cpus-per-task=1
 #SBATCH --constraint=cpu
-#SBATCH --mail-type=ALL
 #SBATCH -t 1:0:0
 #SBATCH --mem=3GB
 

@@ -258,9 +258,9 @@ class TestParseAtlasLog:
         validate_payload(result)
 
 
-class TestUcOdfClusterPayload:
-    @pytest.fixture
-    def truth3_log(self, tmp_path):
+class TestPayloadClusterValues:
+    @staticmethod
+    def _payload(tmp_path, cluster):
         log_file = tmp_path / "log.Derivation"
         log_file.write_text(
             "=== BENCHMARK ===\n"
@@ -268,9 +268,6 @@ class TestUcOdfClusterPayload:
             "end_time_utc=2025-12-08T18:00:30Z\n"
             "=================\n"
         )
-        return log_file
-
-    def _parse(self, log_file, cluster):
         return parse_log(
             log_file=log_file,
             log_type="truth3",
@@ -278,16 +275,19 @@ class TestUcOdfClusterPayload:
             cluster=cluster,
             token="test-token",
             kind="test-kind",
-            host="test.example.org",
+            host="nid001234",
             payload_file="",
             os="alma9",
-            mode="interactive",
+            mode="batch",
             containerized=True,
         )
 
-    def test_uc_odf_cluster_passes_schema_validation(self, truth3_log):
-        validate_payload(self._parse(truth3_log, cluster="UC-ODF"))
+    @pytest.mark.parametrize(
+        "cluster", ["UC-AF", "UC-ODF", "SLAC-AF", "BNL-AF", "NERSC-AF"]
+    )
+    def test_known_cluster_validates(self, tmp_path, cluster):
+        validate_payload(self._payload(tmp_path, cluster))
 
-    def test_unlisted_cluster_fails_schema_validation(self, truth3_log):
+    def test_unknown_cluster_rejected(self, tmp_path):
         with pytest.raises(jsonschema.ValidationError):
-            validate_payload(self._parse(truth3_log, cluster="NOT-A-SITE"))
+            validate_payload(self._payload(tmp_path, "NOT-A-CLUSTER"))
