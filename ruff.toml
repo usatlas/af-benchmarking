@@ -1,4 +1,5 @@
 line-length = 88
+target-version = "py39"  # coffea jobs run on lsetup python 3.9
 # some from SUSY PreInclude: https://gitlab.cern.ch/atlas/athena/-/blob/f275abe6e27941fe8417103b13e62a70812275ea/Generators/MadGraphControl/share/common/SUSY_SimplifiedModel_PreInclude.py
 builtins = ["include", "param_blocks", "masses", "decays", "filtSeq", "GeV", "evgenLog", "evgenConfig", "genSeq", "prefiltSeq", "createxAODSlimmedContainer", "process", "evt_multiplier", "runArgs", "run_settings", "ktdurham", "flavourScheme", "finalStateB", "define_pj_5FS", "force_nobmass_5FS", "dict_index_syst", "fixEventWeightsForBridgeMode", "madspin_card", "keepOutput", "writeGridpack", "param_card", "plugin", "opts", "add_lifetimes_lhe", "usePMGSettings"]
 

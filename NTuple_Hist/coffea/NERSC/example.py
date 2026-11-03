@@ -15,7 +15,7 @@ import uproot
 from pathlib import Path
 from coffea.dataset_tools import apply_to_fileset
 import numpy as np
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 
 
 warnings.filterwarnings("ignore", module="coffea.*")
@@ -25,7 +25,7 @@ warnings.filterwarnings("ignore")
 
 
 def iso_utc_now():
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 class MyFirstProcessor(processor.ProcessorABC):
