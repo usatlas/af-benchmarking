@@ -2,7 +2,7 @@ import os
 import ROOT as r
 from pathlib import Path
 from array import array
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 import time
 
 
@@ -95,7 +95,7 @@ def main():
         1000,
     )
 
-    start_time_utc = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    start_time_utc = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     t0 = time.perf_counter()
 
     total_events_processed = 0
@@ -109,7 +109,7 @@ def main():
             )
 
     dt = time.perf_counter() - t0
-    end_time_utc = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    end_time_utc = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     event_rate_khz = (total_events_processed / dt) / 1000.0 if dt > 0 else 0.0
 
     # Save combined histogram
