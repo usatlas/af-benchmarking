@@ -2,11 +2,11 @@
 # shellcheck disable=SC1091
 
 source ./parsing/utils/benchmark_utils.sh
-source ./NTuple_Hist/UC-ODF/ntuple_utils.sh
 
-# Both are staged by the caller since their locations differ per site
-require_ntuple_dir
-: "${FF_DIR:?Set FF_DIR to the built FastFramesTutorial directory (see build_fastframes.sh)}"
+# Both are staged by the caller since their locations differ per site. FastFrames
+# is built once, by an administrator, and only run here.
+: "${NTUPLE_DIR:?Set NTUPLE_DIR to the directory holding the mc20e ntuples}"
+: "${FF_DIR:?Set FF_DIR to the directory holding the prebuilt FastFramesTutorial tree}"
 
 # Holds the generated file list and the histograms FastFrames writes
 run_dir=./fastframes_run
