@@ -167,3 +167,6 @@ Converts NTuple ROOT files to histograms using various frameworks:
 - **Coffea:** Python-based columnar analysis framework
 - **FastFrames:** C++ framework for fast ROOT analysis
 - **EventLoop:** Traditional ATLAS event processing framework
+
+The ntuple inputs also exist as RNTuple copies, converted once from the TTree
+files; see [TTree to RNTuple Conversion](rntuple-conversion.md).
