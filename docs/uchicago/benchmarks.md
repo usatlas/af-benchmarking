@@ -15,22 +15,25 @@ The workflow runs:
 
 ## Benchmark Jobs
 
-The workflow runs 11 parallel benchmark jobs on `arc-runner-set-uchicago`
+The workflow runs 14 parallel benchmark jobs on `arc-runner-set-uchicago`
 runners:
 
-| Job                  | Script                                                           | Log File                 | Description                           |
-| -------------------- | ---------------------------------------------------------------- | ------------------------ | ------------------------------------- |
-| `rucio`              | `./Rucio/rucio_script.sh`                                        | `rucio.log`              | Download data using Rucio             |
-| `evnt-native`        | `./EVNT/UC/Native/run_evnt_native_batch.sh`                      | `log.generate`           | EVNT generation (native)              |
-| `evnt-el9`           | `./EVNT/UC/EL9/run_evnt_el9_batch.sh`                            | `log.generate`           | EVNT generation (EL9 container)       |
-| `evnt-centos7`       | `./EVNT/UC/CentOS7/run_evnt_centos7_batch.sh`                    | `log.generate`           | EVNT generation (CentOS7 container)   |
-| `truth3-native`      | `./TRUTH3/UC/Native/run_truth3_native_batch.sh`                  | `log.Derivation`         | TRUTH3 derivation (native)            |
-| `truth3-el9`         | `./TRUTH3/UC/EL9/run_truth3_el9_batch.sh`                        | `log.Derivation`         | TRUTH3 derivation (EL9 container)     |
-| `truth3-centos7`     | `./TRUTH3/UC/CentOS7/run_truth3_centos7_batch.sh`                | `log.EVNTtoDAOD`         | TRUTH3 derivation (CentOS7 container) |
-| `coffea`             | `./NTuple_Hist/coffea/UC/run_example.sh`                         | `coffea_hist.log`        | NTuple to histogram (Coffea)          |
-| `eventloop-columnar` | `./NTuple_Hist/event_loop/UC/columnar/run_eventloop_arrays.sh`   | `eventloop_arrays.log`   | Event loop (columnar)                 |
-| `eventloop-standard` | `./NTuple_Hist/event_loop/UC/standard/run_eventloop_noarrays.sh` | `eventloop_noarrays.log` | Event loop (standard)                 |
-| `fastframes`         | `./NTuple_Hist/fastframes/UC/run_fastframes.sh`                  | `fastframes.log`         | NTuple to histogram (FastFrames)      |
+| Job                          | Script                                                                   | Log File                         | Description                                 |
+| ---------------------------- | ------------------------------------------------------------------------ | -------------------------------- | ------------------------------------------- |
+| `rucio`                      | `./Rucio/rucio_script.sh`                                                | `rucio.log`                      | Download data using Rucio                   |
+| `evnt-native`                | `./EVNT/UC/Native/run_evnt_native_batch.sh`                              | `log.generate`                   | EVNT generation (native)                    |
+| `evnt-el9`                   | `./EVNT/UC/EL9/run_evnt_el9_batch.sh`                                    | `log.generate`                   | EVNT generation (EL9 container)             |
+| `evnt-centos7`               | `./EVNT/UC/CentOS7/run_evnt_centos7_batch.sh`                            | `log.generate`                   | EVNT generation (CentOS7 container)         |
+| `truth3-native`              | `./TRUTH3/UC/Native/run_truth3_native_batch.sh`                          | `log.Derivation`                 | TRUTH3 derivation (native)                  |
+| `truth3-el9`                 | `./TRUTH3/UC/EL9/run_truth3_el9_batch.sh`                                | `log.Derivation`                 | TRUTH3 derivation (EL9 container)           |
+| `truth3-centos7`             | `./TRUTH3/UC/CentOS7/run_truth3_centos7_batch.sh`                        | `log.EVNTtoDAOD`                 | TRUTH3 derivation (CentOS7 container)       |
+| `coffea`                     | `./NTuple_Hist/coffea/UC/run_example.sh`                                 | `coffea_hist.log`                | NTuple to histogram (Coffea)                |
+| `coffea-rntuple`             | `./NTuple_Hist/coffea/UC/run_example.sh rntuple`                         | `coffea_hist_rntuple.log`        | NTuple to histogram (Coffea, RNTuple input) |
+| `eventloop-columnar`         | `./NTuple_Hist/event_loop/UC/columnar/run_eventloop_arrays.sh`           | `eventloop_arrays.log`           | Event loop (columnar)                       |
+| `eventloop-columnar-rntuple` | `./NTuple_Hist/event_loop/UC/columnar/run_eventloop_arrays.sh rntuple`   | `eventloop_arrays_rntuple.log`   | Event loop (columnar, RNTuple input)        |
+| `eventloop-standard`         | `./NTuple_Hist/event_loop/UC/standard/run_eventloop_noarrays.sh`         | `eventloop_noarrays.log`         | Event loop (standard)                       |
+| `eventloop-standard-rntuple` | `./NTuple_Hist/event_loop/UC/standard/run_eventloop_noarrays.sh rntuple` | `eventloop_noarrays_rntuple.log` | Event loop (standard, RNTuple input)        |
+| `fastframes`                 | `./NTuple_Hist/fastframes/UC/run_fastframes.sh`                          | `fastframes.log`                 | NTuple to histogram (FastFrames)            |
 
 ## Workflow Steps
 
@@ -168,5 +171,26 @@ Converts NTuple ROOT files to histograms using various frameworks:
 - **FastFrames:** C++ framework for fast ROOT analysis
 - **EventLoop:** Traditional ATLAS event processing framework
 
-The ntuple inputs also exist as RNTuple copies, converted once from the TTree
-files; see [TTree to RNTuple Conversion](rntuple-conversion.md).
+### RNTuple variants
+
+The `coffea`, `eventloop-columnar` and `eventloop-standard` jobs each have an
+`-rntuple` twin. The twin runs the same analysis on the RNTuple copy of the same
+dataset (see [TTree to RNTuple Conversion](rntuple-conversion.md)), so the two
+formats can be compared run for run. Each script takes the format as its first
+argument (`ttree` by default), and the RNTuple jobs write `*_rntuple.log`.
+
+- **Coffea** reads RNTuple through uproot with no code change. Only the dataset
+  file list differs (`af_v2_700402_rntuple.json`). It keeps the TTree list's
+  per-file steps, so both formats are split into identical chunks.
+- **EventLoop (columnar)** binds each field's pointer in the `RNTupleReader`'s
+  entry once and calls `LoadEntry` for every event. This is the RNTuple
+  counterpart of `SetBranchAddress`.
+- **EventLoop (standard)** looks each field up by name on every event. This is
+  the counterpart of reading `event.branch` while iterating a TTree.
+- **FastFrames** has no RNTuple twin. The FastFrames build these jobs use
+  (`StatAnalysis,0.6.3`) only reads TTrees, and on RNTuple input it fails with
+  `Cannot read TTree: analysis`.
+
+The two formats' inputs are compressed differently, so a size or I/O comparison
+is not a pure format comparison. See the caveat on the
+[conversion page](rntuple-conversion.md#what-to-expect).

@@ -29,8 +29,11 @@ ODF_JOBS = [
     "truth3-el9",
     "truth3-centos7",
     "coffea",
+    "coffea-rntuple",
     "eventloop-columnar",
+    "eventloop-columnar-rntuple",
     "eventloop-standard",
+    "eventloop-standard-rntuple",
     "fastframes",
 ]
 REQUIRED_PARSE_INPUTS = {
@@ -109,7 +112,10 @@ def execute_command(job_text):
     execute_step = next(
         text for label, text in split_steps(job_text) if label == "execute"
     )
-    return re.search(r"run: (.+)", execute_step).group(1).split()
+    # Prettier folds a long `run:` value onto the following, deeper-indented
+    # lines, so the command is the key's line plus any continuation lines
+    run = re.search(r"^        run:(.*(?:\n {10,}\S.*)*)", execute_step, re.M)
+    return run.group(1).split()
 
 
 class TestTriggersAndRunner:

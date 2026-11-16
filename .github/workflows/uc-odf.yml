@@ -431,6 +431,55 @@ jobs:
           path: |
             coffea_hist.log
 
+  coffea-rntuple:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./NTuple_Hist/coffea/UC-ODF/run_example.sh rntuple
+        working-directory: .
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: coffea-rntuple
+          log-file: coffea_hist_rntuple.log
+          log-type: coffea
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          payload-file: coffea.root
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            coffea_hist_rntuple.log
+
   eventloop-columnar:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
@@ -479,6 +528,56 @@ jobs:
           path: |
             eventloop_arrays.log
 
+  eventloop-columnar-rntuple:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
+
+      - name: execute
+        run:
+          ./NTuple_Hist/event_loop/UC-ODF/columnar/run_eventloop_arrays.sh
+          rntuple
+        working-directory: .
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: eventloop-columnar-rntuple
+          log-file: eventloop_arrays_rntuple.log
+          log-type: eventloop
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            eventloop_arrays_rntuple.log
+
   eventloop-standard:
     if:
       github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
@@ -526,6 +625,56 @@ jobs:
           name: ${{ github.job }}-logs
           path: |
             eventloop_noarrays.log
+
+  eventloop-standard-rntuple:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
+
+      - name: execute
+        run:
+          ./NTuple_Hist/event_loop/UC-ODF/standard/run_eventloop_noarrays.sh
+          rntuple
+        working-directory: .
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: eventloop-standard-rntuple
+          log-file: eventloop_noarrays_rntuple.log
+          log-type: eventloop
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            eventloop_noarrays_rntuple.log
 
   fastframes:
     if:
