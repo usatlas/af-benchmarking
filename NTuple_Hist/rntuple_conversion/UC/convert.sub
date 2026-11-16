@@ -10,7 +10,7 @@ output = logs/convert.$(Cluster).$(Process).out
 error = logs/convert.$(Cluster).$(Process).err
 log = logs/convert.$(Cluster).log
 
-# Peak RSS was ~1 GB for every file tried; memory does not grow with file size.
+# Peak RSS was 1.0-1.35 GB for inputs from 222 MB to 4.2 GB.
 request_cpus = 1
 request_memory = 4GB
 request_disk = 1GB

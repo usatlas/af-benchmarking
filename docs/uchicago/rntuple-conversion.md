@@ -86,12 +86,21 @@ OK user.bhodkins.42165201._000002.ANALYSIS.root: 281597 entries, 240 columns che
 
 ## What to expect
 
-On the Wmunugamma ntuples, about 240 branches per file (78 `vector<float>`, 99
-`vector<char>`, and the rest scalars or other vectors):
+The 23 Wmunugamma files have 240 branches each (78 `vector<float>`, 99
+`vector<char>`, and the rest scalars or other vectors). They were converted on
+2026-11-15:
 
-- **Size:** each RNTuple file is about 0.27–0.28× the size of its TTree.
-  RNTuple's defaults (zstd compression, plus type-aware encodings such as byte
-  splitting) account for most of this.
-- **Time:** about 2 minutes per 300 MB of input on one core, including
-  validation, which reads both files.
-- **Memory:** about 1 GB peak RSS.
+- **Size:** 32.37 GB of TTree became 9.22 GB of RNTuple (0.285×). The ratio is
+  0.27–0.29× for every file.
+- **Time:** 2 minutes for the smallest file (222 MB) and 33 minutes for the
+  largest (4.2 GB), on one core, including validation, which reads both files.
+- **Memory:** 1.0–1.35 GB peak RSS.
+
+!!! warning "The size ratio is not a pure format comparison"
+
+    The input TTree files were written with compression setting 101 (zlib,
+    level 1). The importer writes the RNTuple with RNTuple's default write
+    options, which use a different compression algorithm and level. Some of
+    the size difference therefore comes from compression settings rather than
+    from the format itself. For a like-for-like TTree vs RNTuple comparison,
+    write both formats with the same compression setting.
