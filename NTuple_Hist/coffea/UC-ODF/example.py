@@ -1,6 +1,7 @@
 # this portion is done to ignore warnings from coffea for now
 from __future__ import annotations
 
+import argparse
 import awkward as ak
 import dask
 import hist.dask as had
@@ -20,12 +21,16 @@ from datetime import datetime, timezone
 
 from fileset_paths import relocate_fileset
 
-# The dataset JSON is shared by all sites and lives one directory up
-DATASET_JSON = (
-    Path(__file__).resolve().parent.parent
-    / "single_campaign_mc20e_dataset_runnable"
-    / "af_v2_700402.json"
+# The dataset JSONs are shared by all sites and live one directory up. Each
+# format's copy keeps the same per-file steps, so both formats are split into
+# identical chunks; see docs/uchicago/rntuple-conversion.md.
+DATASET_DIR = (
+    Path(__file__).resolve().parent.parent / "single_campaign_mc20e_dataset_runnable"
 )
+DATASET_JSONS = {
+    "ttree": DATASET_DIR / "af_v2_700402.json",
+    "rntuple": DATASET_DIR / "af_v2_700402_rntuple.json",
+}
 
 
 warnings.filterwarnings("ignore", module="coffea.*")
@@ -86,6 +91,10 @@ class MyFirstProcessor(processor.ProcessorABC):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--format", choices=sorted(DATASET_JSONS), default="ttree")
+    args = parser.parse_args()
+
     # Defining "MyFirstProcessor" object
     p = MyFirstProcessor()
 
@@ -94,7 +103,7 @@ def main():
     cluster = LocalCluster(n_workers=2, threads_per_worker=2)
     # local_directory = f"/tmp/dask-scratch-space-{os.getuid()}"
     with Client(cluster):
-        dataset_runnable = json.loads(DATASET_JSON.read_text())
+        dataset_runnable = json.loads(DATASET_JSONS[args.format].read_text())
         # The JSON records UC's ntuple paths; point it at this site's copy
         dataset_runnable["Wmunugamma"] = relocate_fileset(
             dataset_runnable["Wmunugamma"], os.environ["NTUPLE_DIR"]

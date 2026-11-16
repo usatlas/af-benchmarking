@@ -1,6 +1,7 @@
 # this portion is done to ignore warnings from coffea for now
 from __future__ import annotations
 
+import argparse
 import awkward as ak
 import dask
 import hist.dask as had
@@ -75,7 +76,19 @@ class MyFirstProcessor(processor.ProcessorABC):
         pass
 
 
+# Each format's copy of the same dataset, with the same per-file steps so both
+# formats are split into identical chunks; see docs/uchicago/rntuple-conversion.md.
+DATASET_RUNNABLES = {
+    "ttree": "af_v2_700402.json",
+    "rntuple": "af_v2_700402_rntuple.json",
+}
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--format", choices=sorted(DATASET_RUNNABLES), default="ttree")
+    args = parser.parse_args()
+
     # Defining "MyFirstProcessor" object
     p = MyFirstProcessor()
 
@@ -86,8 +99,10 @@ def main():
     with Client(cluster):
         dataset_runnable = json.loads(
             Path(
-                "/home/runner/_work/af-benchmarking/af-benchmarking/NTuple_Hist/coffea/single_campaign_mc20e_dataset_runnable/af_v2_700402.json"
-            ).read_text()
+                "/home/runner/_work/af-benchmarking/af-benchmarking/NTuple_Hist/coffea/single_campaign_mc20e_dataset_runnable"
+            )
+            .joinpath(DATASET_RUNNABLES[args.format])
+            .read_text()
         )
         nevents = 0
         for f in dataset_runnable["Wmunugamma"]["files"]:
