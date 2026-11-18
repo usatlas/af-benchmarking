@@ -34,6 +34,7 @@ runners:
 | `eventloop-standard`         | `./NTuple_Hist/event_loop/UC/standard/run_eventloop_noarrays.sh`         | `eventloop_noarrays.log`         | Event loop (standard)                       |
 | `eventloop-standard-rntuple` | `./NTuple_Hist/event_loop/UC/standard/run_eventloop_noarrays.sh rntuple` | `eventloop_noarrays_rntuple.log` | Event loop (standard, RNTuple input)        |
 | `fastframes`                 | `./NTuple_Hist/fastframes/UC/run_fastframes.sh`                          | `fastframes.log`                 | NTuple to histogram (FastFrames)            |
+| `fastframes-rntuple`         | `./NTuple_Hist/fastframes/UC/run_fastframes.sh rntuple`                  | `fastframes_rntuple.log`         | NTuple to histogram (FastFrames, RNTuple)   |
 
 ## Workflow Steps
 
@@ -173,23 +174,40 @@ Converts NTuple ROOT files to histograms using various frameworks:
 
 ### RNTuple variants
 
-The `coffea`, `eventloop-columnar` and `eventloop-standard` jobs each have an
-`-rntuple` twin. The twin runs the same analysis on the RNTuple copy of the same
-dataset (see [TTree to RNTuple Conversion](rntuple-conversion.md)), so the two
-formats can be compared run for run. Each script takes the format as its first
-argument (`ttree` by default), and the RNTuple jobs write `*_rntuple.log`.
+The `coffea`, `eventloop-columnar`, `eventloop-standard` and `fastframes` jobs
+each have an `-rntuple` twin. The twin runs the same analysis on the RNTuple
+copy of the same dataset (see
+[TTree to RNTuple Conversion](rntuple-conversion.md)), so the two formats can be
+compared run for run. Each script takes the format as its first argument
+(`ttree` by default), and the RNTuple jobs write `*_rntuple.log`.
 
-- **Coffea** reads RNTuple through uproot with no code change. Only the dataset
-  file list differs (`af_v2_700402_rntuple.json`). It keeps the TTree list's
-  per-file steps, so both formats are split into identical chunks.
+- **Coffea** runs the RNTuple twin in virtual-array mode (`processor.Runner`)
+  rather than the dask-awkward mode of the TTree job. Dask mode crashes on
+  RNTuple input: coffea asks every field for a `title`, which uproot's RNTuple
+  fields do not have, and chunks that start mid-cluster come back as jagged
+  arrays whose offsets the dask path does not expect. Patching both is still not
+  enough. Virtual-array mode reads RNTuple unpatched and fills the same
+  histogram as the TTree job. It reads the RNTuple dataset file list
+  (`af_v2_700402_rntuple.json`) in 51,134-entry chunks, the size of that list's
+  per-file steps. Its reported time covers the whole run, including opening the
+  files, whereas the dask job times only the computation of its prebuilt graph.
 - **EventLoop (columnar)** binds each field's pointer in the `RNTupleReader`'s
   entry once and calls `LoadEntry` for every event. This is the RNTuple
   counterpart of `SetBranchAddress`.
 - **EventLoop (standard)** looks each field up by name on every event. This is
   the counterpart of reading `event.branch` while iterating a TTree.
-- **FastFrames** has no RNTuple twin. The FastFrames build these jobs use
-  (`StatAnalysis,0.6.3`) only reads TTrees, and on RNTuple input it fails with
-  `Cannot read TTree: analysis`.
+- **FastFrames** reads RNTuple from version 7.0, so both FastFrames jobs run
+  FastFrames 7.2.0 built against `StatAnalysis,0.7.3`. The build is the one in
+  the workflow's `FF_DIR` (`/data/qlei/fastframes_v7` at UC);
+  `NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh` builds one. The RNTuple
+  config differs from the TTree one only in its file list
+  (`mc20e_filelist_rntuple.txt`). The earlier 6.1.0 build (`StatAnalysis,0.6.3`)
+  read only TTrees, so the TTree job's history changes version at the switch.
+
+At UC-ODF the RNTuple jobs read the RNTuple copy staged next to the TTree one
+(`NTUPLE_DIR` with `_RNTuple` before `.root`), and both FastFrames jobs need
+`FF_DIR` there rebuilt at 7.2 with `build_fastframes.sh`. Until both are in
+place, those jobs fail.
 
 The two formats' inputs are compressed differently, so a size or I/O comparison
 is not a pure format comparison. See the caveat on the
