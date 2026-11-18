@@ -450,3 +450,59 @@ class TestUcFastFrames:
         # The 6.1 build under /data/selbor cannot read RNTuple; FF_DIR names the build
         text = (FASTFRAMES_UC_DIR / name).read_text()
         assert "selbor" not in text
+
+
+class TestUcOdfFastFramesFormats:
+    SCRIPT = "NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh"
+    BUILD = "NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh"
+
+    def test_unknown_format_exits_2(self, tmp_path):
+        result = run_with_env(
+            ["bash", self.SCRIPT, "parquet"],
+            {"NTUPLE_DIR": str(tmp_path), "FF_DIR": str(tmp_path)},
+        )
+        assert result.returncode == 2
+        assert "unknown format: parquet" in result.stderr
+
+    @pytest.mark.parametrize("trailing_slash", ["", "/"])
+    def test_rntuple_reads_the_rntuple_sibling(self, tmp_path, trailing_slash):
+        # The RNTuple copy sits next to the TTree one. With no files there the
+        # script must stop at the file list, naming the sibling, before any setup
+        ttree_dir = tmp_path / "x.root"
+        ttree_dir.mkdir()
+        (ttree_dir / "ntuple.root").touch()
+        result = run_with_env(
+            ["bash", self.SCRIPT, "rntuple"],
+            {"NTUPLE_DIR": f"{ttree_dir}{trailing_slash}", "FF_DIR": str(tmp_path)},
+        )
+        assert result.returncode != 0
+        assert f"no .root files in {tmp_path / 'x_RNTuple.root'}" in result.stderr
+        assert not (REPO_ROOT / "fastframes_rntuple.log").exists()
+        assert not (REPO_ROOT / "fastframes_run").exists()
+
+    def test_failed_file_list_leaves_no_run_directory(self, tmp_path):
+        # Checked only from a clean checkout: a real run leaves the directory
+        run_dir = REPO_ROOT / "fastframes_run"
+        if run_dir.exists():
+            pytest.skip("fastframes_run/ is left over from a real run")
+        result = run_with_env(
+            ["bash", self.SCRIPT],
+            {"NTUPLE_DIR": str(tmp_path), "FF_DIR": str(tmp_path)},
+        )
+        assert result.returncode != 0
+        assert not run_dir.exists()
+
+    def test_build_script_is_executable_and_valid_bash(self):
+        path = REPO_ROOT / self.BUILD
+        assert os.access(path, os.X_OK)
+        subprocess.run(["bash", "-n", str(path)], check=True)
+
+    def test_build_and_run_scripts_use_the_same_release(self):
+        # A build made with one StatAnalysis release cannot run under another
+        for script in (self.SCRIPT, self.BUILD):
+            assert "asetup StatAnalysis,0.7.3" in (REPO_ROOT / script).read_text()
+
+    def test_build_script_requires_ff_dir(self):
+        result = run_with_env(["bash", self.BUILD], {})
+        assert result.returncode != 0
+        assert "FF_DIR" in result.stdout + result.stderr

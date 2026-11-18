@@ -8,10 +8,30 @@ source ./parsing/utils/benchmark_utils.sh
 : "${NTUPLE_DIR:?Set NTUPLE_DIR to the directory holding the mc20e ntuples}"
 : "${FF_DIR:?Set FF_DIR to the directory holding the prebuilt FastFramesTutorial tree}"
 
+# Input format: ttree (default) or rntuple. It picks the ntuple directory and
+# the log name, so the two formats' benchmarks are reported separately.
+format="${1:-ttree}"
+case "${format}" in
+  ttree) log_file=fastframes.log ;;
+  rntuple)
+    log_file=fastframes_rntuple.log
+    # The RNTuple copy sits next to the TTree one; see
+    # docs/uchicago/rntuple-conversion.md
+    NTUPLE_DIR="${NTUPLE_DIR%/}"
+    NTUPLE_DIR="${NTUPLE_DIR%.root}_RNTuple.root"
+    ;;
+  *)
+    echo "unknown format: ${format} (expected ttree or rntuple)" >&2
+    exit 2
+    ;;
+esac
+
 # Holds the generated file list and the histograms FastFrames writes
+# (the list is made first, so a directory without ntuples leaves nothing behind)
 run_dir=./fastframes_run
+filelist=$(./NTuple_Hist/fastframes/UC-ODF/make_filelist.sh "${NTUPLE_DIR}") || exit 1
 mkdir -p "${run_dir}"
-./NTuple_Hist/fastframes/UC-ODF/make_filelist.sh "${NTUPLE_DIR}" > "${run_dir}"/mc20e_filelist.txt || exit 1
+printf '%s\n' "${filelist}" > "${run_dir}"/mc20e_filelist.txt
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
@@ -29,10 +49,10 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 # The directories are expanded on the host because the container starts with a
 # clean environment (apptainer exec -e).
 echo "::group::FastFrames"
-source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m "${NTUPLE_DIR},${FF_DIR}" -r "asetup StatAnalysis,0.6.3 && \
+source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m "${NTUPLE_DIR},${FF_DIR}" -r "asetup StatAnalysis,0.7.3 && \
   source '${FF_DIR}/TutorialClass/build/setup.sh' && \
   echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log && \
-  /usr/bin/time -v python3 '${FF_DIR}/FastFrames/python/FastFrames.py' -c ./NTuple_Hist/fastframes/UC-ODF/mc20e_example_config.yml 2>&1 | tee fastframes.log"
+  /usr/bin/time -v python3 '${FF_DIR}/FastFrames/python/FastFrames.py' -c ./NTuple_Hist/fastframes/UC-ODF/mc20e_example_config.yml 2>&1 | tee ${log_file}"
 printf "\n"
 echo "::endgroup::"
 
@@ -47,4 +67,4 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 hostname >> split.log
 echo "::endgroup::"
 
-append_benchmark "fastframes.log" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
+append_benchmark "${log_file}" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"

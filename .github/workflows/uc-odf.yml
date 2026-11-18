@@ -723,3 +723,51 @@ jobs:
           name: ${{ github.job }}-logs
           path: |
             fastframes.log
+
+  fastframes-rntuple:
+    if:
+      github.actor != 'dependabot[bot]' && (github.event_name != 'pull_request'
+      || github.event.pull_request.head.repo.fork == false)
+    runs-on: arc-runner-set-odf
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Export node name
+        run: echo "NODE_NAME=$NODE_NAME" >> "$GITHUB_ENV"
+
+      - name: execute
+        run: ./NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh rntuple
+        shell: bash
+
+      - name: parse benchmark log
+        if: always()
+        uses: $/.github/actions/parse
+        with:
+          job: fastframes-rntuple
+          log-file: fastframes_rntuple.log
+          log-type: fastframes
+          cluster: UC-ODF
+          kibana-token: ${{ secrets.KIBANA_TOKEN || 'default-token' }}
+          kibana-kind: "benchmark"
+          host: ${{ env.NODE_NAME }}
+          payload-file: ./fastframes_run/example_FS.root
+          os: alma9
+          mode: batch
+          containerized: "true"
+
+      - name: upload to kibana
+        if: always() && github.event_name != 'pull_request'
+        uses: $/.github/actions/upload
+        with:
+          payload-file: payload.json
+          kibana-uri: ${{ secrets.KIBANA_URI }}
+
+      - name: upload log
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ github.job }}-logs
+          path: |
+            fastframes_rntuple.log

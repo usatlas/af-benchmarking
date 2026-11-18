@@ -35,6 +35,7 @@ ODF_JOBS = [
     "eventloop-standard",
     "eventloop-standard-rntuple",
     "fastframes",
+    "fastframes-rntuple",
 ]
 REQUIRED_PARSE_INPUTS = {
     "job",
@@ -50,7 +51,10 @@ REQUIRED_PARSE_INPUTS = {
 }
 LOG_TYPES = {"rucio", "evnt", "truth3", "coffea", "eventloop", "fastframes"}
 # UC steps that UC-ODF deliberately does not have
-STEPS_ALLOWED_TO_BE_MISSING = {"fastframes": {"$/.github/actions/setup-globus"}}
+STEPS_ALLOWED_TO_BE_MISSING = {
+    "fastframes": {"$/.github/actions/setup-globus"},
+    "fastframes-rntuple": {"$/.github/actions/setup-globus"},
+}
 
 
 def split_jobs(text):
@@ -249,6 +253,13 @@ class TestDataDirectories:
             assert "NTUPLE_DIR" not in text
             assert "FF_DIR" not in text
 
+    def test_uc_sets_its_fastframes_build_once(self, uc_jobs):
+        # UC's FastFrames 7.2 build; the jobs read it from the workflow env
+        header = UC_TEXT.split("\njobs:\n", 1)[0]
+        assert "\nenv:\n  FF_DIR: /data/qlei/fastframes_v7\n" in header
+        for text in uc_jobs.values():
+            assert "FF_DIR" not in text
+
     def test_no_repository_variables_are_needed(self):
         assert "vars." not in ODF_TEXT
 
@@ -263,8 +274,9 @@ class TestFastframesIsPrebuilt:
         assert "cmake" not in code
         assert "git clone" not in code
 
-    def test_fastframes_job_has_no_build_step(self, odf_jobs):
-        labels = [label for label, _ in split_steps(odf_jobs["fastframes"])]
+    @pytest.mark.parametrize("job", ["fastframes", "fastframes-rntuple"])
+    def test_fastframes_job_has_no_build_step(self, job, odf_jobs):
+        labels = [label for label, _ in split_steps(odf_jobs[job])]
         assert "build FastFrames" not in labels
         assert "execute" in labels
 
