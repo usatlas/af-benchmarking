@@ -519,6 +519,16 @@ class TestUcOdfFastFramesFormats:
         for script in (self.SCRIPT, self.BUILD):
             assert "asetup StatAnalysis,0.7.3" in (REPO_ROOT / script).read_text()
 
+    def test_build_script_clears_old_build_trees_before_configuring(self):
+        # FF_DIR may hold a build made under another StatAnalysis release, whose
+        # CMake cache would point the new build at the old ROOT
+        text = (REPO_ROOT / self.BUILD).read_text()
+        command = text[text.index('-r "') :]
+        clear = command.index(
+            "rm -rf build install TutorialClass/build TutorialClass/install"
+        )
+        assert clear < command.index("cmake ")
+
     def test_build_script_requires_ff_dir(self):
         result = run_with_env(["bash", self.BUILD], {})
         assert result.returncode != 0
