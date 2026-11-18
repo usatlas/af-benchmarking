@@ -1,5 +1,6 @@
 """Tests for the per-site benchmark shell scripts (no ATLAS software required)."""
 
+import ast
 import importlib.util
 import json
 import os
@@ -212,6 +213,53 @@ class TestRunnerFileset:
         before = json.dumps(dataset, sort_keys=True)
         module.runner_fileset(dataset, "Wmunugamma")
         assert json.dumps(dataset, sort_keys=True) == before
+
+
+COFFEA_UC_EXAMPLE = COFFEA_ODF_DIR.parent / "UC" / "example.py"
+
+
+def top_level_sources(path):
+    """Map each top-level def/class/assignment name in ``path`` to its source."""
+    text = path.read_text()
+    sources = {}
+    for node in ast.parse(text).body:
+        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+            sources[node.name] = ast.get_source_segment(text, node)
+        elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
+            sources[node.targets[0].id] = ast.get_source_segment(text, node)
+    return sources
+
+
+class TestCoffeaUcMatchesOdf:
+    # The UC and UC-ODF coffea benchmarks must run the same code; only where the
+    # dataset JSON's paths point differs
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "MyFirstProcessor",
+            "VirtualProcessor",
+            "run_dask",
+            "run_virtual",
+            "RUNNER_CHUNKSIZE",
+            "DATASET_DIR",
+            "DATASET_JSONS",
+        ],
+    )
+    def test_definition_is_identical(self, name):
+        uc = top_level_sources(COFFEA_UC_EXAMPLE)
+        odf = top_level_sources(COFFEA_ODF_DIR / "example.py")
+        assert uc[name] == odf[name]
+
+    def test_uc_runner_fileset_is_odfs(self):
+        # UC has no fileset_paths module, so it carries its own copy
+        uc = top_level_sources(COFFEA_UC_EXAMPLE)
+        odf = top_level_sources(COFFEA_ODF_DIR / "fileset_paths.py")
+        assert uc["runner_fileset"] == odf["runner_fileset"]
+
+    def test_uc_does_not_hardcode_the_runner_checkout(self):
+        # The dataset JSONs are found next to the script, so it also runs
+        # outside the CI runner's checkout (e.g. from an HTCondor job)
+        assert "/home/runner" not in COFFEA_UC_EXAMPLE.read_text()
 
 
 FASTFRAMES_DIR = REPO_ROOT / "NTuple_Hist" / "fastframes"
