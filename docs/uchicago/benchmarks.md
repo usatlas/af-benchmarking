@@ -188,9 +188,11 @@ compared run for run. Each script takes the format as its first argument
   arrays whose offsets the dask path does not expect. Patching both is still not
   enough. Virtual-array mode reads RNTuple unpatched and fills the same
   histogram as the TTree job. It reads the RNTuple dataset file list
-  (`af_v2_700402_rntuple.json`) in 51,134-entry chunks, the size of that list's
-  per-file steps. Its reported time covers the whole run, including opening the
-  files, whereas the dask job times only the computation of its prebuilt graph.
+  (`af_v2_700402_rntuple.json`) in chunks of about 51,134 entries, the list's
+  largest per-file step; coffea splits each file evenly near that size, so the
+  chunks are close to, but not exactly, the dask job's. Its reported time covers
+  the whole run, including opening the files, whereas the dask job times only
+  the computation of its prebuilt graph.
 - **EventLoop (columnar)** binds each field's pointer in the `RNTupleReader`'s
   entry once and calls `LoadEntry` for every event. This is the RNTuple
   counterpart of `SetBranchAddress`.

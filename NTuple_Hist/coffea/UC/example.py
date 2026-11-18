@@ -31,8 +31,9 @@ DATASET_JSONS = {
     "rntuple": DATASET_DIR / "af_v2_700402_rntuple.json",
 }
 
-# Entries per chunk in virtual-array mode: the size of the per-file steps in the
-# dataset JSONs, so both modes process the same chunks
+# Target entries per chunk in virtual-array mode: the largest per-file step in
+# the dataset JSONs. coffea splits each file evenly near this size, so the
+# chunks are close to, but not exactly, the dask mode's steps.
 RUNNER_CHUNKSIZE = 51134
 
 
