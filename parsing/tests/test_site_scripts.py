@@ -177,6 +177,43 @@ class TestRelocateFileset:
             module.relocate_fileset(dataset, tmp_path)
 
 
+RNTUPLE_DATASET_JSON = DATASET_JSON.with_name("af_v2_700402_rntuple.json")
+
+
+class TestRunnerFileset:
+    # coffea reads RNTuple only in virtual-array mode (processor.Runner), which
+    # takes a plain {path: object path} fileset instead of a dataset runnable
+    @pytest.fixture
+    def module(self):
+        spec = importlib.util.spec_from_file_location(
+            "fileset_paths", COFFEA_ODF_DIR / "fileset_paths.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    @pytest.fixture
+    def dataset(self):
+        return json.loads(RNTUPLE_DATASET_JSON.read_text())["Wmunugamma"]
+
+    def test_files_map_to_object_path(self, module, dataset):
+        fileset = module.runner_fileset(dataset, "Wmunugamma")
+        files = fileset["Wmunugamma"]["files"]
+        assert list(files) == list(dataset["files"])
+        assert len(files) == 18
+        assert set(files.values()) == {"analysis"}
+
+    def test_metadata_is_carried(self, module, dataset):
+        # The processor's normalisation (xs, sum_of_weights, ...) reads it
+        fileset = module.runner_fileset(dataset, "Wmunugamma")
+        assert fileset["Wmunugamma"]["metadata"] == dataset["metadata"]
+
+    def test_input_is_not_modified(self, module, dataset):
+        before = json.dumps(dataset, sort_keys=True)
+        module.runner_fileset(dataset, "Wmunugamma")
+        assert json.dumps(dataset, sort_keys=True) == before
+
+
 FASTFRAMES_DIR = REPO_ROOT / "NTuple_Hist" / "fastframes"
 FASTFRAMES_ODF_DIR = FASTFRAMES_DIR / "UC-ODF"
 UC_FILELIST = FASTFRAMES_DIR / "UC" / "mc20e_filelist.txt"
