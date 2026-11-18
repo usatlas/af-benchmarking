@@ -15,6 +15,7 @@ case "${format}" in
     log_file=eventloop_noarrays_rntuple.log
     # The RNTuple copy sits next to the TTree one; see
     # docs/uchicago/rntuple-conversion.md
+    NTUPLE_DIR="${NTUPLE_DIR%/}"
     NTUPLE_DIR="${NTUPLE_DIR%.root}_RNTuple.root"
     ;;
   *)
@@ -22,6 +23,12 @@ case "${format}" in
     exit 2
     ;;
 esac
+
+# Stop before any setup if this format's copy is not staged here
+if [[ ! -d "${NTUPLE_DIR}" ]]; then
+  echo "no ntuple directory at ${NTUPLE_DIR}" >&2
+  exit 1
+fi
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 

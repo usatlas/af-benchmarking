@@ -121,6 +121,21 @@ class TestUcOdfNtupleScripts:
         assert result.returncode != 0
         assert "NTUPLE_DIR" in result.stdout + result.stderr
 
+    @pytest.mark.parametrize("trailing_slash", ["", "/"])
+    @pytest.mark.parametrize("script", NTUPLE_SCRIPTS)
+    def test_rntuple_reads_the_rntuple_sibling(self, script, trailing_slash, tmp_path):
+        # The RNTuple copy sits next to the TTree one. With the sibling missing
+        # the script must stop, naming it, before any setup
+        ttree_dir = tmp_path / "x.root"
+        ttree_dir.mkdir()
+        result = run_with_env(
+            ["bash", script, "rntuple"], {"NTUPLE_DIR": f"{ttree_dir}{trailing_slash}"}
+        )
+        assert result.returncode == 1
+        assert result.stderr.strip() == (
+            f"no ntuple directory at {tmp_path / 'x_RNTuple.root'}"
+        )
+
     @pytest.mark.parametrize("path", NTUPLE_SCRIPTS + NTUPLE_PYTHON)
     def test_no_uc_specific_paths(self, path):
         text = (REPO_ROOT / path).read_text()
@@ -468,6 +483,8 @@ class TestUcOdfFastFramesFormats:
     def test_rntuple_reads_the_rntuple_sibling(self, tmp_path, trailing_slash):
         # The RNTuple copy sits next to the TTree one. With no files there the
         # script must stop at the file list, naming the sibling, before any setup
+        if (REPO_ROOT / "fastframes_run").exists():
+            pytest.skip("fastframes_run/ is left over from a real run")
         ttree_dir = tmp_path / "x.root"
         ttree_dir.mkdir()
         (ttree_dir / "ntuple.root").touch()
