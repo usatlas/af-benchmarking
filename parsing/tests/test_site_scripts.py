@@ -387,3 +387,66 @@ def run_with_env(command, env_vars):
         timeout=30,
         check=False,
     )
+
+
+FASTFRAMES_UC_DIR = FASTFRAMES_DIR / "UC"
+TTREE_DATASET_DIR = "user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root"
+RNTUPLE_DATASET_DIR = "user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS_RNTuple.root"
+
+
+class TestUcFastFrames:
+    SCRIPT = "NTuple_Hist/fastframes/UC/run_fastframes.sh"
+
+    def test_script_is_executable_and_valid_bash(self):
+        path = REPO_ROOT / self.SCRIPT
+        assert os.access(path, os.X_OK)
+        subprocess.run(["bash", "-n", str(path)], check=True)
+
+    def test_unknown_format_exits_2(self):
+        result = run_with_env(["bash", self.SCRIPT, "parquet"], {"FF_DIR": "/x"})
+        assert result.returncode == 2
+        assert "unknown format: parquet" in result.stderr
+
+    def test_requires_ff_dir(self):
+        # Must stop at the check, before any ATLAS setup
+        result = run_with_env(["bash", self.SCRIPT], {})
+        assert result.returncode != 0
+        assert "FF_DIR" in result.stdout + result.stderr
+        assert "setupATLAS" not in result.stdout
+
+    def test_rntuple_config_differs_only_in_filelist(self):
+        ttree = (FASTFRAMES_UC_DIR / "mc20e_example_config.yml").read_text()
+        rntuple = (FASTFRAMES_UC_DIR / "mc20e_example_config_rntuple.yml").read_text()
+        differing = [
+            (a, b)
+            for a, b in zip(ttree.splitlines(), rntuple.splitlines(), strict=True)
+            if a != b
+        ]
+        assert differing == [
+            (
+                '  input_filelist_path: "./NTuple_Hist/fastframes/UC/mc20e_filelist.txt"',
+                "  input_filelist_path: "
+                '"./NTuple_Hist/fastframes/UC/mc20e_filelist_rntuple.txt"',
+            )
+        ]
+
+    def test_rntuple_filelist_is_the_ttree_list_in_the_rntuple_directory(self):
+        ttree = (FASTFRAMES_UC_DIR / "mc20e_filelist.txt").read_text()
+        rntuple = (FASTFRAMES_UC_DIR / "mc20e_filelist_rntuple.txt").read_text()
+        assert len(ttree.splitlines()) == 18
+        assert rntuple == ttree.replace(
+            f"/{TTREE_DATASET_DIR}/", f"/{RNTUPLE_DATASET_DIR}/"
+        )
+
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "run_fastframes.sh",
+            "mc20e_example_config.yml",
+            "mc20e_example_config_rntuple.yml",
+        ],
+    )
+    def test_no_selbor_paths(self, name):
+        # The 6.1 build under /data/selbor cannot read RNTuple; FF_DIR names the build
+        text = (FASTFRAMES_UC_DIR / name).read_text()
+        assert "selbor" not in text
