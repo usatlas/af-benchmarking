@@ -6,11 +6,12 @@ Like BNL, SLAC has no GitHub Actions workflow behind it — every benchmark job
 runs via a `cron` entry that submits to Slurm instead of HTCondor. SLAC's
 crontab lives on a different host than the Slurm submit host (`iana`), so every
 cron entry is a thin `ssh iana ...` wrapper into a per-job
-`submit_and_upload.sh` alongside each job's Slurm `*_sub.sh`. That per-job
-script only handles what's genuinely SLAC-specific (the overlap lock, cleaning
-the scratch directory) and then `exec`s into the same shared, site-neutral
-`parsing/utils/submit_and_upload.sh` that [NERSC](../nersc/benchmarks.md) uses,
-which does the actual submit-wait-locate-parse-upload work.
+`submit_and_upload.sh` alongside each job's Slurm submission script. That
+per-job script only handles what's genuinely SLAC-specific (the overlap lock,
+the `cd`, and for TRUTH3/EVNT a clean of the job's scratch directory) and then
+`exec`s into the same shared, site-neutral `parsing/utils/submit_and_upload.sh`
+that [NERSC](../nersc/benchmarks.md) uses, which does the actual
+submit-wait-locate-parse-upload work.
 
 ## Trigger
 
@@ -23,7 +24,9 @@ those are GitHub Actions concepts, and SLAC has no CI system in the loop.
 
 ## Benchmark Jobs
 
-The crontab runs 11 jobs, all on the same 6-hour cadence:
+The crontab runs 11 jobs, all on the same 6-hour cadence. Cron itself runs each
+job's `cron_*.sh` `ssh` wrapper; the Script column is what that wrapper runs on
+`iana`:
 
 | Job                          | Script                                                            | Log File                  | Description                                        |
 | ---------------------------- | ----------------------------------------------------------------- | ------------------------- | -------------------------------------------------- |
@@ -46,10 +49,13 @@ Each `sbatch`-based job follows this pattern:
 1. **Cron trigger** — `cron` fires the one-line `ssh iana ...` wrapper every 6
    hours
 2. **Lock and clean** — the job's own `submit_and_upload.sh` takes the
-   non-blocking `flock` guard and cleans its scratch directory, then `exec`s
-   into the shared `parsing/utils/submit_and_upload.sh`
-3. **Submit** — the shared script calls `sbatch --wait --parsable`, which queues
-   the job on Slurm and blocks until it finishes
+   non-blocking `flock` guard and `cd`s into the job directory (TRUTH3 and EVNT
+   also empty it), then `exec`s into the shared
+   `parsing/utils/submit_and_upload.sh`
+3. **Submit** — the shared script exports `SUBMIT_TIME` and calls
+   `sbatch --wait --parsable`, which queues the job on Slurm and blocks until it
+   finishes. A job that exits non-zero is still parsed and uploaded if it wrote
+   an output directory
 4. **Execute** — Slurm runs the job inside an ALRB container on a compute node,
    which does the actual work and calls `append_benchmark` (the same
    `benchmark_utils.sh` helper every site's scripts use) once at the end
@@ -68,7 +74,8 @@ Two things don't fit this pattern:
 
 - **Rucio** and the two **interactive TRUTH3** jobs run synchronously on `iana`
   itself (no `sbatch`/compute node involved), so there's no submit-wait-locate
-  step — they call `parse_upload.sh` directly once the container returns.
+  step. Rucio calls `parse_upload.sh` once the container returns; the
+  interactive TRUTH3 scripts run `ci_parse` and `curl` inline.
 - Because the parse step always runs on `iana`, but an `sbatch`-based job ran on
   a different Slurm compute node, `$(hostname)` at parse time would report
   `iana`, not the node that did the work. Every `sbatch`-based job writes
@@ -151,9 +158,9 @@ exec "${AF_BENCH_DIR}/parsing/utils/submit_and_upload.sh" \
 ```
 
 `parsing/utils/submit_and_upload.sh` is the shared, site-neutral script every
-`sbatch`-based job on both SLAC and NERSC `exec`s into — see
-[NERSC's page](../nersc/benchmarks.md#example-job-structure) for its full body.
-In short: it submits `--sub-file` with `sbatch --wait`, globs `--output-glob`
+`sbatch`-based job on both SLAC and NERSC `exec`s into (an abridged copy is on
+[NERSC's page](../nersc/benchmarks.md#example-job-structure)). It exports
+`SUBMIT_TIME`, submits `--sub-file` with `sbatch --wait`, globs `--output-glob`
 for directories newer than a marker it set beforehand, and calls
 `parse_upload.sh` with the newest match.
 
@@ -185,12 +192,24 @@ export ALRB_CONT_CMDOPTS="-B /sdf"
 
 export ALRB_CONT_RUNPAYLOAD="source /sdf/home/q/qlei/AF-Benchmarking/TRUTH3/SLAC/EL9/run_truth3_el9_container.sh"
 
+# ALRB runs the payload in a clean environment (apptainer exec -e), so the
+# SUBMIT_TIME that submit_and_upload.sh exports would not reach
+# append_benchmark; apptainer sets APPTAINERENV_<NAME> as <NAME> inside.
+# Empty when the job is submitted without the wrapper.
+export APPTAINERENV_SUBMIT_TIME="${SUBMIT_TIME:-}"
+
 # shellcheck disable=SC1091
 source $ATLAS_LOCAL_ROOT_BASE/user/atlasLocalSetup.sh -c el9
 ```
 
+The `APPTAINERENV_SUBMIT_TIME` export is what gives SLAC a real `queueTime`:
+`append_benchmark` writes `submit_time_utc` from `SUBMIT_TIME`, and without the
+export it would be empty inside the container. All 8 SLAC submission scripts
+have it; a job submitted by hand with `sbatch` reports no submit time.
+
 And `run_truth3_el9_container.sh` is where the actual workload runs, inside the
-container, ending with the same `append_benchmark` call every site uses:
+container, ending with the same `append_benchmark` call every site uses
+(comments omitted):
 
 ```bash
 #!/bin/bash
@@ -236,19 +255,29 @@ mv pipe_file.log "${output_dir}"
 ```
 
 This same shape — a one-line `ssh` wrapper, a per-job `submit_and_upload.sh`
-that `exec`s into the shared one, a Slurm `*_sub.sh`, and a `run_*_container.sh`
-payload — is used by the other 7 `sbatch`-based jobs; only the path constants,
-the `--output-glob`/`--log-name` and `--job`/etc. arguments, and the workload
-itself change. `set_time_cmd` is a shared helper in
-`parsing/utils/benchmark_utils.sh`, used by every `run_*_container.sh` to avoid
-duplicating the same `/usr/bin/time` availability check 8 times over.
+that `exec`s into the shared one, a Slurm submission script, and a payload
+script — is used by the other 7 `sbatch`-based jobs. The names vary: the
+submission scripts are `*_sub.sh` except EventLoop's `event_loop_arrays.sh` and
+`event_loop_noarrays.sh`, and the NTuple payloads are `run_example.sh`,
+`run_fastframes.sh` and `run_eventloop_{arrays,noarrays}.sh` rather than
+`run_*_container.sh`. Besides the path constants, the `--output-glob`/
+`--log-name` and `--job`/etc. arguments, and the workload, the wrappers differ
+only in whether they empty the job directory (TRUTH3 and EVNT do).
+`set_time_cmd` is a shared helper in `parsing/utils/benchmark_utils.sh`, used by
+all 8 payloads to avoid duplicating the same `/usr/bin/time` availability check.
+`parsing/tests/test_slac_wrappers.py` checks the lock, the cleanup and the
+`SUBMIT_TIME` forwarding.
 
 ## Monitoring Results
 
 ### Viewing Job Runs
 
-- **Output directories:** `/sdf/data/atlas/u/qlei/benchmarks/<timestamp>/<job>/`
-  — no GitHub Actions UI equivalent; check the filesystem directly
+- **Output directories:**
+  `/sdf/data/atlas/u/qlei/benchmarks/<timestamp>/<output name>/`, where the
+  output name is the payload's directory name (`TRUTH3_el9_container`,
+  `Coffea_Hist`, `eventloop_arrays`, ...), not the job name. Rucio writes to
+  `$HOME/af_benchmarking/rucio/logs/<timestamp>/` instead. There's no GitHub
+  Actions UI equivalent; check the filesystem directly
 - **Slurm status:** `squeue -u qlei` while a job is queued or running
 
 ### Checking Logs
@@ -263,7 +292,11 @@ duplicating the same `/usr/bin/time` availability check 8 times over.
 **Benchmark job failures:**
 
 - Check the Slurm `output-<jobid>.txt` file for the job
-- Verify `sbatch --wait` succeeded in `submit_and_upload.sh`'s own output
+- The wrappers write no log file of their own: their output goes to the cron
+  `ssh` session. To see it, run the job's `cron_*.sh` by hand
+- `WARNING: job <id> exited <status>; uploading whatever it wrote` means the job
+  failed but its result was still uploaded; `ERROR: sbatch submission failed`
+  and `ERROR: no new output directory matches <glob>` mean nothing was uploaded
 - Review the job's log file for script errors
 
 **Overlapping runs:**
@@ -282,8 +315,11 @@ duplicating the same `/usr/bin/time` availability check 8 times over.
 
 **Upload failures:**
 
-- Verify `payload.json` was generated by the parse step
-- Check the HTTP response status printed by `parse_upload.sh`
+- Verify `payload.json` was generated by the parse step; `parse_upload.sh`
+  writes it, and the server's reply as `response.txt`, into the output directory
+  (readable only by `qlei`)
+- Check the HTTP response status printed by `parse_upload.sh`; the upload gives
+  up after 60 seconds
 - Verify `KIBANA_URI` is correct
 
 ## Benchmark Types Explained

@@ -6,8 +6,7 @@ Contains benchmarking scripts used at the Tier 3 Analysis Facilities:
 - [UC-ODF](https://usatlas.github.io/af-benchmarking/uc-odf/benchmarks/)
 - [SLAC](https://github.com/usatlas/af-benchmarking#slac)
 - [BNL](https://github.com/usatlas/af-benchmarking#bnl)
-
-It now contains scripts used at NERSC.
+- [NERSC](https://usatlas.github.io/af-benchmarking/nersc/benchmarks/)
 
 The jobs used for benchmarking are of the following type:
 
