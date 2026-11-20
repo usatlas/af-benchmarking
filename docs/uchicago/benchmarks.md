@@ -214,5 +214,3 @@ place, those jobs fail.
 The two formats' inputs are compressed differently, so a size or I/O comparison
 is not a pure format comparison. See the caveat on the
 [conversion page](rntuple-conversion.md#what-to-expect).
-The ntuple inputs also exist as RNTuple copies, converted once from the TTree
-files; see [TTree to RNTuple Conversion](rntuple-conversion.md).
