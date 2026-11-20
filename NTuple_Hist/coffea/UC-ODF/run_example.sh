@@ -6,6 +6,30 @@ source ./parsing/utils/benchmark_utils.sh
 # The ntuples are staged by the caller since their location differs per site
 : "${NTUPLE_DIR:?Set NTUPLE_DIR to the directory holding the mc20e ntuples}"
 
+# Input format: ttree (default) or rntuple. It picks the dataset copy and the
+# log name, so the two formats' benchmarks are reported separately.
+format="${1:-ttree}"
+case "${format}" in
+  ttree) log_file=coffea_hist.log ;;
+  rntuple)
+    log_file=coffea_hist_rntuple.log
+    # The RNTuple copy sits next to the TTree one; see
+    # docs/uchicago/rntuple-conversion.md
+    NTUPLE_DIR="${NTUPLE_DIR%/}"
+    NTUPLE_DIR="${NTUPLE_DIR%.root}_RNTuple.root"
+    ;;
+  *)
+    echo "unknown format: ${format} (expected ttree or rntuple)" >&2
+    exit 2
+    ;;
+esac
+
+# Stop before any setup if this format's copy is not staged here
+if [[ ! -d "${NTUPLE_DIR}" ]]; then
+  echo "no ntuple directory at ${NTUPLE_DIR}" >&2
+  exit 1
+fi
+
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
@@ -23,7 +47,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m "${NTUPLE_DI
   ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' &&\
   echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
   export NTUPLE_DIR='${NTUPLE_DIR}' &&\
-  /usr/bin/time -v ./venv/bin/python ./NTuple_Hist/coffea/UC-ODF/example.py  2>&1 | tee coffea_hist.log"
+  /usr/bin/time -v ./venv/bin/python ./NTuple_Hist/coffea/UC-ODF/example.py --format ${format} 2>&1 | tee ${log_file}"
 
 setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
@@ -35,4 +59,4 @@ echo "::group::Collect Metrics"
 } >> split.log
 echo "::endgroup::"
 
-append_benchmark "coffea_hist.log" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
+append_benchmark "${log_file}" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"

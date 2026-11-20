@@ -29,3 +29,20 @@ def relocate_fileset(dataset, ntuple_dir):
             raise ValueError(f"Duplicate file name in fileset: {name}")
         files[new_path] = file_info
     return {**dataset, "files": files}
+
+
+def runner_fileset(dataset, name):
+    """
+    Return the fileset that coffea's ``processor.Runner`` takes for ``dataset``.
+
+    Virtual-array mode reads each file whole and splits it into chunks itself,
+    so it needs only each file's object path, not the precomputed ``steps`` and
+    ``form`` of the dask-mode dataset runnable. The dataset metadata is passed
+    on, since the processor reads its normalisation from it.
+
+    Args:
+        dataset: One dataset entry with a ``files`` mapping of path -> file info
+        name: Name of the dataset in the returned fileset
+    """
+    files = {path: info["object_path"] for path, info in dataset["files"].items()}
+    return {name: {"files": files, "metadata": dict(dataset["metadata"])}}

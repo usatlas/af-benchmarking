@@ -1,3 +1,4 @@
+import argparse
 import os
 import ROOT as r
 from pathlib import Path
@@ -10,6 +11,16 @@ ph_pt_array = r.std.vector("float")()
 ph_select_tightID_array = r.std.vector("char")()
 weight_mc_array = array("f", [0.0])
 weight_pileup_array = array("f", [0.0])
+
+
+def normalization(metadata):
+    """Cross-section times luminosity over the sum of weights."""
+    xs = metadata["xs"]
+    lum = metadata["luminosity"]
+    genFiltEff = metadata["genFiltEff"]
+    kfactor = metadata.get("kfactor", 1.0)
+    sumOfWeights = metadata["sum_of_weights"]
+    return xs * genFiltEff * kfactor * lum / sumOfWeights
 
 
 def photon_eventloop(f_name, h_baseline_pt, metadata):
@@ -33,13 +44,7 @@ def photon_eventloop(f_name, h_baseline_pt, metadata):
     totalevents = tree.GetEntriesFast()
     print(f"  {f_name} has {totalevents} events")
 
-    # Normalization factors
-    xs = metadata["xs"]
-    lum = metadata["luminosity"]
-    genFiltEff = metadata["genFiltEff"]
-    kfactor = metadata.get("kfactor", 1.0)
-    sumOfWeights = metadata["sum_of_weights"]
-    weight_norm = xs * genFiltEff * kfactor * lum / sumOfWeights
+    weight_norm = normalization(metadata)
 
     processed = 0
 
@@ -69,7 +74,59 @@ def photon_eventloop(f_name, h_baseline_pt, metadata):
     return processed
 
 
+def photon_eventloop_rntuple(f_name, h_baseline_pt, metadata):
+    """Process one RNTuple file and fill the given histogram.
+
+    The RNTuple counterpart of SetBranchAddress: bind each field's pointer in
+    the reader's entry once, then LoadEntry fills them for every event.
+    """
+    # ROOT 6.34 (LCG_107a) still has the reader under Experimental. Not
+    # RNTupleView: destroying a view from PyROOT segfaults in this release.
+    reader = r.Experimental.RNTupleReader.Open("analysis", f_name)
+    entry = reader.GetModel().GetDefaultEntry()
+    # cppyy dereferences shared_ptr<vector> for us; shared_ptr<float> it does
+    # not, so the weights are read through .get()[0].
+    ph_pt = entry.GetPtr["std::vector<float>"]("ph_pt_NOSYS")
+    ph_select_tightID = entry.GetPtr["std::vector<char>"]("ph_select_tightID_NOSYS")
+    weight_mc = entry.GetPtr["float"]("weight_mc_NOSYS")
+    weight_pileup = entry.GetPtr["float"]("weight_pileup_NOSYS")
+
+    totalevents = reader.GetNEntries()
+    print(f"  {f_name} has {totalevents} events")
+
+    weight_norm = normalization(metadata)
+
+    processed = 0
+
+    # Event loop
+    for i in range(totalevents):
+        processed += 1
+        if (i + 1) % 50000 == 0:
+            print(f"    Processed {i + 1:6d}/{totalevents}")
+
+        reader.LoadEntry(i)
+
+        weight = weight_norm * weight_mc.get()[0] * weight_pileup.get()[0]
+
+        for index in range(len(ph_pt)):
+            if not (ord(ph_select_tightID[index]) > 0):
+                continue
+
+            h_baseline_pt.Fill(ph_pt[index] / 1000.0, weight)  # Fill GeV
+            break  # only fill with first passing photon
+
+    return processed
+
+
+EVENTLOOPS = {"ttree": photon_eventloop, "rntuple": photon_eventloop_rntuple}
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--format", choices=sorted(EVENTLOOPS), default="ttree")
+    args = parser.parse_args()
+    eventloop = EVENTLOOPS[args.format]
+
     # Define samples (all will contribute to one histogram)
     samples = [
         {
@@ -104,9 +161,7 @@ def main():
     for s in samples:
         print(f"\nProcessing sample: {s['name']}")
         for f in sorted(s["path"].glob("*.root")):
-            total_events_processed += photon_eventloop(
-                str(f), h_baseline_pt, s["metadata"]
-            )
+            total_events_processed += eventloop(str(f), h_baseline_pt, s["metadata"])
 
     dt = time.perf_counter() - t0
     end_time_utc = datetime.now(UTC).isoformat().replace("+00:00", "Z")
