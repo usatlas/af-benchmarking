@@ -2,9 +2,22 @@
 # shellcheck disable=SC1091
 
 # Builds FastFrames and the TutorialClass custom frame inside an el9 container
-# with StatAnalysis 0.6.3, following FastFrames' docs/tutorial.md. UC runs the
+# with StatAnalysis 0.7.3, following FastFrames' docs/tutorial.md. UC runs the
 # job from a prebuilt tree that cannot be reused elsewhere, because CMake
 # records absolute paths in the build tree and in the RPATH.
+#
+# FastFrames reads RNTuple from version 7.0; the benchmark uses 7.2.0, and
+# run_fastframes.sh sets up the same StatAnalysis release. Check out v7.2.0 in
+# FF_DIR/FastFrames first, either as a new clone:
+#
+#   git clone --branch v7.2.0 https://gitlab.cern.ch/atlas-amglab/fastframes.git "${FF_DIR}"/FastFrames
+#
+# or in an existing one:
+#
+#   git -C "${FF_DIR}"/FastFrames fetch --tags && git -C "${FF_DIR}"/FastFrames checkout v7.2.0
+#
+# Any earlier build trees in FF_DIR are removed first: a CMake cache made under
+# another StatAnalysis release would point the new build at the old ROOT.
 #
 # Usage: FF_DIR=/path/to/FastFramesTutorial ./build_fastframes.sh
 # FF_DIR holds the FastFrames/ and TutorialClass/ source trees. The libraries
@@ -24,8 +37,9 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 # FF_DIR and jobs are expanded on the host because the container starts with a
 # clean environment (apptainer exec -e). The final ls fails if the custom
 # frame library was not installed.
-source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m "${FF_DIR}" -r "asetup StatAnalysis,0.6.3 && \
+source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m "${FF_DIR}" -r "asetup StatAnalysis,0.7.3 && \
   cd '${FF_DIR}' && \
+  rm -rf build install TutorialClass/build TutorialClass/install && \
   cmake -S FastFrames -B build -DCMAKE_INSTALL_PREFIX='${FF_DIR}/install' -DPython3_EXECUTABLE=\$(which python3) && \
   cmake --build build -j${jobs} --target install && \
   mkdir -p TutorialClass/build && cd TutorialClass/build && \

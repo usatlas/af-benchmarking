@@ -1,6 +1,19 @@
 #!/bin/bash
 
+# shellcheck disable=SC1091
 source ./parsing/utils/benchmark_utils.sh
+
+# Input format: ttree (default) or rntuple. It picks the dataset copy and the
+# log name, so the two formats' benchmarks are reported separately.
+format="${1:-ttree}"
+case "${format}" in
+  ttree) log_file=eventloop_noarrays.log ;;
+  rntuple) log_file=eventloop_noarrays_rntuple.log ;;
+  *)
+    echo "unknown format: ${format} (expected ttree or rntuple)" >&2
+    exit 2
+    ;;
+esac
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
@@ -20,7 +33,7 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 # Running the script
 echo "::group::EventLoop Execution"
-/usr/bin/time -v python3 ./NTuple_Hist/event_loop/UC/standard/event_loop_noarrays.py 2>&1 | tee eventloop_noarrays.log
+/usr/bin/time -v python3 ./NTuple_Hist/event_loop/UC/standard/event_loop_noarrays.py --format "${format}" 2>&1 | tee "${log_file}"
 echo "::endgroup::"
 
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
@@ -31,4 +44,4 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 hostname >> split.log
 echo "::endgroup::"
 
-append_benchmark "eventloop_noarrays.log" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
+append_benchmark "${log_file}" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"

@@ -1,8 +1,19 @@
+import argparse
 import os
 import ROOT as r
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 import time
+
+
+def normalization(metadata):
+    """Cross-section times luminosity over the sum of weights."""
+    xs = metadata["xs"]
+    lum = metadata["luminosity"]
+    genFiltEff = metadata["genFiltEff"]
+    kfactor = metadata.get("kfactor", 1.0)
+    sumOfWeights = metadata["sum_of_weights"]
+    return xs * genFiltEff * kfactor * lum / sumOfWeights
 
 
 def photon_eventloop(f_name, h_baseline_pt, metadata):
@@ -21,13 +32,7 @@ def photon_eventloop(f_name, h_baseline_pt, metadata):
     totalevents = tree.GetEntriesFast()
     print(f"  {f_name} has {totalevents} events")
 
-    # Normalization factors
-    xs = metadata["xs"]
-    lum = metadata["luminosity"]
-    genFiltEff = metadata["genFiltEff"]
-    kfactor = metadata.get("kfactor", 1.0)
-    sumOfWeights = metadata["sum_of_weights"]
-    weight_norm = xs * genFiltEff * kfactor * lum / sumOfWeights
+    weight_norm = normalization(metadata)
 
     processed = 0
 
@@ -54,7 +59,62 @@ def photon_eventloop(f_name, h_baseline_pt, metadata):
     return processed
 
 
+def photon_eventloop_rntuple(f_name, h_baseline_pt, metadata):
+    """Process one RNTuple file and fill the given histogram.
+
+    The RNTuple counterpart of iterating a TTree and reading event.branch:
+    every event loads the entry and looks each field up by name.
+    """
+    # ROOT 6.34 (LCG_107a) still has the reader under Experimental, and its
+    # REntry has no name-indexing pythonization, so the lookup is GetPtr.
+    reader = r.Experimental.RNTupleReader.Open("analysis", f_name)
+    entry = reader.GetModel().GetDefaultEntry()
+
+    totalevents = reader.GetNEntries()
+    print(f"  {f_name} has {totalevents} events")
+
+    weight_norm = normalization(metadata)
+
+    processed = 0
+
+    # Event loop
+    for i in reader.GetEntryRange():
+        processed += 1
+        if (i + 1) % 50000 == 0:
+            print(f"    Processed {i + 1:6d}/{totalevents}")
+
+        reader.LoadEntry(i)
+
+        # cppyy dereferences shared_ptr<vector> but not shared_ptr<float>.
+        weight = (
+            weight_norm
+            * entry.GetPtr["float"]("weight_mc_NOSYS").get()[0]
+            * entry.GetPtr["float"]("weight_pileup_NOSYS").get()[0]
+        )
+
+        ph_select_tightID = entry.GetPtr["std::vector<char>"]("ph_select_tightID_NOSYS")
+        for index, ph_pt in enumerate(
+            entry.GetPtr["std::vector<float>"]("ph_pt_NOSYS")
+        ):
+            ph_tight = ord(ph_select_tightID[index]) > 0
+            if not ph_tight:
+                continue
+
+            h_baseline_pt.Fill(ph_pt / 1000.0, weight)  # Fill GeV
+            break  # only fill with first passing photon
+
+    return processed
+
+
+EVENTLOOPS = {"ttree": photon_eventloop, "rntuple": photon_eventloop_rntuple}
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--format", choices=sorted(EVENTLOOPS), default="ttree")
+    args = parser.parse_args()
+    eventloop = EVENTLOOPS[args.format]
+
     # Define samples (all will contribute to one histogram)
     samples = [
         {
@@ -80,7 +140,7 @@ def main():
         1000,
     )
 
-    start_time_utc = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    start_time_utc = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     t0 = time.perf_counter()
 
     total_events_processed = 0
@@ -88,12 +148,10 @@ def main():
     for s in samples:
         print(f"\nProcessing sample: {s['name']}")
         for f in sorted(s["path"].glob("*.root")):
-            total_events_processed += photon_eventloop(
-                str(f), h_baseline_pt, s["metadata"]
-            )
+            total_events_processed += eventloop(str(f), h_baseline_pt, s["metadata"])
 
     dt = time.perf_counter() - t0
-    end_time_utc = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    end_time_utc = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     event_rate_khz = (total_events_processed / dt) / 1000.0 if dt > 0 else 0.0
 
     # Save combined histogram
