@@ -1,0 +1,21 @@
+# One job per input file listed in inputs.txt (one absolute path per line).
+# Submit from this directory:  condor_submit convert.sub
+universe = vanilla
+
+executable = convert_job.sh
+arguments = $(input)
+transfer_input_files = convert_ttree_to_rntuple.py
+
+output = logs/convert.$(Cluster).$(Process).out
+error = logs/convert.$(Cluster).$(Process).err
+log = logs/convert.$(Cluster).log
+
+# Peak RSS was 1.0-1.35 GB for inputs from 222 MB to 4.2 GB.
+request_cpus = 1
+request_memory = 4GB
+request_disk = 1GB
+
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+
+queue input from inputs.txt

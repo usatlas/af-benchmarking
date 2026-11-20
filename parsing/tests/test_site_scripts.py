@@ -1,5 +1,6 @@
 """Tests for the per-site benchmark shell scripts (no ATLAS software required)."""
 
+import ast
 import importlib.util
 import json
 import os
@@ -57,6 +58,8 @@ class TestUcOdfEvntScripts:
         [
             "EVNT/UC-ODF/EL9_i/run_evnt_el9_interactive.sh",
             "EVNT/UC-ODF/CentOS7_i/run_evnt_centos7_interactive.sh",
+            "EVNT/UC-ODF/Native_i/run_evnt_native_interactive.sh",
+            "TRUTH3/UC-ODF/Native_i/run_truth3_native_interactive.sh",
         ],
     )
     def test_script_is_executable_and_valid_bash(self, script):
@@ -65,6 +68,33 @@ class TestUcOdfEvntScripts:
         assert os.access(path, os.X_OK)
         # -n parses the script without running it
         subprocess.run(["bash", "-n", str(path)], check=True)
+
+
+class TestUcOdfNativeScripts:
+    @pytest.mark.parametrize(
+        ("odf_script", "uc_script"),
+        [
+            (
+                "EVNT/UC-ODF/Native_i/run_evnt_native_interactive.sh",
+                "EVNT/UC/Native/run_evnt_native_batch.sh",
+            ),
+            (
+                "TRUTH3/UC-ODF/Native_i/run_truth3_native_interactive.sh",
+                "TRUTH3/UC/Native/run_truth3_native_batch.sh",
+            ),
+        ],
+    )
+    def test_copy_matches_ucs_script(self, odf_script, uc_script):
+        # The two copies must not drift apart. Only shellcheck directives, which
+        # the hooks need in the copy, may differ.
+        def code(path):
+            return [
+                line
+                for line in (REPO_ROOT / path).read_text().splitlines()
+                if not line.startswith("# shellcheck")
+            ]
+
+        assert code(odf_script) == code(uc_script)
 
 
 class TestUcOdfNtupleScripts:
@@ -90,6 +120,21 @@ class TestUcOdfNtupleScripts:
         )
         assert result.returncode != 0
         assert "NTUPLE_DIR" in result.stdout + result.stderr
+
+    @pytest.mark.parametrize("trailing_slash", ["", "/"])
+    @pytest.mark.parametrize("script", NTUPLE_SCRIPTS)
+    def test_rntuple_reads_the_rntuple_sibling(self, script, trailing_slash, tmp_path):
+        # The RNTuple copy sits next to the TTree one. With the sibling missing
+        # the script must stop, naming it, before any setup
+        ttree_dir = tmp_path / "x.root"
+        ttree_dir.mkdir()
+        result = run_with_env(
+            ["bash", script, "rntuple"], {"NTUPLE_DIR": f"{ttree_dir}{trailing_slash}"}
+        )
+        assert result.returncode == 1
+        assert result.stderr.strip() == (
+            f"no ntuple directory at {tmp_path / 'x_RNTuple.root'}"
+        )
 
     @pytest.mark.parametrize("path", NTUPLE_SCRIPTS + NTUPLE_PYTHON)
     def test_no_uc_specific_paths(self, path):
@@ -148,33 +193,88 @@ class TestRelocateFileset:
             module.relocate_fileset(dataset, tmp_path)
 
 
-class TestUcOdfFastFramesBuildScript:
-    SCRIPT = "NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh"
+RNTUPLE_DATASET_JSON = DATASET_JSON.with_name("af_v2_700402_rntuple.json")
 
-    def test_script_is_executable_and_valid_bash(self):
-        path = REPO_ROOT / self.SCRIPT
-        assert path.is_file()
-        assert os.access(path, os.X_OK)
-        subprocess.run(["bash", "-n", str(path)], check=True)
 
-    def test_script_requires_ff_dir(self):
-        # Must stop at the FF_DIR check, before any ATLAS setup or compilation
-        env = {k: v for k, v in os.environ.items() if k != "FF_DIR"}
-        result = subprocess.run(
-            ["bash", self.SCRIPT],
-            cwd=REPO_ROOT,
-            env=env,
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
+class TestRunnerFileset:
+    # coffea reads RNTuple only in virtual-array mode (processor.Runner), which
+    # takes a plain {path: object path} fileset instead of a dataset runnable
+    @pytest.fixture
+    def module(self):
+        spec = importlib.util.spec_from_file_location(
+            "fileset_paths", COFFEA_ODF_DIR / "fileset_paths.py"
         )
-        assert result.returncode != 0
-        assert "FF_DIR" in result.stdout + result.stderr
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
 
-    def test_no_uc_specific_paths(self):
-        text = (REPO_ROOT / self.SCRIPT).read_text()
-        assert "/data/selbor" not in text
+    @pytest.fixture
+    def dataset(self):
+        return json.loads(RNTUPLE_DATASET_JSON.read_text())["Wmunugamma"]
+
+    def test_files_map_to_object_path(self, module, dataset):
+        fileset = module.runner_fileset(dataset, "Wmunugamma")
+        files = fileset["Wmunugamma"]["files"]
+        assert list(files) == list(dataset["files"])
+        assert len(files) == 18
+        assert set(files.values()) == {"analysis"}
+
+    def test_metadata_is_carried(self, module, dataset):
+        # The processor's normalisation (xs, sum_of_weights, ...) reads it
+        fileset = module.runner_fileset(dataset, "Wmunugamma")
+        assert fileset["Wmunugamma"]["metadata"] == dataset["metadata"]
+
+    def test_input_is_not_modified(self, module, dataset):
+        before = json.dumps(dataset, sort_keys=True)
+        module.runner_fileset(dataset, "Wmunugamma")
+        assert json.dumps(dataset, sort_keys=True) == before
+
+
+COFFEA_UC_EXAMPLE = COFFEA_ODF_DIR.parent / "UC" / "example.py"
+
+
+def top_level_sources(path):
+    """Map each top-level def/class/assignment name in ``path`` to its source."""
+    text = path.read_text()
+    sources = {}
+    for node in ast.parse(text).body:
+        if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+            sources[node.name] = ast.get_source_segment(text, node)
+        elif isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
+            sources[node.targets[0].id] = ast.get_source_segment(text, node)
+    return sources
+
+
+class TestCoffeaUcMatchesOdf:
+    # The UC and UC-ODF coffea benchmarks must run the same code; only where the
+    # dataset JSON's paths point differs
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "MyFirstProcessor",
+            "VirtualProcessor",
+            "run_dask",
+            "run_virtual",
+            "RUNNER_CHUNKSIZE",
+            "DATASET_DIR",
+            "DATASET_JSONS",
+        ],
+    )
+    def test_definition_is_identical(self, name):
+        uc = top_level_sources(COFFEA_UC_EXAMPLE)
+        odf = top_level_sources(COFFEA_ODF_DIR / "example.py")
+        assert uc[name] == odf[name]
+
+    def test_uc_runner_fileset_is_odfs(self):
+        # UC has no fileset_paths module, so it carries its own copy
+        uc = top_level_sources(COFFEA_UC_EXAMPLE)
+        odf = top_level_sources(COFFEA_ODF_DIR / "fileset_paths.py")
+        assert uc["runner_fileset"] == odf["runner_fileset"]
+
+    def test_uc_does_not_hardcode_the_runner_checkout(self):
+        # The dataset JSONs are found next to the script, so it also runs
+        # outside the CI runner's checkout (e.g. from an HTCondor job)
+        assert "/home/runner" not in COFFEA_UC_EXAMPLE.read_text()
 
 
 FASTFRAMES_DIR = REPO_ROOT / "NTuple_Hist" / "fastframes"
@@ -291,12 +391,6 @@ class TestUcOdfFastFramesRun:
             assert uc_path not in text
 
 
-NTUPLE_UTILS = "NTuple_Hist/UC-ODF/ntuple_utils.sh"
-NTUPLE_RUN_SCRIPTS = NTUPLE_SCRIPTS + [
-    "NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh"
-]
-
-
 def run_with_env(command, env_vars):
     env = {k: v for k, v in os.environ.items() if k not in ("NTUPLE_DIR", "FF_DIR")}
     return subprocess.run(
@@ -310,52 +404,132 @@ def run_with_env(command, env_vars):
     )
 
 
-class TestRequireNtupleDir:
-    @staticmethod
-    def check(env_vars):
-        return run_with_env(
-            ["bash", "-c", f"source ./{NTUPLE_UTILS}; require_ntuple_dir"], env_vars
+FASTFRAMES_UC_DIR = FASTFRAMES_DIR / "UC"
+TTREE_DATASET_DIR = "user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root"
+RNTUPLE_DATASET_DIR = "user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS_RNTuple.root"
+
+
+class TestUcFastFrames:
+    SCRIPT = "NTuple_Hist/fastframes/UC/run_fastframes.sh"
+
+    def test_script_is_executable_and_valid_bash(self):
+        path = REPO_ROOT / self.SCRIPT
+        assert os.access(path, os.X_OK)
+        subprocess.run(["bash", "-n", str(path)], check=True)
+
+    def test_unknown_format_exits_2(self):
+        result = run_with_env(["bash", self.SCRIPT, "parquet"], {"FF_DIR": "/x"})
+        assert result.returncode == 2
+        assert "unknown format: parquet" in result.stderr
+
+    def test_requires_ff_dir(self):
+        # Must stop at the check, before any ATLAS setup
+        result = run_with_env(["bash", self.SCRIPT], {})
+        assert result.returncode != 0
+        assert "FF_DIR" in result.stdout + result.stderr
+        assert "setupATLAS" not in result.stdout
+
+    def test_rntuple_config_differs_only_in_filelist(self):
+        ttree = (FASTFRAMES_UC_DIR / "mc20e_example_config.yml").read_text()
+        rntuple = (FASTFRAMES_UC_DIR / "mc20e_example_config_rntuple.yml").read_text()
+        differing = [
+            (a, b)
+            for a, b in zip(ttree.splitlines(), rntuple.splitlines(), strict=True)
+            if a != b
+        ]
+        assert differing == [
+            (
+                '  input_filelist_path: "./NTuple_Hist/fastframes/UC/mc20e_filelist.txt"',
+                "  input_filelist_path: "
+                '"./NTuple_Hist/fastframes/UC/mc20e_filelist_rntuple.txt"',
+            )
+        ]
+
+    def test_rntuple_filelist_is_the_ttree_list_in_the_rntuple_directory(self):
+        ttree = (FASTFRAMES_UC_DIR / "mc20e_filelist.txt").read_text()
+        rntuple = (FASTFRAMES_UC_DIR / "mc20e_filelist_rntuple.txt").read_text()
+        assert len(ttree.splitlines()) == 18
+        assert rntuple == ttree.replace(
+            f"/{TTREE_DATASET_DIR}/", f"/{RNTUPLE_DATASET_DIR}/"
         )
 
-    def test_accepts_absolute_dir_with_root_files(self, tmp_path):
-        (tmp_path / "ntuple.root").touch()
-        assert self.check({"NTUPLE_DIR": str(tmp_path)}).returncode == 0
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "run_fastframes.sh",
+            "mc20e_example_config.yml",
+            "mc20e_example_config_rntuple.yml",
+        ],
+    )
+    def test_no_selbor_paths(self, name):
+        # The 6.1 build under /data/selbor cannot read RNTuple; FF_DIR names the build
+        text = (FASTFRAMES_UC_DIR / name).read_text()
+        assert "selbor" not in text
 
-    def test_rejects_unset_variable(self):
-        result = self.check({})
-        assert result.returncode != 0
-        assert "NTUPLE_DIR" in result.stdout + result.stderr
 
-    def test_rejects_relative_path(self, tmp_path):
-        # A relative path would not resolve the same way inside the container
-        (tmp_path / "ntuple.root").touch()
-        result = self.check({"NTUPLE_DIR": "relative/ntuples"})
-        assert result.returncode != 0
-        assert "absolute" in result.stdout + result.stderr
+class TestUcOdfFastFramesFormats:
+    SCRIPT = "NTuple_Hist/fastframes/UC-ODF/run_fastframes.sh"
+    BUILD = "NTuple_Hist/fastframes/UC-ODF/build_fastframes.sh"
 
-    @pytest.mark.parametrize("other_file", [None, "notes.txt"])
-    def test_rejects_directory_without_root_files(self, tmp_path, other_file):
-        if other_file:
-            (tmp_path / other_file).touch()
-        result = self.check({"NTUPLE_DIR": str(tmp_path)})
-        assert result.returncode != 0
-        assert "No .root files" in result.stdout + result.stderr
-
-    @pytest.mark.parametrize("script", NTUPLE_RUN_SCRIPTS)
-    def test_run_scripts_stop_on_an_empty_ntuple_dir(self, script, tmp_path):
-        # FF_DIR is set so that only the ntuple check can be the reason to stop
+    def test_unknown_format_exits_2(self, tmp_path):
         result = run_with_env(
-            ["bash", script],
+            ["bash", self.SCRIPT, "parquet"],
+            {"NTUPLE_DIR": str(tmp_path), "FF_DIR": str(tmp_path)},
+        )
+        assert result.returncode == 2
+        assert "unknown format: parquet" in result.stderr
+
+    @pytest.mark.parametrize("trailing_slash", ["", "/"])
+    def test_rntuple_reads_the_rntuple_sibling(self, tmp_path, trailing_slash):
+        # The RNTuple copy sits next to the TTree one. With no files there the
+        # script must stop at the file list, naming the sibling, before any setup
+        if (REPO_ROOT / "fastframes_run").exists():
+            pytest.skip("fastframes_run/ is left over from a real run")
+        ttree_dir = tmp_path / "x.root"
+        ttree_dir.mkdir()
+        (ttree_dir / "ntuple.root").touch()
+        result = run_with_env(
+            ["bash", self.SCRIPT, "rntuple"],
+            {"NTUPLE_DIR": f"{ttree_dir}{trailing_slash}", "FF_DIR": str(tmp_path)},
+        )
+        assert result.returncode != 0
+        assert f"no .root files in {tmp_path / 'x_RNTuple.root'}" in result.stderr
+        assert not (REPO_ROOT / "fastframes_rntuple.log").exists()
+        assert not (REPO_ROOT / "fastframes_run").exists()
+
+    def test_failed_file_list_leaves_no_run_directory(self, tmp_path):
+        # Checked only from a clean checkout: a real run leaves the directory
+        run_dir = REPO_ROOT / "fastframes_run"
+        if run_dir.exists():
+            pytest.skip("fastframes_run/ is left over from a real run")
+        result = run_with_env(
+            ["bash", self.SCRIPT],
             {"NTUPLE_DIR": str(tmp_path), "FF_DIR": str(tmp_path)},
         )
         assert result.returncode != 0
-        assert "No .root files" in result.stdout + result.stderr
+        assert not run_dir.exists()
 
-    @pytest.mark.parametrize("script", NTUPLE_RUN_SCRIPTS)
-    def test_run_scripts_stop_on_a_relative_ntuple_dir(self, script, tmp_path):
-        result = run_with_env(
-            ["bash", script],
-            {"NTUPLE_DIR": "relative/ntuples", "FF_DIR": str(tmp_path)},
+    def test_build_script_is_executable_and_valid_bash(self):
+        path = REPO_ROOT / self.BUILD
+        assert os.access(path, os.X_OK)
+        subprocess.run(["bash", "-n", str(path)], check=True)
+
+    def test_build_and_run_scripts_use_the_same_release(self):
+        # A build made with one StatAnalysis release cannot run under another
+        for script in (self.SCRIPT, self.BUILD):
+            assert "asetup StatAnalysis,0.7.3" in (REPO_ROOT / script).read_text()
+
+    def test_build_script_clears_old_build_trees_before_configuring(self):
+        # FF_DIR may hold a build made under another StatAnalysis release, whose
+        # CMake cache would point the new build at the old ROOT
+        text = (REPO_ROOT / self.BUILD).read_text()
+        command = text[text.index('-r "') :]
+        clear = command.index(
+            "rm -rf build install TutorialClass/build TutorialClass/install"
         )
+        assert clear < command.index("cmake ")
+
+    def test_build_script_requires_ff_dir(self):
+        result = run_with_env(["bash", self.BUILD], {})
         assert result.returncode != 0
-        assert "absolute" in result.stdout + result.stderr
+        assert "FF_DIR" in result.stdout + result.stderr

@@ -1,6 +1,19 @@
 #!/bin/bash
 
+# shellcheck disable=SC1091
 source ./parsing/utils/benchmark_utils.sh
+
+# Input format: ttree (default) or rntuple. It picks the dataset copy and the
+# log name, so the two formats' benchmarks are reported separately.
+format="${1:-ttree}"
+case "${format}" in
+  ttree) log_file=coffea_hist.log ;;
+  rntuple) log_file=coffea_hist_rntuple.log ;;
+  *)
+    echo "unknown format: ${format} (expected ttree or rntuple)" >&2
+    exit 2
+    ;;
+esac
 
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
@@ -18,7 +31,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /data -r "ls
   ./venv/bin/python -m pip install -U pip &&\
   ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' &&\
   echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
-  /usr/bin/time -v ./venv/bin/python ./NTuple_Hist/coffea/UC/example.py  2>&1 | tee coffea_hist.log"
+  /usr/bin/time -v ./venv/bin/python ./NTuple_Hist/coffea/UC/example.py --format ${format} 2>&1 | tee ${log_file}"
 
 setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
@@ -30,4 +43,4 @@ echo "::group::Collect Metrics"
 } >> split.log
 echo "::endgroup::"
 
-append_benchmark "coffea_hist.log" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
+append_benchmark "${log_file}" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"

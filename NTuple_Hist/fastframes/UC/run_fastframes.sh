@@ -1,8 +1,32 @@
 #!/bin/bash
+# shellcheck disable=SC1091
 
 source ./parsing/utils/benchmark_utils.sh
 
 yml_dir=./NTuple_Hist/fastframes/UC/
+
+# Input format: ttree (default) or rntuple. It picks the config, whose only
+# difference is the file list, and the log name, so the two formats' benchmarks
+# are reported separately.
+format="${1:-ttree}"
+case "${format}" in
+  ttree)
+    config=mc20e_example_config.yml
+    log_file=fastframes.log
+    ;;
+  rntuple)
+    config=mc20e_example_config_rntuple.yml
+    log_file=fastframes_rntuple.log
+    ;;
+  *)
+    echo "unknown format: ${format} (expected ttree or rntuple)" >&2
+    exit 2
+    ;;
+esac
+
+# The FastFrames build is set by the caller (the workflow's env). Both formats
+# use the same 7.x build, the first version that reads RNTuple.
+: "${FF_DIR:?Set FF_DIR to the directory holding the FastFrames 7.2 build}"
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
@@ -16,18 +40,18 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
 echo "::endgroup::"
 
 # Set up for FastFrames
-asetup StatAnalysis,0.6.3
+asetup StatAnalysis,0.7.3
 lsetup emi
 printf "%s" "${VOMS_PASSWORD}" | voms-proxy-init -voms atlas
 # shellcheck disable=SC1091
-source /data/selbor/FastFramesTutorial/TutorialClass/build/setup.sh
+source "${FF_DIR}"/TutorialClass/build/setup.sh
 
 setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
 date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 
 echo "::group::FastFrames"
-/usr/bin/time -v python3 /data/selbor/FastFramesTutorial/FastFrames/python/FastFrames.py -c "${yml_dir}"mc20e_example_config.yml 2>&1 | tee fastframes.log
+/usr/bin/time -v python3 "${FF_DIR}"/FastFrames/python/FastFrames.py -c "${yml_dir}${config}" 2>&1 | tee "${log_file}"
 printf "\n"
 echo "::endgroup::"
 
@@ -41,11 +65,4 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 hostname >> split.log
 echo "::endgroup::"
 
-# Directory that needs to be cleaned
-cleanup_dir="/home/selbor/ntuple/fastframes"
-
-if [[ -d "${cleanup_dir}" && "${cleanup_dir}" == "/home/selbor/ntuple/fastframes" ]]; then
-    rm -rf "${cleanup_dir:?}/"*
-fi
-
-append_benchmark "fastframes.log" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
+append_benchmark "${log_file}" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
