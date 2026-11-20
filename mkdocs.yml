@@ -68,7 +68,10 @@ nav:
       - Benchmarks:
           - UChicago: uchicago/benchmarks.md
           - TTree to RNTuple: uchicago/rntuple-conversion.md
+          - UC-ODF: uc-odf/benchmarks.md
           - BNL: bnl/benchmarks.md
+          - SLAC: slac/benchmarks.md
+          - NERSC: nersc/benchmarks.md
       - Parsing & Upload: workflows/parsing.md
       - CI Validation: workflows/ci.md
       - Documentation: workflows/documentation.md

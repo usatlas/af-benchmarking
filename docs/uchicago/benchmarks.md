@@ -206,13 +206,10 @@ compared run for run. Each script takes the format as its first argument
   (`mc20e_filelist_rntuple.txt`). The earlier 6.1.0 build (`StatAnalysis,0.6.3`)
   read only TTrees, so the TTree job's history changes version at the switch.
 
-At UC-ODF the RNTuple jobs read the RNTuple copy staged next to the TTree one
-(`NTUPLE_DIR` with `_RNTuple` before `.root`), and both FastFrames jobs need
-`FF_DIR` there rebuilt at 7.2 with `build_fastframes.sh`. Until both are in
-place, those jobs fail.
+UC-ODF runs the same RNTuple jobs; where its RNTuple copy and FastFrames 7.2
+build live, and how to rebuild the build, is on the
+[UC-ODF page](../uc-odf/benchmarks.md#data-on-the-runner).
 
 The two formats' inputs are compressed differently, so a size or I/O comparison
 is not a pure format comparison. See the caveat on the
 [conversion page](rntuple-conversion.md#what-to-expect).
-The ntuple inputs also exist as RNTuple copies, converted once from the TTree
-files; see [TTree to RNTuple Conversion](rntuple-conversion.md).
