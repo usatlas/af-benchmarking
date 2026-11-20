@@ -1,10 +1,9 @@
 #!/bin/bash -l
 #SBATCH -N 1
 #SBATCH -C cpu
-#SBATCH -q regular
+#SBATCH -q shared
+#SBATCH -A m4956
 #SBATCH -J rucio
-#SBATCH --mail-user=jprobles@ucsc.edu
-#SBATCH --mail-type=ALL
 #SBATCH -t 00:30:00
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
@@ -17,5 +16,7 @@ export OMP_PROC_BIND=spread
 
 cd "$HOME/AF-Benchmarking/Rucio"
 
+# Name the site explicitly: rucio_script.sh's auto-detection checks /data
+# (BNL) before /pscratch (NERSC), so it cannot be trusted on Perlmutter.
 srun --ntasks="${SLURM_NTASKS}" --cpus-per-task="${SLURM_CPUS_PER_TASK}" --cpu_bind=cores \
-  "$HOME/AF-Benchmarking/Rucio/rucio_script.sh"
+  "$HOME/AF-Benchmarking/Rucio/rucio_script.sh" nersc

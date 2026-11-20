@@ -34,6 +34,8 @@ container_el9 (){
     du \"${4#*:}\"/ >> rucio.log &&\
     mv rucio.log \"${3}\""
   end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+  # The upload may run later on another host; record where the download ran.
+  hostname > "${3}/hostname.txt"
   append_benchmark "${3}/rucio.log" "${start_time}" "${end_time}" "${start_time}" "${start_time}" "rucio"
 }
 
@@ -105,9 +107,9 @@ case "$site" in
 
         # Unlike the other SLAC jobs, this one runs directly on iana (no
         # sbatch/compute node involved) via container_el9's synchronous -r
-        # launch, so parse_upload.sh's fallback to $(hostname) (it only
-        # prefers hostname.txt, which nothing here writes) already reflects
-        # where it ran. Parse+upload only ever ran here for SLAC before via
+        # launch, so the hostname.txt container_el9 writes and
+        # parse_upload.sh's fallback to $(hostname) both name iana, where it
+        # ran. Parse+upload only ever ran here for SLAC before via
         # the now-retired external parsing_jobs/cron_parsing.sh; wire it in
         # directly instead.
         "${AF_BENCH_DIR}/parsing/utils/parse_upload.sh" \
@@ -126,7 +128,7 @@ case "$site" in
         ;;
     nersc)
         job_dir="$HOME/af_benchmarking/rucio/"
-        dir_mount="/global/cfs/cdirs/m2616/selbor/benchmarks/"
+        dir_mount="/global:/global"
         output_dir="${job_dir}/logs/${curr_time}/"
         container_el9 "${job_dir}" "${dir_mount}" "${output_dir}" "${download_ID}"
         ;;
