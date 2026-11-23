@@ -177,9 +177,9 @@ Converts NTuple ROOT files to histograms using various frameworks:
 The `coffea`, `eventloop-columnar`, `eventloop-standard` and `fastframes` jobs
 each have an `-rntuple` twin. The twin runs the same analysis on the RNTuple
 copy of the same dataset (see
-[TTree to RNTuple Conversion](rntuple-conversion.md)), so the two formats can be
-compared run for run. Each script takes the format as its first argument
-(`ttree` by default), and the RNTuple jobs write `*_rntuple.log`.
+[TTree to RNTuple Conversion](../workflows/rntuple-conversion.md)), so the two
+formats can be compared run for run. Each script takes the format as its first
+argument (`ttree` by default), and the RNTuple jobs write `*_rntuple.log`.
 
 - **Coffea** runs the RNTuple twin in virtual-array mode (`processor.Runner`)
   rather than the dask-awkward mode of the TTree job. Dask mode crashes on
@@ -212,4 +212,4 @@ build live, and how to rebuild the build, is on the
 
 The two formats' inputs are compressed differently, so a size or I/O comparison
 is not a pure format comparison. See the caveat on the
-[conversion page](rntuple-conversion.md#what-to-expect).
+[conversion page](../workflows/rntuple-conversion.md#what-to-expect).

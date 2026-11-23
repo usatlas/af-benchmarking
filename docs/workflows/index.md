@@ -82,6 +82,7 @@ pixi run -e kibana python parsing/scripts/...
 - [BNL Benchmarks](../bnl/benchmarks.md)
 - [SLAC Benchmarks](../slac/benchmarks.md)
 - [NERSC Benchmarks](../nersc/benchmarks.md)
+- [TTree to RNTuple Conversion](rntuple-conversion.md)
 - [Parsing & Upload](parsing.md)
 - [CI Validation](ci.md)
 - [Documentation](documentation.md)

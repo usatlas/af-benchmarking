@@ -42,7 +42,7 @@ administrator. The `-rntuple` jobs read the RNTuple copy next to it instead:
 each script strips a trailing `/`, then puts `_RNTuple` before `.root`
 (`..._ANALYSIS_RNTuple.root`). That copy has to be staged too, with the same 18
 file names; see
-[TTree to RNTuple Conversion](../uchicago/rntuple-conversion.md).
+[TTree to RNTuple Conversion](../workflows/rntuple-conversion.md).
 
 `FF_DIR` holds a FastFrames 7.2.0 build made under `StatAnalysis,0.7.3`, the
 release `run_fastframes.sh` sets up. To rebuild it, check out FastFrames v7.2.0
