@@ -1,15 +1,19 @@
 """Tests for the BNL benchmark job scripts (no ATLAS software or HTCondor required)."""
 
+import ast
 import json
 import re
 import subprocess
 from pathlib import Path
+
+import pytest
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COFFEA_BNL = REPO_ROOT / "NTuple_Hist" / "coffea" / "BNL"
 FASTFRAMES_BNL = REPO_ROOT / "NTuple_Hist" / "fastframes" / "BNL"
 CONVERSION = REPO_ROOT / "NTuple_Hist" / "rntuple_conversion"
+EVENT_LOOP_BNL = REPO_ROOT / "NTuple_Hist" / "event_loop" / "BNL"
 CRONTAB_BNL = REPO_ROOT / "CrontabFiles" / "crontab_bnl.txt"
 DATASET_DIR_BNL = COFFEA_BNL / "single_campaign_mc20e_dataset_runnable"
 RNTUPLE_DATASET_DIR = (
@@ -218,3 +222,33 @@ class TestCoffeaRNTupleTwin:
         assert entries["cron_example"].group(1) != entries[
             "cron_example_rntuple"
         ].group(1)
+
+
+class TestEventLoopStatAnalysis:
+    @pytest.mark.parametrize(
+        "script",
+        ["columnar/run_eventloop_arrays.sh", "standard/run_eventloop_noarrays.sh"],
+    )
+    def test_run_script_uses_statanalysis_0_7_3(self, script):
+        # The RNTuple twins read their data with ROOT 6.38 from StatAnalysis
+        # 0.7.3, so the TTree jobs move with them to keep the pair comparable.
+        text = (EVENT_LOOP_BNL / script).read_text()
+        assert "asetup StatAnalysis,0.7.3" in text
+        assert "StatAnalysis,0.6.3" not in text
+
+    @pytest.mark.parametrize(
+        "payload", ["columnar/eventloop_arrays.py", "standard/eventloop_noarrays.py"]
+    )
+    def test_payload_avoids_datetime_utc_missing_from_python_3_10(self, payload):
+        # StatAnalysis 0.7.3 bundles Python 3.10, where datetime.UTC (3.11+) does
+        # not exist; importing it kills the job before it reads an event.
+        tree = ast.parse((EVENT_LOOP_BNL / payload).read_text())
+        imported = {
+            alias.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module == "datetime"
+            for alias in node.names
+        }
+        names_used = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+        assert "UTC" not in imported
+        assert "UTC" not in names_used

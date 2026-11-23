@@ -12,7 +12,7 @@ export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir="$HOME"/localConfig
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh
-asetup StatAnalysis,0.6.3
+asetup StatAnalysis,0.7.3
 
 setup_end=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
