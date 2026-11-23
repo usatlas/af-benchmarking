@@ -1,13 +1,15 @@
 """Tests for the BNL benchmark job scripts (no ATLAS software or HTCondor required)."""
 
 import ast
+import importlib.util
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
-
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 COFFEA_BNL = REPO_ROOT / "NTuple_Hist" / "coffea" / "BNL"
@@ -112,6 +114,36 @@ class TestConversionOutputParent:
                 + r"/user\.bhodkins\.42165201\._\d{6}\.ANALYSIS\.root",
                 line,
             )
+
+
+class TestEventLoopStatAnalysis:
+    @pytest.mark.parametrize(
+        "script",
+        ["columnar/run_eventloop_arrays.sh", "standard/run_eventloop_noarrays.sh"],
+    )
+    def test_run_script_uses_statanalysis_0_7_3(self, script):
+        # The RNTuple twins read their data with ROOT 6.38 from StatAnalysis
+        # 0.7.3, so the TTree jobs move with them to keep the pair comparable.
+        text = (EVENT_LOOP_BNL / script).read_text()
+        assert "asetup StatAnalysis,0.7.3" in text
+        assert "StatAnalysis,0.6.3" not in text
+
+    @pytest.mark.parametrize(
+        "payload", ["columnar/eventloop_arrays.py", "standard/eventloop_noarrays.py"]
+    )
+    def test_payload_avoids_datetime_utc_missing_from_python_3_10(self, payload):
+        # StatAnalysis 0.7.3 bundles Python 3.10, where datetime.UTC (3.11+) does
+        # not exist; importing it kills the job before it reads an event.
+        tree = ast.parse((EVENT_LOOP_BNL / payload).read_text())
+        imported = {
+            alias.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module == "datetime"
+            for alias in node.names
+        }
+        names_used = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+        assert "UTC" not in imported
+        assert "UTC" not in names_used
 
 
 class TestCoffeaRNTupleTwin:
@@ -224,31 +256,232 @@ class TestCoffeaRNTupleTwin:
         ].group(1)
 
 
-class TestEventLoopStatAnalysis:
-    @pytest.mark.parametrize(
-        "script",
-        ["columnar/run_eventloop_arrays.sh", "standard/run_eventloop_noarrays.sh"],
-    )
-    def test_run_script_uses_statanalysis_0_7_3(self, script):
-        # The RNTuple twins read their data with ROOT 6.38 from StatAnalysis
-        # 0.7.3, so the TTree jobs move with them to keep the pair comparable.
-        text = (EVENT_LOOP_BNL / script).read_text()
-        assert "asetup StatAnalysis,0.7.3" in text
-        assert "StatAnalysis,0.6.3" not in text
+EVENT_LOOP_TWINS = {
+    "columnar": {
+        "payload": EVENT_LOOP_BNL / "columnar" / "eventloop_arrays.py",
+        "run": EVENT_LOOP_BNL / "columnar" / "run_eventloop_arrays.sh",
+        "sub": "eventloop_arrays.sub",
+        "cron": "cron_eventloop_arrays.sh",
+        "stem": "eventloop_arrays",
+        "job": "eventloop-columnar",
+        "sub_prefix": "eventloop_arrays.",
+    },
+    "standard": {
+        "payload": EVENT_LOOP_BNL / "standard" / "eventloop_noarrays.py",
+        "run": EVENT_LOOP_BNL / "standard" / "run_eventloop_noarrays.sh",
+        "sub": "eventloop_noarrays.sub",
+        "cron": "cron_eventloop_noarrays.sh",
+        "stem": "eventloop_noarrays",
+        "job": "eventloop-standard",
+        "sub_prefix": "myjob.",
+    },
+}
 
-    @pytest.mark.parametrize(
-        "payload", ["columnar/eventloop_arrays.py", "standard/eventloop_noarrays.py"]
-    )
-    def test_payload_avoids_datetime_utc_missing_from_python_3_10(self, payload):
-        # StatAnalysis 0.7.3 bundles Python 3.10, where datetime.UTC (3.11+) does
-        # not exist; importing it kills the job before it reads an event.
-        tree = ast.parse((EVENT_LOOP_BNL / payload).read_text())
-        imported = {
-            alias.name
-            for node in ast.walk(tree)
-            if isinstance(node, ast.ImportFrom) and node.module == "datetime"
-            for alias in node.names
+
+class FakeEntry:
+    """The part of ROOT 6.38's REntry pythonization the payloads rely on."""
+
+    def __init__(self):
+        self.values = {}
+
+    def GetToken(self, name):
+        return ("token", name)
+
+    def __getitem__(self, key):
+        name = key[1] if isinstance(key, tuple) else key
+        return self.values[name]
+
+
+class FakeReader:
+    """The part of ROOT 6.38's RNTupleReader the payloads rely on."""
+
+    def __init__(self, events):
+        self.events = events
+        self.entry = FakeEntry()
+
+    def CreateEntry(self):
+        return self.entry
+
+    def GetNEntries(self):
+        return len(self.events)
+
+    def LoadEntry(self, index, entry):
+        # 6.38 refuses LoadEntry without an explicit entry made by the reader.
+        assert entry is self.entry
+        entry.values = self.events[index]
+
+
+class FakeHistogram:
+    def __init__(self):
+        self.fills = []
+
+    def Fill(self, x, weight):
+        self.fills.append((x, weight))
+
+
+def load_payload(monkeypatch, path):
+    # The payloads import ROOT at module level; stub it so no ATLAS software is needed.
+    root = MagicMock()
+    monkeypatch.setitem(sys.modules, "ROOT", root)
+    spec = importlib.util.spec_from_file_location(f"bnl_{path.stem}", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module, root
+
+
+def event(pts, tight, weight_mc, weight_pileup):
+    return {
+        "ph_pt_NOSYS": pts,
+        "ph_select_tightID_NOSYS": [chr(flag) for flag in tight],
+        "weight_mc_NOSYS": weight_mc,
+        "weight_pileup_NOSYS": weight_pileup,
+    }
+
+
+# Gives the normalization xs * genFiltEff * kfactor * luminosity / sum_of_weights = 0.5.
+EVENT_LOOP_METADATA = {
+    "xs": 2.0,
+    "luminosity": 1.0,
+    "genFiltEff": 1.0,
+    "sum_of_weights": 4.0,
+    "kfactor": 1.0,
+}
+
+
+@pytest.mark.parametrize("twin", EVENT_LOOP_TWINS)
+class TestEventLoopRNTuple:
+    def test_loop_fills_the_first_tight_photon_of_each_event(self, monkeypatch, twin):
+        module, root = load_payload(monkeypatch, EVENT_LOOP_TWINS[twin]["payload"])
+        reader = FakeReader(
+            [
+                event([30000.0, 50000.0, 70000.0], [0, 1, 1], 2.0, 0.5),
+                event([], [], 1.0, 1.0),
+                event([10000.0, 20000.0], [0, 0], 1.0, 1.0),
+                event([40000.0], [1], 1.5, 1.0),
+            ]
+        )
+        root.RNTupleReader.Open.return_value = reader
+        histogram = FakeHistogram()
+
+        processed = module.photon_eventloop_rntuple(
+            "f.root", histogram, EVENT_LOOP_METADATA
+        )
+
+        assert processed == 4
+        assert histogram.fills == [
+            (pytest.approx(50.0), pytest.approx(0.5 * 2.0 * 0.5)),
+            (pytest.approx(40.0), pytest.approx(0.5 * 1.5 * 1.0)),
+        ]
+
+    def test_loop_opens_the_file_with_the_root_6_38_reader(self, monkeypatch, twin):
+        # RNTuple left ROOT::Experimental in ROOT 6.36; StatAnalysis 0.7.3 has 6.38.
+        module, root = load_payload(monkeypatch, EVENT_LOOP_TWINS[twin]["payload"])
+        root.RNTupleReader.Open.return_value = FakeReader([])
+
+        module.photon_eventloop_rntuple("f.root", FakeHistogram(), EVENT_LOOP_METADATA)
+
+        root.RNTupleReader.Open.assert_called_once_with("analysis", "f.root")
+        root.Experimental.RNTupleReader.Open.assert_not_called()
+
+    def test_formats_dispatch_to_their_own_loop_and_dataset(self, monkeypatch, twin):
+        module, _ = load_payload(monkeypatch, EVENT_LOOP_TWINS[twin]["payload"])
+        assert module.EVENTLOOPS == {
+            "ttree": module.photon_eventloop,
+            "rntuple": module.photon_eventloop_rntuple,
         }
-        names_used = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
-        assert "UTC" not in imported
-        assert "UTC" not in names_used
+        # The TTree dataset stays where it was; its owner is another user.
+        assert module.DATASET_PATHS == {
+            "ttree": "/atlasgpfs01/usatlas/data/jroblesgo/"
+            "user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/",
+            "rntuple": RNTUPLE_DATASET_DIR + "/",
+        }
+
+    def test_main_takes_a_format_option(self, twin):
+        text = EVENT_LOOP_TWINS[twin]["payload"].read_text()
+        assert 'parser.add_argument("--format", choices=sorted(EVENTLOOPS)' in text
+
+    def test_run_script_rejects_an_unknown_format(self, twin):
+        # The check comes before anything touches the filesystem or ATLAS setup.
+        result = subprocess.run(
+            ["bash", str(EVENT_LOOP_TWINS[twin]["run"]), "parquet"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 2
+        assert "unknown format: parquet" in result.stderr
+
+    def test_run_script_gives_each_format_its_own_files(self, twin):
+        # Both formats' jobs used to run in the repo checkout and share split.log
+        # and the output histogram; overlapping runs then clobbered each other.
+        stem = EVENT_LOOP_TWINS[twin]["stem"]
+        text = EVENT_LOOP_TWINS[twin]["run"].read_text()
+        assert 'format="${1:-ttree}"' in text
+        assert 'rntuple) variant_suffix="_rntuple"' in text
+        assert f'log_file="{stem}${{variant_suffix}}.log"' in text
+        assert (
+            f'working_dir="/atlasgpfs01/usatlas/data/qlei/ntuple/{stem}${{variant_suffix}}"'
+            in text
+        )
+        assert (
+            f'output_dir="/atlasgpfs01/usatlas/data/qlei/logs/{stem}${{variant_suffix}}/'
+            in text
+        )
+        assert re.search(rf'{stem}\.py --format "?\$\{{format\}}"?', text)
+
+    def test_rntuple_sub_differs_from_the_ttree_sub_only_in_arguments_and_logs(
+        self, twin
+    ):
+        info = EVENT_LOOP_TWINS[twin]
+        directory = info["payload"].parent
+        ttree = (directory / info["sub"]).read_text()
+        rntuple = (directory / info["sub"].replace(".sub", "_rntuple.sub")).read_text()
+        prefix = info["sub_prefix"]
+        expected = ttree.replace(
+            f"{prefix}$(", prefix.replace(".", "_rntuple.") + "$("
+        ).replace("Queue 1", "Arguments = rntuple\n\nQueue 1")
+        assert rntuple == expected
+
+    def test_rntuple_cron_differs_from_the_ttree_cron_only_in_its_identity(self, twin):
+        info = EVENT_LOOP_TWINS[twin]
+        directory = info["payload"].parent
+        stem = info["stem"]
+        ttree = (directory / info["cron"]).read_text()
+        rntuple = (directory / info["cron"].replace(".sh", "_rntuple.sh")).read_text()
+        expected = ttree
+        for old, new in [
+            (
+                f'log_base="/atlasgpfs01/usatlas/data/qlei/logs/{stem}"',
+                f'log_base="/atlasgpfs01/usatlas/data/qlei/logs/{stem}_rntuple"',
+            ),
+            (f'log_output="{stem}.log"', f'log_output="{stem}_rntuple.log"'),
+            (
+                f'job_dir="/usatlas/u/qlei/test/{stem}"',
+                f'job_dir="/usatlas/u/qlei/test/{stem}_rntuple"',
+            ),
+            (f"/{info['sub']}", f"/{info['sub'].replace('.sub', '_rntuple.sub')}"),
+            (f'pixi_job="{info["job"]}"', f'pixi_job="{info["job"]}-rntuple"'),
+        ]:
+            assert old in expected
+            expected = expected.replace(old, new)
+        assert rntuple == expected
+
+    def test_crontab_runs_the_rntuple_twin_at_a_different_minute(self, twin):
+        # Same-minute starts would make the formats compete for GPFS and CPUs,
+        # so the benchmark would measure the contention.
+        info = EVENT_LOOP_TWINS[twin]
+        crontab = CRONTAB_BNL.read_text()
+        entries = {
+            name: re.search(
+                rf"^(\S+)\s+\*/6 \* \* \*\s+\S*/event_loop/BNL/\w+/{name}\.sh$",
+                crontab,
+                re.M,
+            )
+            for name in (
+                info["cron"].removesuffix(".sh"),
+                info["cron"].removesuffix(".sh") + "_rntuple",
+            )
+        }
+        assert all(entries.values())
+        minutes = [entry.group(1) for entry in entries.values()]
+        assert minutes[0] != minutes[1]
