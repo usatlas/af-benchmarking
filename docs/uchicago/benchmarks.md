@@ -177,9 +177,9 @@ Converts NTuple ROOT files to histograms using various frameworks:
 The `coffea`, `eventloop-columnar`, `eventloop-standard` and `fastframes` jobs
 each have an `-rntuple` twin. The twin runs the same analysis on the RNTuple
 copy of the same dataset (see
-[TTree to RNTuple Conversion](rntuple-conversion.md)), so the two formats can be
-compared run for run. Each script takes the format as its first argument
-(`ttree` by default), and the RNTuple jobs write `*_rntuple.log`.
+[TTree to RNTuple Conversion](../workflows/rntuple-conversion.md)), so the two
+formats can be compared run for run. Each script takes the format as its first
+argument (`ttree` by default), and the RNTuple jobs write `*_rntuple.log`.
 
 - **Coffea** runs the RNTuple twin in virtual-array mode (`processor.Runner`)
   rather than the dask-awkward mode of the TTree job. Dask mode crashes on
@@ -206,11 +206,10 @@ compared run for run. Each script takes the format as its first argument
   (`mc20e_filelist_rntuple.txt`). The earlier 6.1.0 build (`StatAnalysis,0.6.3`)
   read only TTrees, so the TTree job's history changes version at the switch.
 
-At UC-ODF the RNTuple jobs read the RNTuple copy staged next to the TTree one
-(`NTUPLE_DIR` with `_RNTuple` before `.root`), and both FastFrames jobs need
-`FF_DIR` there rebuilt at 7.2 with `build_fastframes.sh`. Until both are in
-place, those jobs fail.
+UC-ODF runs the same RNTuple jobs; where its RNTuple copy and FastFrames 7.2
+build live, and how to rebuild the build, is on the
+[UC-ODF page](../uc-odf/benchmarks.md#data-on-the-runner).
 
 The two formats' inputs are compressed differently, so a size or I/O comparison
 is not a pure format comparison. See the caveat on the
-[conversion page](rntuple-conversion.md#what-to-expect).
+[conversion page](../workflows/rntuple-conversion.md#what-to-expect).

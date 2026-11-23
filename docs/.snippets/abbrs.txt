@@ -20,3 +20,4 @@
 *[xAOD]: ATLAS Analysis Object Data
 *[RSE]: Rucio Storage Element (e.g. `MWT2_UC_LOCALGROUP_DISK`)
 *[NERSC]: National Energy Research Scientific Computing Center
+*[ODF]: Open Data Facility
