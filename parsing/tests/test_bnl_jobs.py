@@ -39,7 +39,6 @@ class TestCoffeaPython:
         assert re.search(r"atlas_schema\s*<\s*0\.5", install.group(0))
 
 
-
 class TestFastFramesBuild:
     def test_run_fastframes_uses_statanalysis_0_7_3(self):
         # FastFrames 7.2.0 (RNTuple support) is built against StatAnalysis
@@ -59,3 +58,44 @@ class TestFastFramesBuild:
         text = (FASTFRAMES_BNL / "build_fastframes.sh").read_text()
         assert "asetup StatAnalysis,0.7.3" in text
         assert "-DCMAKE_INSTALL_PREFIX='${FF_DIR}/install'" in text
+
+
+class TestConversionOutputParent:
+    def test_convert_job_defaults_to_the_sibling_dataset_directory(self):
+        # UC relies on the output landing next to the input dataset directory.
+        text = (CONVERSION / "UC" / "convert_job.sh").read_text()
+        assert 'output_parent="${2:-$(dirname "${dataset_dir}")}"' in text
+
+    def test_convert_job_builds_the_output_dir_under_the_output_parent(self):
+        text = (CONVERSION / "UC" / "convert_job.sh").read_text()
+        assert (
+            'output_dir="${output_parent}/$(basename "${dataset_dir%.root}")_RNTuple.root"'
+            in text
+        )
+
+    def test_bnl_convert_sub_writes_to_a_qlei_owned_directory(self):
+        # The input dataset lives under jroblesgo, which qlei cannot write to.
+        text = (CONVERSION / "BNL" / "convert.sub").read_text()
+        arguments = re.search(r"^arguments\s*=\s*(.+)$", text, re.I | re.M)
+        assert arguments, "convert.sub has no arguments line"
+        assert "$(input)" in arguments.group(1)
+        assert "/atlasgpfs01/usatlas/data/qlei" in arguments.group(1)
+
+    def test_bnl_convert_sub_reads_inputs_from_the_input_list(self):
+        text = (CONVERSION / "BNL" / "convert.sub").read_text()
+        assert re.search(r"^queue\s+input\s+from\s+inputs\.txt$", text, re.I | re.M)
+
+    def test_bnl_inputs_list_every_ttree_file_of_the_dataset_once(self):
+        # The list drives one conversion job per line.
+        dataset = (
+            "/atlasgpfs01/usatlas/data/jroblesgo/"
+            "user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root"
+        )
+        lines = (CONVERSION / "BNL" / "inputs.txt").read_text().splitlines()
+        assert len(lines) == len(set(lines)) == 18
+        for line in lines:
+            assert re.fullmatch(
+                re.escape(dataset)
+                + r"/user\.bhodkins\.42165201\._\d{6}\.ANALYSIS\.root",
+                line,
+            )

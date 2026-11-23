@@ -1,0 +1,22 @@
+# One job per input file listed in inputs.txt (one absolute path per line).
+# The converted dataset goes under /atlasgpfs01/usatlas/data/qlei because the
+# input tree belongs to another user and is not writable.
+# Create the log directory first:  mkdir -p /usatlas/u/qlei/batch_output_files/convert
+# Submit from this directory (inputs.txt is read relative to it):  condor_submit convert.sub
+Universe = vanilla
+
+# convert_job.sh runs convert_ttree_to_rntuple.py from the working directory
+initialdir = /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/rntuple_conversion/UC
+
+Output = /usatlas/u/qlei/batch_output_files/convert/convert.$(Cluster).$(Process).out
+Error = /usatlas/u/qlei/batch_output_files/convert/convert.$(Cluster).$(Process).err
+Log = /usatlas/u/qlei/batch_output_files/convert/convert.$(Cluster).log
+
+Executable = /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/rntuple_conversion/UC/convert_job.sh
+Arguments = $(input) /atlasgpfs01/usatlas/data/qlei
+
+# Peak RSS was 1.0-1.35 GB for inputs from 222 MB to 4.2 GB (measured at UC).
+request_cpus = 1
+request_memory = 4GB
+
+Queue input from inputs.txt
