@@ -485,3 +485,117 @@ class TestEventLoopRNTuple:
         assert all(entries.values())
         minutes = [entry.group(1) for entry in entries.values()]
         assert minutes[0] != minutes[1]
+
+
+class TestFastFramesRNTupleTwin:
+    def test_filelist_points_every_entry_at_the_converted_dataset(self):
+        ttree = (FASTFRAMES_BNL / "mc20e_filelist.txt").read_text().splitlines()
+        rntuple = (
+            (FASTFRAMES_BNL / "mc20e_filelist_rntuple.txt").read_text().splitlines()
+        )
+        assert len(rntuple) == len(ttree) == 18
+        for t_line, r_line in zip(ttree, rntuple):
+            *t_columns, t_path = t_line.split()
+            *r_columns, r_path = r_line.split()
+            assert r_columns == t_columns
+            assert r_path == f"{RNTUPLE_DATASET_DIR}/{Path(t_path).name}"
+
+    def test_config_differs_from_the_ttree_config_only_in_the_filelist(self):
+        ttree = (FASTFRAMES_BNL / "mc20e_example_config.yml").read_text()
+        rntuple = (FASTFRAMES_BNL / "mc20e_example_config_rntuple.yml").read_text()
+        old = 'input_filelist_path: "/srv/input/mc20e_filelist.txt"'
+        assert ttree.count(old) == 1
+        assert rntuple == ttree.replace(
+            old, 'input_filelist_path: "/srv/input/mc20e_filelist_rntuple.txt"'
+        )
+
+    def test_run_script_rejects_an_unknown_format(self):
+        # The check comes before anything touches the filesystem or ATLAS setup.
+        result = subprocess.run(
+            ["bash", str(FASTFRAMES_BNL / "run_fastframes.sh"), "parquet"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 2
+        assert "unknown format: parquet" in result.stderr
+
+    def test_ttree_keeps_its_working_directory_and_config(self):
+        # The TTree job's input directory is maintained by hand on GPFS.
+        text = (FASTFRAMES_BNL / "run_fastframes.sh").read_text()
+        assert re.search(
+            r'ttree\)\s+variant_suffix=""\s+'
+            r"working_dir=/atlasgpfs01/usatlas/data/qlei\s+"
+            r"config=mc20e_example_config\.yml\s+;;",
+            text,
+        )
+
+    def test_rntuple_gets_its_own_directory_filled_from_the_repo(self):
+        # Sharing the TTree job's directory would share its logs and output.
+        text = (FASTFRAMES_BNL / "run_fastframes.sh").read_text()
+        assert re.search(
+            r'rntuple\)\s+variant_suffix="_rntuple"\s+'
+            r"working_dir=/atlasgpfs01/usatlas/data/qlei/fastframes_rntuple\s+"
+            r"config=mc20e_example_config_rntuple\.yml\b",
+            text,
+        )
+        assert 'mkdir -p "${working_dir}/input" "${working_dir}/output"' in text
+        for name in (
+            "mc20e_example_config_rntuple.yml",
+            "mc20e_filelist_rntuple.txt",
+            "mc20e_sumweights.txt",
+        ):
+            assert name in text.split("rntuple)")[1].split(";;")[0]
+
+    def test_run_script_names_logs_and_log_directory_by_format(self):
+        text = (FASTFRAMES_BNL / "run_fastframes.sh").read_text()
+        assert 'log_file="fastframes${variant_suffix}.log"' in text
+        assert (
+            'output_dir="/atlasgpfs01/usatlas/data/qlei/logs/'
+            'FastFrames_NTuple${variant_suffix}/${start_time}"'
+        ) in text
+        assert 'cd "${working_dir}" || exit' in text
+        assert "-c ${working_dir}/input/${config}" in text
+        assert "tee ${log_file}" in text
+
+    def test_rntuple_sub_differs_from_the_ttree_sub_only_in_arguments_and_logs(self):
+        ttree = (FASTFRAMES_BNL / "fastframes_el9.sub").read_text()
+        rntuple = (FASTFRAMES_BNL / "fastframes_el9_rntuple.sub").read_text()
+        expected = ttree.replace("myjob.", "myjob_rntuple.").replace(
+            "Queue 1", "Arguments = rntuple\n\nQueue 1"
+        )
+        assert rntuple == expected
+
+    def test_rntuple_cron_differs_from_the_ttree_cron_only_in_its_identity(self):
+        ttree = (FASTFRAMES_BNL / "crontab_fastframes.sh").read_text()
+        rntuple = (FASTFRAMES_BNL / "crontab_fastframes_rntuple.sh").read_text()
+        expected = ttree
+        for old, new in [
+            (
+                'log_base="/atlasgpfs01/usatlas/data/qlei/logs/FastFrames_NTuple"',
+                'log_base="/atlasgpfs01/usatlas/data/qlei/logs/FastFrames_NTuple_rntuple"',
+            ),
+            ('log_output="fastframes.log"', 'log_output="fastframes_rntuple.log"'),
+            (
+                'job_dir="/usatlas/u/qlei/test/fastframes"',
+                'job_dir="/usatlas/u/qlei/test/fastframes_rntuple"',
+            ),
+            ("/fastframes_el9.sub", "/fastframes_el9_rntuple.sub"),
+            ('pixi_job="fastframes"', 'pixi_job="fastframes-rntuple"'),
+        ]:
+            assert old in expected
+            expected = expected.replace(old, new)
+        assert rntuple == expected
+
+    def test_crontab_runs_the_rntuple_twin_at_a_different_minute(self):
+        crontab = CRONTAB_BNL.read_text()
+        entries = [
+            re.search(
+                rf"^(\S+)\s+\*/6 \* \* \*\s+\S*/fastframes/BNL/{name}\.sh$",
+                crontab,
+                re.M,
+            )
+            for name in ("crontab_fastframes", "crontab_fastframes_rntuple")
+        ]
+        assert all(entries)
+        assert entries[0].group(1) != entries[1].group(1)

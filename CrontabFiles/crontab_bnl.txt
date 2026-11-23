@@ -21,6 +21,7 @@
 
 # FastFrames Script
 0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/fastframes/BNL/crontab_fastframes.sh
+30 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/fastframes/BNL/crontab_fastframes_rntuple.sh
 
 # EventLoop Arrays Script
 0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/columnar/cron_eventloop_arrays.sh
