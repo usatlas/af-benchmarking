@@ -22,14 +22,25 @@ container_el9 (){
   cd "${1}" || exit
   export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
   export ALRB_localConfigDir="$HOME"/localConfig
+# ALRB evaluates the -r string's $... once, before any of it runs, so a
+# runtime ${PIPESTATUS[0]}/$? here would read whatever it was at that
+# earlier point, not rucio download's real exit code. Recording success/
+# failure through if/then/else instead needs no runtime $ at all -- without
+# this, a failed download's rucio.log carries no exit_status, which
+# base_parser.py then silently defaults to 0 (success).
 # shellcheck disable=SC1091
 # shellcheck disable=SC2115
   source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m "${2}" -r "export RUCIO_ACCOUNT=qlei && \
+    set -o pipefail && \
     lsetup rucio &&\
     cat /srv/pass.txt | voms-proxy-init -voms atlas && \
     mkdir -p \"${3}\" &&\
     [ -d \"${4#*:}\" ] && rm -rf \"${4#*:}\" || true &&\
-    rucio download --rses AGLT2_LOCALGROUPDISK \"${4}\"  2>&1 | tee rucio.log &&\
+    if rucio download --rses AGLT2_LOCALGROUPDISK \"${4}\"  2>&1 | tee rucio.log; then \
+      echo exit_status=0 >> rucio.log; \
+    else \
+      echo exit_status=1 >> rucio.log; \
+    fi &&\
     hostname >> rucio.log &&\
     du \"${4#*:}\"/ >> rucio.log &&\
     mv rucio.log \"${3}\""
@@ -58,11 +69,16 @@ native_el9 () {
   rm -r "${tmp#*:}"
   echo "::group::Rucio Download"
   rucio download --rses AGLT2_LOCALGROUPDISK "${3}"  2>&1 | tee rucio.log
+  # $? here would be tee's exit status (always 0), masking a failed download.
+  rucio_status="${PIPESTATUS[0]}"
   echo "::endgroup::"
   end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
   echo "::group::Collect Metrics"
-  hostname >> rucio.log
-  du "${3#*:}" >> rucio.log
+  {
+    echo "exit_status=${rucio_status}"
+    hostname
+    du "${3#*:}"
+  } >> rucio.log
   echo "::endgroup::"
   append_benchmark "rucio.log" "${start_time}" "${end_time}" "${start_time}" "${start_time}" "rucio"
   mv rucio.log "${1}"

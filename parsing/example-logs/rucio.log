@@ -109,6 +109,7 @@ Total files (filtered):                      20
 Downloaded files:                            20
 Files already found locally:                  0
 Files that cannot be downloaded:              0
+exit_status=0
 login01.af.uchicago.edu
 16648179	mc23_13p6TeV.700866.Sh_2214_WWW_3l3v_EW6.deriv.DAOD_PHYSLITE.e8532_e8528_s4162_s4114_r14622_r14663_p6491/
 === BENCHMARK ===
@@ -122,4 +123,5 @@ rucio_downloaded_files=20
 rucio_already_local=0
 rucio_failed_files=0
 rucio_du_kb=16648179
+exit_status=0
 =================

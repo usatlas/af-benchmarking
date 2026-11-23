@@ -82,6 +82,7 @@ extract_rucio_metrics() {
     /Files already found locally/      { already_local=$NF }
     /Files that cannot be downloaded/  { failed=$NF }
     /^[0-9]+[[:space:]]/               { du_kb=$1 }
+    /^exit_status=/                    { exit_status=$0; sub(/^exit_status=/, "", exit_status) }
     END {
       print "rucio_total_files_did=" total_did
       print "rucio_total_files_filtered=" total_filtered
@@ -89,6 +90,7 @@ extract_rucio_metrics() {
       print "rucio_already_local=" already_local
       print "rucio_failed_files=" failed
       print "rucio_du_kb=" du_kb
+      print "exit_status=" exit_status
     }
   ' "${log_file}"
 }
