@@ -96,11 +96,13 @@ The 23 Wmunugamma files have 240 branches each (78 `vector<float>`, 99
   largest (4.2 GB), on one core, including validation, which reads both files.
 - **Memory:** 1.0–1.35 GB peak RSS.
 
-!!! warning "The size ratio is not a pure format comparison"
+/// warning | The size ratio is not a pure format comparison
 
-    The input TTree files were written with compression setting 101 (zlib,
-    level 1). The importer writes the RNTuple with RNTuple's default write
-    options, which use a different compression algorithm and level. Some of
-    the size difference therefore comes from compression settings rather than
-    from the format itself. For a like-for-like TTree vs RNTuple comparison,
-    write both formats with the same compression setting.
+The input TTree files were written with compression setting 101 (zlib, level 1).
+The importer writes the RNTuple with RNTuple's default write options, which use
+a different compression algorithm and level. Some of the size difference
+therefore comes from compression settings rather than from the format itself.
+For a like-for-like TTree vs RNTuple comparison, write both formats with the
+same compression setting.
+
+///

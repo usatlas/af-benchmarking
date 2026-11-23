@@ -9,6 +9,8 @@ The repository contains several automated workflows:
 
 - **[UChicago Benchmarks](../uchicago/benchmarks.md)** - Runs benchmark jobs at
   the UChicago Analysis Facility every 6 hours
+- **[UC-ODF Benchmarks](../uc-odf/benchmarks.md)** - Runs benchmark jobs at the
+  UC-ODF (Open Data Facility) analysis facility every 6 hours
 - **[CI Validation](ci.md)** - Validates the parsing machinery against fixture
   logs on every push and pull request
 - **[Documentation](documentation.md)** - Builds and deploys documentation to
@@ -33,13 +35,13 @@ graph LR
 
 The workflows require these GitHub repository secrets:
 
-| Secret          | Purpose                      | Used By          |
-| --------------- | ---------------------------- | ---------------- |
-| `VOMS_USERCERT` | VOMS user certificate        | Globus setup     |
-| `VOMS_USERKEY`  | VOMS user key                | Globus setup     |
-| `VOMS_PASSWORD` | VOMS password                | Globus setup     |
-| `KIBANA_TOKEN`  | Kibana benchmark token       | Parse and upload |
-| `KIBANA_URI`    | LogStash/Kibana URI endpoint | Parse and upload |
+| Secret          | Purpose                      | Used By                                                                       |
+| --------------- | ---------------------------- | ----------------------------------------------------------------------------- |
+| `VOMS_USERCERT` | VOMS user certificate        | Globus setup                                                                  |
+| `VOMS_USERKEY`  | VOMS user key                | Globus setup                                                                  |
+| `VOMS_PASSWORD` | VOMS password                | Rucio and FastFrames `execute` steps (UChicago); Rucio password file (UC-ODF) |
+| `KIBANA_TOKEN`  | Kibana benchmark token       | Parse and upload                                                              |
+| `KIBANA_URI`    | LogStash/Kibana URI endpoint | Parse and upload                                                              |
 
 To add or update secrets:
 
@@ -76,7 +78,11 @@ pixi run -e kibana python parsing/scripts/...
 
 - [Flowchart](flowchart.md)
 - [UChicago Benchmarks](../uchicago/benchmarks.md)
+- [UC-ODF Benchmarks](../uc-odf/benchmarks.md)
 - [BNL Benchmarks](../bnl/benchmarks.md)
+- [SLAC Benchmarks](../slac/benchmarks.md)
+- [NERSC Benchmarks](../nersc/benchmarks.md)
+- [TTree to RNTuple Conversion](rntuple-conversion.md)
 - [Parsing & Upload](parsing.md)
 - [CI Validation](ci.md)
 - [Documentation](documentation.md)

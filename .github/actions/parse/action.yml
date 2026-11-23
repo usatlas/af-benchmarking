@@ -13,7 +13,7 @@ inputs:
       fastframes)"
     required: true
   cluster:
-    description: "Cluster name (e.g., UC-AF, SLAC-AF, BNL-AF)"
+    description: "Cluster name (e.g., UC-AF, SLAC-AF, BNL-AF, NERSC-AF)"
     required: true
   kibana-token:
     description: "Token for benchmark identification"
