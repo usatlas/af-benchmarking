@@ -6,7 +6,10 @@
 #   <dir>/user.X_ANALYSIS.root/f.root -> <dir>/user.X_ANALYSIS_RNTuple.root/f.root
 # An existing output is skipped, so resubmitting the whole list is safe.
 #
-# usage: convert_job.sh <input_file>
+# usage: convert_job.sh <input_file> [output_parent]
+# output_parent is the directory in which the "_RNTuple" dataset directory is
+# created; it defaults to the input dataset directory's parent. Pass it when
+# the input tree is read-only for the submitting user.
 #
 # No `set -e`/`set -u`: ALRB's setup scripts reference unbound variables.
 input="$1"
@@ -27,7 +30,8 @@ if [[ ! -f "${input}" ]]; then
 fi
 
 dataset_dir=$(dirname "${input}")
-output_dir="${dataset_dir%.root}_RNTuple.root"
+output_parent="${2:-$(dirname "${dataset_dir}")}"
+output_dir="${output_parent}/$(basename "${dataset_dir%.root}")_RNTuple.root"
 mkdir -p "${output_dir}"
 output="${output_dir}/$(basename "${input}")"
 

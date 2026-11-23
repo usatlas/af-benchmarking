@@ -1,7 +1,9 @@
+import argparse
 import ROOT as r
 from pathlib import Path
 from array import array
-from datetime import datetime, UTC
+from datetime import datetime, timezone
+import sys
 import time
 
 
@@ -9,6 +11,16 @@ ph_pt_array = r.std.vector("float")()
 ph_select_tightID_array = r.std.vector("char")()
 weight_mc_array = array("f", [0.0])
 weight_pileup_array = array("f", [0.0])
+
+
+def normalization(metadata):
+    """Cross-section times luminosity over the sum of weights."""
+    xs = metadata["xs"]
+    lum = metadata["luminosity"]
+    genFiltEff = metadata["genFiltEff"]
+    kfactor = metadata.get("kfactor", 1.0)
+    sumOfWeights = metadata["sum_of_weights"]
+    return xs * genFiltEff * kfactor * lum / sumOfWeights
 
 
 def photon_eventloop(f_name, h_baseline_pt, metadata):
@@ -32,13 +44,7 @@ def photon_eventloop(f_name, h_baseline_pt, metadata):
     totalevents = tree.GetEntriesFast()
     print(f"  {f_name} has {totalevents} events")
 
-    # Normalization factors
-    xs = metadata["xs"]
-    lum = metadata["luminosity"]
-    genFiltEff = metadata["genFiltEff"]
-    kfactor = metadata.get("kfactor", 1.0)
-    sumOfWeights = metadata["sum_of_weights"]
-    weight_norm = xs * genFiltEff * kfactor * lum / sumOfWeights
+    weight_norm = normalization(metadata)
 
     processed = 0
 
@@ -68,14 +74,74 @@ def photon_eventloop(f_name, h_baseline_pt, metadata):
     return processed
 
 
+def photon_eventloop_rntuple(f_name, h_baseline_pt, metadata):
+    """Process one RNTuple file and fill the given histogram.
+
+    The RNTuple counterpart of SetBranchAddress: look each field up once, as a
+    token, then LoadEntry fills the entry for every event and the tokens read it
+    back without a name lookup.
+    """
+    # ROOT 6.36 and later (StatAnalysis 0.7.3 has 6.38) keep the reader outside
+    # Experimental. PyROOT has no default entry, so the entry comes from the
+    # reader and is passed to every LoadEntry.
+    reader = r.RNTupleReader.Open("analysis", f_name)
+    entry = reader.CreateEntry()
+    ph_pt_token = entry.GetToken("ph_pt_NOSYS")
+    ph_select_tightID_token = entry.GetToken("ph_select_tightID_NOSYS")
+    weight_mc_token = entry.GetToken("weight_mc_NOSYS")
+    weight_pileup_token = entry.GetToken("weight_pileup_NOSYS")
+
+    totalevents = reader.GetNEntries()
+    print(f"  {f_name} has {totalevents} events")
+
+    weight_norm = normalization(metadata)
+
+    processed = 0
+
+    # Event loop
+    for i in range(totalevents):
+        processed += 1
+        if (i + 1) % 50000 == 0:
+            print(f"    Processed {i + 1:6d}/{totalevents}")
+
+        reader.LoadEntry(i, entry)
+
+        weight = weight_norm * entry[weight_mc_token] * entry[weight_pileup_token]
+
+        ph_pt = entry[ph_pt_token]
+        ph_select_tightID = entry[ph_select_tightID_token]
+        for index in range(len(ph_pt)):
+            if not (ord(ph_select_tightID[index]) > 0):
+                continue
+
+            h_baseline_pt.Fill(ph_pt[index] / 1000.0, weight)  # Fill GeV
+            break  # only fill with first passing photon
+
+    return processed
+
+
+EVENTLOOPS = {"ttree": photon_eventloop, "rntuple": photon_eventloop_rntuple}
+
+# Each format's copy of the same dataset; see docs/workflows/rntuple-conversion.md.
+# The RNTuple copy is under qlei because the TTree dataset's owner's directory is
+# not writable by the user running the conversion.
+DATASET_PATHS = {
+    "ttree": "/atlasgpfs01/usatlas/data/jroblesgo/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/",
+    "rntuple": "/atlasgpfs01/usatlas/data/qlei/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS_RNTuple.root/",
+}
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--format", choices=sorted(EVENTLOOPS), default="ttree")
+    args = parser.parse_args()
+    eventloop = EVENTLOOPS[args.format]
+
     # Define samples (all will contribute to one histogram)
     samples = [
         {
             "name": "Wmunugamma",
-            "path": Path(
-                "/atlasgpfs01/usatlas/data/jroblesgo/user.bhodkins.700402.Wmunugamma.mc20e.v2.0_ANALYSIS.root/"
-            ),
+            "path": Path(DATASET_PATHS[args.format]),
             "metadata": {
                 "genFiltEff": 1.0,
                 "luminosity": 58.7916,
@@ -95,7 +161,7 @@ def main():
         1000,
     )
 
-    start_time_utc = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    start_time_utc = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     t0 = time.perf_counter()
 
     total_events_processed = 0
@@ -104,12 +170,17 @@ def main():
     for s in samples:
         print(f"\nProcessing sample: {s['name']}")
         for f in sorted(s["path"].glob("*.root")):
-            total_events_processed += photon_eventloop(
-                str(f), h_baseline_pt, s["metadata"]
-            )
+            total_events_processed += eventloop(str(f), h_baseline_pt, s["metadata"])
+
+    # A missing or empty dataset directory yields no files and would otherwise
+    # exit 0, so the run would be recorded as a very fast success.
+    if total_events_processed == 0:
+        sys.exit(
+            "no events processed from " + ", ".join(str(s["path"]) for s in samples)
+        )
 
     dt = time.perf_counter() - t0
-    end_time_utc = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    end_time_utc = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     event_rate_khz = (total_events_processed / dt) / 1000.0 if dt > 0 else 0.0
 
     # Save combined histogram

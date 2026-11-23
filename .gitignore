@@ -20,6 +20,7 @@ __pycache__
 
 # AI Agents
 CLAUDE.md
+.superpowers/
 
 # Out-of-scope scripts (tracked locally only)
 NTuple_Hist/compare_outputs.py
