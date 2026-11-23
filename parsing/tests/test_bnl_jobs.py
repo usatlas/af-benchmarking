@@ -24,6 +24,17 @@ RNTUPLE_DATASET_DIR = (
 )
 
 
+def cron_schedule(script):
+    """The five schedule fields of the crontab line that runs ``script``."""
+    match = re.search(
+        rf"^(\S+\s+\S+\s+\S+\s+\S+\s+\S+)\s+\S*/{re.escape(script)}$",
+        CRONTAB_BNL.read_text(),
+        re.M,
+    )
+    assert match, f"{script} is not in the crontab"
+    return match.group(1)
+
+
 class TestCoffeaPython:
     def test_run_example_sets_up_python_3_13_before_building_the_venv(self):
         # Without an lsetup python, the venv is built from the container's own
@@ -44,6 +55,14 @@ class TestCoffeaPython:
         install = re.search(r"pip install [^&\n]*atlas_schema[^&\n]*", text)
         assert install, "run_example.sh has no atlas_schema pip install"
         assert "dask_histogram" in install.group(0)
+
+    def test_run_example_records_setup_complete_without_a_runtime_dollar(self):
+        # ALRB expands a \\$ inside the -r string once, before any command runs,
+        # so \\$(date) recorded the start of setup as its end (about 1 s instead
+        # of the ~40 s a fresh venv takes). date prints the label itself instead.
+        text = (COFFEA_BNL / "run_example.sh").read_text()
+        assert "\\$(" not in text
+        assert "date -u +SETUP_COMPLETE=%Y-%m-%dT%H:%M:%SZ >> split.log" in text
 
     def test_run_example_pins_atlas_schema_below_0_5(self):
         # atlas_schema 0.5.0 adds a default photon "mass" on top of the ntuple's
@@ -170,6 +189,21 @@ class TestCoffeaRNTupleTwin:
         assert "class VirtualProcessor" in text
         assert re.search(r'"rntuple":\s*.*af_v2_700402_rntuple\.json', text)
 
+    def test_example_routes_each_format_to_its_dataset_and_runner(self):
+        # Importing example.py needs coffea, dask and ATLAS packages, so check
+        # the routing in the source: the dataset is chosen by --format, and only
+        # rntuple goes through the virtual-array runner.
+        text = (COFFEA_BNL / "example.py").read_text()
+        assert "DATASET_JSONS[args.format].read_text()" in text
+        assert re.search(
+            r'if args\.format == "rntuple":\s+'
+            r"computed, start_time_utc, start_time = run_virtual\(",
+            text,
+        )
+        assert re.search(
+            r"else:\s+computed, start_time_utc, start_time = run_dask\(", text
+        )
+
     def test_example_keeps_the_ttree_dataset_json_unchanged(self):
         text = (COFFEA_BNL / "example.py").read_text()
         assert re.search(
@@ -239,21 +273,13 @@ class TestCoffeaRNTupleTwin:
             expected = expected.replace(old, new)
         assert rntuple == expected
 
-    def test_crontab_runs_the_rntuple_twin_at_a_different_minute(self):
-        # Same-minute starts would make the two formats compete for the same
-        # GPFS and CPUs, so the benchmark would measure the contention.
-        entries = {
-            name: re.search(
-                rf"^(\S+)\s+\*/6 \* \* \*\s+\S*/coffea/BNL/{name}\.sh$",
-                CRONTAB_BNL.read_text(),
-                re.M,
-            )
-            for name in ("cron_example", "cron_example_rntuple")
-        }
-        assert all(entries.values())
-        assert entries["cron_example"].group(1) != entries[
-            "cron_example_rntuple"
-        ].group(1)
+    def test_crontab_runs_the_rntuple_twin_on_the_same_schedule(self):
+        # The pair is only comparable if both formats run under the same load.
+        # Staggering them put one on the busy :00 slot and the other on a quiet
+        # one, and the slower TTree jobs outlast any offset anyway.
+        assert cron_schedule("coffea/BNL/cron_example.sh") == cron_schedule(
+            "coffea/BNL/cron_example_rntuple.sh"
+        )
 
 
 EVENT_LOOP_TWINS = {
@@ -283,11 +309,15 @@ class FakeEntry:
 
     def __init__(self):
         self.values = {}
+        self.token_requests = []
+        self.key_kinds = []
 
     def GetToken(self, name):
+        self.token_requests.append(name)
         return ("token", name)
 
     def __getitem__(self, key):
+        self.key_kinds.append("token" if isinstance(key, tuple) else "name")
         name = key[1] if isinstance(key, tuple) else key
         return self.values[name]
 
@@ -396,6 +426,86 @@ class TestEventLoopRNTuple:
             "rntuple": RNTUPLE_DATASET_DIR + "/",
         }
 
+    def test_loop_reads_fields_the_way_its_twin_is_defined(self, monkeypatch, twin):
+        # Columnar resolves each field's token once; standard looks the name up
+        # on every event. Without this the two twins could silently converge.
+        module, root = load_payload(monkeypatch, EVENT_LOOP_TWINS[twin]["payload"])
+        reader = FakeReader([event([10000.0], [1], 1.0, 1.0)] * 5)
+        root.RNTupleReader.Open.return_value = reader
+
+        module.photon_eventloop_rntuple("f.root", FakeHistogram(), EVENT_LOOP_METADATA)
+
+        entry = reader.entry
+        if twin == "columnar":
+            assert len(entry.token_requests) == 4
+            assert set(entry.key_kinds) == {"token"}
+        else:
+            assert entry.token_requests == []
+            assert set(entry.key_kinds) == {"name"}
+
+    @staticmethod
+    def make_dataset(tmp_path, name, n_files):
+        directory = tmp_path / name
+        directory.mkdir()
+        for index in range(n_files):
+            (directory / f"f{index}.root").touch()
+        return directory
+
+    @pytest.mark.parametrize("fmt", ["ttree", "rntuple"])
+    def test_main_routes_each_format_to_its_loop_and_dataset(
+        self, monkeypatch, tmp_path, twin, fmt
+    ):
+        # A routing slip (rntuple benchmarking the TTree files, or the reverse)
+        # would still "succeed", so check which loop gets which files.
+        module, _ = load_payload(monkeypatch, EVENT_LOOP_TWINS[twin]["payload"])
+        datasets = {
+            "ttree": self.make_dataset(tmp_path, "ttree", 2),
+            "rntuple": self.make_dataset(tmp_path, "rntuple", 3),
+        }
+        calls = []
+
+        def recorder(label):
+            def loop(f_name, histogram, metadata):
+                calls.append((label, f_name))
+                return 10
+
+            return loop
+
+        monkeypatch.setattr(
+            module, "DATASET_PATHS", {k: f"{v}/" for k, v in datasets.items()}
+        )
+        monkeypatch.setattr(
+            module,
+            "EVENTLOOPS",
+            {"ttree": recorder("ttree"), "rntuple": recorder("rntuple")},
+        )
+        monkeypatch.setattr(sys, "argv", ["payload", "--format", fmt])
+
+        module.main()
+
+        assert calls == [
+            (fmt, str(path)) for path in sorted(datasets[fmt].glob("*.root"))
+        ]
+
+    @pytest.mark.parametrize("state", ["missing", "empty"])
+    def test_main_fails_when_the_dataset_yields_no_events(
+        self, monkeypatch, tmp_path, twin, state
+    ):
+        # A zero-event run used to exit 0 and upload as a fast success.
+        module, _ = load_payload(monkeypatch, EVENT_LOOP_TWINS[twin]["payload"])
+        dataset = tmp_path / "dataset"
+        if state == "empty":
+            dataset.mkdir()
+        monkeypatch.setattr(
+            module, "DATASET_PATHS", {"ttree": f"{dataset}/", "rntuple": f"{dataset}/"}
+        )
+        monkeypatch.setattr(sys, "argv", ["payload", "--format", "rntuple"])
+
+        with pytest.raises(SystemExit) as raised:
+            module.main()
+
+        assert raised.value.code not in (0, None)
+
     def test_main_takes_a_format_option(self, twin):
         text = EVENT_LOOP_TWINS[twin]["payload"].read_text()
         assert 'parser.add_argument("--format", choices=sorted(EVENTLOOPS)' in text
@@ -466,25 +576,12 @@ class TestEventLoopRNTuple:
             expected = expected.replace(old, new)
         assert rntuple == expected
 
-    def test_crontab_runs_the_rntuple_twin_at_a_different_minute(self, twin):
-        # Same-minute starts would make the formats compete for GPFS and CPUs,
-        # so the benchmark would measure the contention.
-        info = EVENT_LOOP_TWINS[twin]
-        crontab = CRONTAB_BNL.read_text()
-        entries = {
-            name: re.search(
-                rf"^(\S+)\s+\*/6 \* \* \*\s+\S*/event_loop/BNL/\w+/{name}\.sh$",
-                crontab,
-                re.M,
-            )
-            for name in (
-                info["cron"].removesuffix(".sh"),
-                info["cron"].removesuffix(".sh") + "_rntuple",
-            )
-        }
-        assert all(entries.values())
-        minutes = [entry.group(1) for entry in entries.values()]
-        assert minutes[0] != minutes[1]
+    def test_crontab_runs_the_rntuple_twin_on_the_same_schedule(self, twin):
+        # See the matching coffea test: the pair must run under the same load.
+        script = f"event_loop/BNL/{twin}/{EVENT_LOOP_TWINS[twin]['cron']}"
+        assert cron_schedule(script) == cron_schedule(
+            script.replace(".sh", "_rntuple.sh")
+        )
 
 
 class TestFastFramesRNTupleTwin:
@@ -547,6 +644,12 @@ class TestFastFramesRNTupleTwin:
         ):
             assert name in text.split("rntuple)")[1].split(";;")[0]
 
+    def test_run_script_records_setup_complete_without_a_runtime_dollar(self):
+        # See the matching coffea test: ALRB expands \\$ in -r strings early.
+        text = (FASTFRAMES_BNL / "run_fastframes.sh").read_text()
+        assert "\\$(" not in text
+        assert "date -u +SETUP_COMPLETE=%Y-%m-%dT%H:%M:%SZ >> split.log" in text
+
     def test_run_script_names_logs_and_log_directory_by_format(self):
         text = (FASTFRAMES_BNL / "run_fastframes.sh").read_text()
         assert 'log_file="fastframes${variant_suffix}.log"' in text
@@ -587,15 +690,8 @@ class TestFastFramesRNTupleTwin:
             expected = expected.replace(old, new)
         assert rntuple == expected
 
-    def test_crontab_runs_the_rntuple_twin_at_a_different_minute(self):
-        crontab = CRONTAB_BNL.read_text()
-        entries = [
-            re.search(
-                rf"^(\S+)\s+\*/6 \* \* \*\s+\S*/fastframes/BNL/{name}\.sh$",
-                crontab,
-                re.M,
-            )
-            for name in ("crontab_fastframes", "crontab_fastframes_rntuple")
-        ]
-        assert all(entries)
-        assert entries[0].group(1) != entries[1].group(1)
+    def test_crontab_runs_the_rntuple_twin_on_the_same_schedule(self):
+        # See the matching coffea test: the pair must run under the same load.
+        assert cron_schedule("fastframes/BNL/crontab_fastframes.sh") == cron_schedule(
+            "fastframes/BNL/crontab_fastframes_rntuple.sh"
+        )

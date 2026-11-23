@@ -11,9 +11,9 @@ shell scripts checked into this repo and a crontab installed on the host.
 
 The pipeline runs:
 
-- **Every 6 hours** (cron schedule: `0 */6 * * *`). The four `-rntuple` jobs
-  start half an hour later (`30 */6 * * *`), so the two formats do not compete
-  for the same GPFS and CPUs while they are being measured.
+- **Every 6 hours** (cron schedule: `0 */6 * * *`). Each `-rntuple` job starts
+  at the same time as its TTree twin, so the pair runs under the same load; each
+  format has its own working directory, so they do not share files.
 
 There's no pull-request trigger and no manual dispatch equivalent — those are
 GitHub Actions concepts, and BNL has no CI system in the loop.
@@ -248,6 +248,8 @@ one) to rebuild it.
   appears in Kibana with `status: 1`, and `HTTP Response Code: 200` says nothing
   about the run itself. Check `exit_status=` in the job's log and `status` in
   `payload.json`
+- An EventLoop run that finds no events (a missing or empty dataset directory)
+  exits 1 instead of reporting a very fast success
 
 **Upload failures:**
 
@@ -320,9 +322,11 @@ All the jobs that use `StatAnalysis,0.7.3` run on its Python 3.10, which has no
 
 #### What the first runs showed
 
-Run times from the first runs at BNL (2026-11-23), each reading all 18,304,905
-events and writing the same histogram content (FastFrames' histograms matched
-entry for entry and integral for integral):
+Run times from the first runs at BNL (2026-11-23), each processing all
+18,304,905 events. FastFrames' two output histograms matched exactly (same
+entries and the same integral). For coffea and EventLoop the full-dataset
+histograms were not compared; a 100,000-event check of the EventLoop readers
+gave identical weighted sums for TTree and RNTuple.
 
 | Job                  | TTree  | RNTuple | Note                                                                  |
 | -------------------- | ------ | ------- | --------------------------------------------------------------------- |

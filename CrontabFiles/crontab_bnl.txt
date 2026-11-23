@@ -17,16 +17,16 @@
 
 # Coffea Metrics
 0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/coffea/BNL/cron_example.sh
-30 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/coffea/BNL/cron_example_rntuple.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/coffea/BNL/cron_example_rntuple.sh
 
 # FastFrames Script
 0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/fastframes/BNL/crontab_fastframes.sh
-30 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/fastframes/BNL/crontab_fastframes_rntuple.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/fastframes/BNL/crontab_fastframes_rntuple.sh
 
 # EventLoop Arrays Script
 0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/columnar/cron_eventloop_arrays.sh
-30 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/columnar/cron_eventloop_arrays_rntuple.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/columnar/cron_eventloop_arrays_rntuple.sh
 
 # EventLoop No Arrays Script
 0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/cron_eventloop_noarrays.sh
-30 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/cron_eventloop_noarrays_rntuple.sh
+0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/event_loop/BNL/standard/cron_eventloop_noarrays_rntuple.sh

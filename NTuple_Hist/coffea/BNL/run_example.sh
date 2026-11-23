@@ -47,7 +47,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01
   python3 -m venv venv &&\
   ./venv/bin/python -m pip install -U pip &&\
   ./venv/bin/python -m pip install 'atlas_schema<0.5' 'dask_awkward!=2026.2.0' dask_histogram &&\
-  echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
+  date -u +SETUP_COMPLETE=%Y-%m-%dT%H:%M:%SZ >> split.log &&\
   /usr/bin/time -v ./venv/bin/python example.py --format ${format} 2>&1 | tee ${log_file}"
 
 setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')

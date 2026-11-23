@@ -2,6 +2,7 @@ import argparse
 import ROOT as r
 from pathlib import Path
 from datetime import datetime, timezone
+import sys
 import time
 
 
@@ -149,6 +150,13 @@ def main():
         print(f"\nProcessing sample: {s['name']}")
         for f in sorted(s["path"].glob("*.root")):
             total_events_processed += eventloop(str(f), h_baseline_pt, s["metadata"])
+
+    # A missing or empty dataset directory yields no files and would otherwise
+    # exit 0, so the run would be recorded as a very fast success.
+    if total_events_processed == 0:
+        sys.exit(
+            "no events processed from " + ", ".join(str(s["path"]) for s in samples)
+        )
 
     dt = time.perf_counter() - t0
     end_time_utc = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")

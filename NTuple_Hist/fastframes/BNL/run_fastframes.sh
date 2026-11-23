@@ -46,7 +46,7 @@ date -u "+%Y-%m-%dT%H:%M:%SZ" >> split.log
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -m /atlasgpfs01/usatlas/data/ -c el9 -r "asetup StatAnalysis,0.7.3 &&\
   source /atlasgpfs01/usatlas/data/qlei/FastFramesTutorial_0.7.3/TutorialClass/build/setup.sh &&\
-  echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
+  date -u +SETUP_COMPLETE=%Y-%m-%dT%H:%M:%SZ >> split.log &&\
   /usr/bin/time -v python3 /atlasgpfs01/usatlas/data/qlei/FastFramesTutorial_0.7.3/FastFrames/python/FastFrames.py -c ${working_dir}/input/${config} 2>&1 | tee ${log_file}"
 
 # Getting the date and time after running script
