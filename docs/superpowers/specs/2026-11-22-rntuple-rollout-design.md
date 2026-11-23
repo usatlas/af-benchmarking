@@ -31,11 +31,11 @@ container's system default).
 **Resolved, 2026-11-22: no longer a blocker.** PR #91 (`docs/slac-benchmarks`)
 squash-merged to `main` with all of PR #93's (`feat/nersc-qlei-migration`)
 commits as ancestors, so `main` now has the shared, site-neutral
-`parsing/utils/submit_and_upload.sh`, SLAC's refactor to use it, the full
-NERSC job tree and `crontab_nersc.txt`, and `docs/workflows/rntuple-conversion.md`
-at its new path — verified directly against `origin/main`. PR #93 itself is
-now redundant (conflicting against the new `main`, since everything it would
-add is already there) and should be closed rather than merged separately.
+`parsing/utils/submit_and_upload.sh`, SLAC's refactor to use it, the full NERSC
+job tree and `crontab_nersc.txt`, and `docs/workflows/rntuple-conversion.md` at
+its new path — verified directly against `origin/main`. PR #93 itself is now
+redundant (conflicting against the new `main`, since everything it would add is
+already there) and should be closed rather than merged separately.
 
 Everything below, which was written describing the end state "once #93/#91
 land," now simply describes the current state of `main`. This project can be
