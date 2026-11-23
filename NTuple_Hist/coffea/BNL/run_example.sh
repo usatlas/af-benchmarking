@@ -22,11 +22,16 @@ cp ~/AF-Benchmarking/NTuple_Hist/coffea/BNL/example.py .
 setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
 export ALRB_localConfigDir="$HOME"/localConfig
+# atlas_schema 0.5.0 gives every photon a default "mass" next to the ntuple's
+# own "e" branch, which coffea's Lorentz-vector validation rejects, so it stays
+# below 0.5. dask_histogram is listed because coffea 2026.11 no longer pulls it
+# in and example.py imports hist.dask.
 # shellcheck disable=SC1091
 source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01/usatlas/data/ -r "date >> split.log &&\
+  lsetup 'python 3.13.18-x86_64-el9' &&\
   python3 -m venv venv &&\
   ./venv/bin/python -m pip install -U pip &&\
-  ./venv/bin/python -m pip install atlas_schema 'dask_awkward!=2026.2.0' &&\
+  ./venv/bin/python -m pip install 'atlas_schema<0.5' 'dask_awkward!=2026.2.0' dask_histogram &&\
   echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
   /usr/bin/time -v ./venv/bin/python example.py 2>&1 | tee coffea_hist.log"
 
