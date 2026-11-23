@@ -1,0 +1,16 @@
+Universe = vanilla
+
+initialdir = /usatlas/u/qlei/AF-Benchmarking
+
+Output = /usatlas/u/qlei/batch_output_files/coffea/myjob_rntuple.$(Cluster).$(Process).out
+Error = /usatlas/u/qlei/batch_output_files/coffea/myjob_rntuple.$(Cluster).$(Process).err
+Log = /usatlas/u/qlei/batch_output_files/coffea/myjob_rntuple.$(Cluster).$(Process).log
+
+Executable = /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/coffea/BNL/run_example.sh
+
+request_memory = 16GB
+request_cpus = 4
+
+Arguments = rntuple
+
+Queue 1

@@ -17,6 +17,7 @@
 
 # Coffea Metrics
 0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/coffea/BNL/cron_example.sh
+30 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/coffea/BNL/cron_example_rntuple.sh
 
 # FastFrames Script
 0 */6 * * * /usatlas/u/qlei/AF-Benchmarking/NTuple_Hist/fastframes/BNL/crontab_fastframes.sh

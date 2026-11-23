@@ -3,11 +3,25 @@
 # shellcheck disable=SC1091
 source ./parsing/utils/benchmark_utils.sh
 
+# Input format: ttree (default) or rntuple. Each format gets its own working
+# directory (venv, split.log, coffea.root), log name and log directory, so the
+# two jobs never share files, even when they run at the same time.
+format="${1:-ttree}"
+case "${format}" in
+  ttree) variant_suffix="" ;;
+  rntuple) variant_suffix="_rntuple" ;;
+  *)
+    echo "unknown format: ${format} (expected ttree or rntuple)" >&2
+    exit 2
+    ;;
+esac
+log_file="coffea_hist${variant_suffix}.log"
+
 # current time used for log file storage
 
 start_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 
-working_dir="/atlasgpfs01/usatlas/data/qlei/ntuple/coffea"
+working_dir="/atlasgpfs01/usatlas/data/qlei/ntuple/coffea${variant_suffix}"
 
 # Goes into the job directory if it exits, creates it otherwise
 if [ -d "${working_dir}" ]; then
@@ -18,6 +32,7 @@ else
 fi
 
 cp ~/AF-Benchmarking/NTuple_Hist/coffea/BNL/example.py .
+cp ~/AF-Benchmarking/NTuple_Hist/coffea/BNL/single_campaign_mc20e_dataset_runnable/af_v2_700402_rntuple.json .
 
 setup_start=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
 export ATLAS_LOCAL_ROOT_BASE=/cvmfs/atlas.cern.ch/repo/ATLASLocalRootBase
@@ -33,7 +48,7 @@ source "${ATLAS_LOCAL_ROOT_BASE}"/user/atlasLocalSetup.sh -c el9 -m /atlasgpfs01
   ./venv/bin/python -m pip install -U pip &&\
   ./venv/bin/python -m pip install 'atlas_schema<0.5' 'dask_awkward!=2026.2.0' dask_histogram &&\
   echo \"SETUP_COMPLETE=\$(date -u '+%Y-%m-%dT%H:%M:%SZ')\" >> split.log &&\
-  /usr/bin/time -v ./venv/bin/python example.py 2>&1 | tee coffea_hist.log"
+  /usr/bin/time -v ./venv/bin/python example.py --format ${format} 2>&1 | tee ${log_file}"
 
 setup_end=$(grep "^SETUP_COMPLETE=" split.log 2>/dev/null | tail -1 | sed 's/^SETUP_COMPLETE=//')
 end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
@@ -44,11 +59,11 @@ end_time=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
   du coffea.root
 } >> split.log
 
-output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Coffea_Hist/${start_time}"
+output_dir="/atlasgpfs01/usatlas/data/qlei/logs/Coffea_Hist${variant_suffix}/${start_time}"
 
 mkdir -p "${output_dir}"
 
-append_benchmark coffea_hist.log "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
+append_benchmark "${log_file}" "${start_time}" "${end_time}" "${setup_start}" "${setup_end}"
 
-mv coffea_hist.log "${output_dir}"
+mv "${log_file}" "${output_dir}"
 mv split.log "${output_dir}"
